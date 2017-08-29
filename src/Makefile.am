@@ -1,0 +1,20 @@
+AM_CPPFLAGS = -Ich-cpp-utils
+lib_LTLIBRARIES = libch-cpp-utils.la
+libch_cpp_utils_la_SOURCES = fts.cpp  \
+									  tcp-client.cpp  \
+									  tcp-listener.cpp  \
+									  tcp-server.cpp  \
+									  thread.cpp          \
+									  thread-job.cpp  \
+									  thread-pool.cpp
+libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
+nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
+								 ch-cpp-utils/linked-hash-map.hpp  \
+								 ch-cpp-utils/logger.hpp  \
+								 ch-cpp-utils/tcp-client.hpp  \
+								 ch-cpp-utils/tcp-listener.hpp  \
+								 ch-cpp-utils/tcp-server.hpp  \
+								 ch-cpp-utils/thread-get-job.hpp  \
+								 ch-cpp-utils/thread.hpp  \
+								 ch-cpp-utils/thread-job.hpp  \
+								 ch-cpp-utils/thread-pool.hpp 
