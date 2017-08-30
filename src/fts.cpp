@@ -99,6 +99,7 @@ bool Fts::walk (OnFile onFile, void *this_) {
     return (fts_close(tree) ? false : true);
 }
 
+#if 0
 static void onFile (std::string name, std::string ext, std::string path, void *this_);
 
 static void onFile (std::string name, std::string ext, std::string path, void *this_) {
@@ -115,4 +116,4 @@ int main (int argc, char **argv) {
     Fts *fts = new Fts ((argv[1] ? argv[1] : ""), &options);
     fts->walk(onFile, nullptr);
 }
-
+#endif
