@@ -48,17 +48,19 @@ FsWatch::FsWatch() {
    epollThread = NULL;
    inotifyFd = -1;
    epollFd = -1;
-   events = NULL;
    fts = NULL;
    root = ".";
+   onNewFile = NULL;
+   onNewFileThis = NULL;
 }
 
 FsWatch::FsWatch(std::string root) {
    epollThread = NULL;
    inotifyFd = -1;
    epollFd = -1;
-   events = NULL;
    fts = NULL;
+   onNewFile = NULL;
+   onNewFileThis = NULL;
    this->root = root;
 }
 
@@ -70,10 +72,9 @@ void FsWatch::addWatch(std::string dir, bool add) {
 
    auto find = set.find(dir);
    if (find != set.end()) {
-      LOG << "Already watching dir " << dir << std::endl;
+//      LOG << "Already watching dir " << dir << std::endl;
       return;
    }
-
 
    struct epoll_event ev;
 
@@ -101,7 +102,7 @@ void FsWatch::addWatch(std::string dir, bool add) {
 
    map.insert (std::make_pair (inotifyFd, dir));
    set.insert(dir);
-   LOG << "Added watch for " << dir << std::endl;
+//   LOG << "Added watch for " << dir << std::endl;
 }
 
 void FsWatch::handleActivity(int fd) {
@@ -118,11 +119,8 @@ void FsWatch::handleActivity(int fd) {
    char *ptr;
 
    /* Loop while events can be read from inotify file descriptor. */
-
    for (;;) {
-
       /* Read some events. */
-
       len = read(fd, buf, sizeof buf);
       if (len == -1 && errno != EAGAIN) {
          perror("read");
@@ -132,49 +130,21 @@ void FsWatch::handleActivity(int fd) {
       /* If the nonblocking read() found no events to read, then
          it returns -1 with errno set to EAGAIN. In that case,
          we exit the loop. */
-
       if (len <= 0)
          break;
 
       /* Loop over all events in the buffer */
-
       for (ptr = buf; ptr < buf + len;
             ptr += sizeof(struct inotify_event) + event->len) {
 
          event = (const struct inotify_event *) ptr;
 
-         /* Print event type */
-
          if (!(event->mask & IN_ISDIR)) {
-            if (event->mask & IN_CREATE)
-               printf("IN_CREATE: ");
-            if (event->mask & IN_OPEN)
-               printf("IN_OPEN: ");
-            if (event->mask & IN_CLOSE_WRITE)
-               printf("IN_CLOSE_WRITE: ");
-            if (event->mask & IN_DELETE)
-               printf("IN_DELETE: ");
-
-            /* Print the name of the watched directory */
-
             auto search = map.find(fd);
             std::string dir = search->second;
-
-            printf("%s/", dir.data());
-
-            /* Print the name of the file */
-
-            if (event->len)
-               printf("%s", event->name);
-
-            /* Print type of filesystem object */
-            printf(" [file]\n");
          }
 
          if ((event->mask & IN_ISDIR) && (event->mask & IN_CREATE)) {
-            printf("IN_CREATE:  [directory] ");
-
-            /* Print the name of the watched directory */
             auto search = map.find(fd);
             std::string dir = search->second;
 
@@ -184,14 +154,32 @@ void FsWatch::handleActivity(int fd) {
                newDir.insert(newDir.length(), "/");
             }
             newDir.insert(newDir.length(), event->name);
-            printf("New directory: %s\n", newDir.data());
             addWatch(newDir, true);
 
             fts->walk(newDir, FsWatch::_onFile, this);
          }
 
          if (!(event->mask & IN_ISDIR) && (event->mask & IN_CLOSE_WRITE)) {
-            events->fire("file");
+            if (NULL != onNewFile) {
+               std::string name = event->name;
+               auto search = map.find(fd);
+               std::string dir = search->second;
+               std::string path = "";
+               path.insert(path.length(), dir);
+               if (!('/' == root.back())) {
+                  path.insert(path.length(), "/");
+               }
+               path.insert(path.length(), name);
+               if (filters.empty ()) {
+                  onNewFile(name, path, onNewFileThis);
+               } else {
+                  int32_t pos = name.find_last_of('.');
+                  std::string ext = name.substr (pos + 1);
+                  if (filters.count (ext) > 0) {
+                     onNewFile(name, path, onNewFileThis);
+                  }
+               }
+            }
          }
       }
    }
@@ -234,7 +222,6 @@ void FsWatch::onFile (std::string name, std::string ext, std::string path) {
 }
 
 int FsWatch::init() {
-    events = new Events();
 	 epollFd = epoll_create1(0);
 	 if (epollFd == -1) {
 		 perror("epoll_create1");
@@ -263,7 +250,15 @@ void FsWatch::start() {
    epollThread->addJob(job);
 }
 
-Target *FsWatch::on(string name, EventTarget target) {
-   return events->on(name, target);
+void FsWatch::start(vector<string> filters) {
+   for (uint32_t i = 0; i < filters.size(); i++) {
+      this->filters.insert (filters.at (i));
+   }
+   start();
+}
+
+void FsWatch::OnNewFileCbk(OnNewFile onNewFile, void *this_) {
+   this->onNewFile = onNewFile;
+   this->onNewFileThis = this_;
 }
 

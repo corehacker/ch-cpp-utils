@@ -30,68 +30,42 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   fs-watch.hpp
+ * \file   test-fs-watch.cpp
  *
  * \author Sandeep Prakash
  *
- * \date   Sep 12, 2017
+ * \date   Sep 22, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <poll.h>
-#include <sys/inotify.h>
-#include <sys/epoll.h>
-#include <unistd.h>
-
-#include <string>
 #include <iostream>
-#include <unordered_map>
-#include <unordered_set>
+#include <thread>
+#include <chrono>
+#include "ch-cpp-utils/thread-pool.hpp"
+#include "ch-cpp-utils/tcp-listener.hpp"
+#include "ch-cpp-utils/tcp-server.hpp"
+#include "ch-cpp-utils/logger.hpp"
+#include "ch-cpp-utils/fs-watch.hpp"
 
-#include "logger.hpp"
-#include "thread.hpp"
-#include "thread-pool.hpp"
-#include "thread-job.hpp"
-#include "events.hpp"
-#include "fts.hpp"
+static Logger &log = Logger::getInstance();
 
-#define MAX_EVENTS 10
+static void onNewFile (std::string name, std::string path, void *this_);
 
-typedef void (*OnNewFile) (std::string name, std::string path, void *this_);
+static void onNewFile (std::string name, std::string path, void *this_) {
+   LOG << "onNewFile: " << name << " | " << path << std::endl;
+}
 
-class FsWatch {
-   private:
-      std::string root;
-      int epollFd;
-      int inotifyFd;
-      std::unordered_map<int, std::string> map;
-      std::unordered_set<std::string> set;
-      ThreadPool *epollThread;
-      Fts *fts;
-      FtsOptions options;
-      OnNewFile onNewFile;
-      void *onNewFileThis;
-      std::unordered_set <string> filters;
 
-      void addWatch(std::string dir, bool add);
-      void handleActivity(int fd);
-      static void *_epollThreadRoutine (void *arg, struct event_base *base);
-      void *epollThreadRoutine ();
-      static void _onFile (std::string name, std::string ext, std::string path, void *this_);
-      void onFile (std::string name, std::string ext, std::string path);
-   public:
-      FsWatch();
-      FsWatch(std::string root);
-      ~FsWatch();
-      int init();
-      void start();
-      void start(vector<string> filters);
-      void OnNewFileCbk(OnNewFile onNewFile, void *this_);
-};
+int main () {
+   vector<string> filters;
+   filters.emplace_back("jpg");
+   filters.emplace_back("png");
+   FsWatch *watch = new FsWatch();
+   watch->init();
+   watch->OnNewFileCbk(onNewFile, NULL);
+   watch->start(filters);
 
+   THREAD_SLEEP_FOREVER;
+}
