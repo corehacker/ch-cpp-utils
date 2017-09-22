@@ -61,6 +61,9 @@
 #include "events.hpp"
 #include "fts.hpp"
 
+#ifndef __CH_CPP_UTILS_FS_WATCH_HPP__
+#define __CH_CPP_UTILS_FS_WATCH_HPP__
+
 #define MAX_EVENTS 10
 
 typedef void (*OnNewFile) (std::string name, std::string path, void *this_);
@@ -94,4 +97,5 @@ class FsWatch {
       void start(vector<string> filters);
       void OnNewFileCbk(OnNewFile onNewFile, void *this_);
 };
+#endif /* __CH_CPP_UTILS_FS_WATCH_HPP__ */
 

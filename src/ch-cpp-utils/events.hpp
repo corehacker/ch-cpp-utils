@@ -10,6 +10,9 @@ using std::string;
 using std::shared_ptr;
 using std::make_shared;
 
+#ifndef __CH_CPP_UTILS_EVENTS_HPP__
+#define __CH_CPP_UTILS_EVENTS_HPP__
+
 typedef void (*EventTarget)(string name, void *this_, void *data);
 
 class Target {
@@ -44,4 +47,5 @@ class Events {
       Target *on(string name, EventTarget target);
       void fire(string name);
 };
+#endif /* __CH_CPP_UTILS_EVENTS_HPP__ */
 
