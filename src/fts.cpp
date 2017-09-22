@@ -6,13 +6,26 @@
 
 Fts::Fts() {
     root = ".";
+    tree = NULL;
+    bIgnoreHiddenFiles = true;
+    bIgnoreHiddenDirs = true;
+    bIgnoreRegularFiles = false;
+    bIgnoreRegularDirs = false;
 }
 
 Fts::Fts(string root) {
+   tree = NULL;
+   bIgnoreHiddenFiles = true;
+   bIgnoreHiddenDirs = true;
+   bIgnoreRegularFiles = false;
+   bIgnoreRegularDirs = false;
     this->root = ((0 == root.length()) ? "." : root);
 }
 
 Fts::Fts(string root, FtsOptions *options) {
+   tree = NULL;
+   bIgnoreHiddenFiles = true;
+   bIgnoreHiddenDirs = true;
     this->root = ((0 == root.length()) ? "." : root);
 
     if (options) {
@@ -21,6 +34,8 @@ Fts::Fts(string root, FtsOptions *options) {
         }
         bIgnoreHiddenFiles = options->bIgnoreHiddenFiles;
         bIgnoreHiddenDirs = options->bIgnoreHiddenDirs;
+        bIgnoreRegularFiles = options->bIgnoreRegularFiles;
+        bIgnoreRegularDirs = options->bIgnoreRegularDirs;
     }
 }
 
@@ -63,12 +78,10 @@ bool Fts::walk (OnFile onFile, void *this_) {
     FTSENT *node = nullptr;
 
     while ((node = fts_read(tree))) {
-        if (node->fts_info & FTS_F) {
+        if ((node->fts_info & FTS_F) && !bIgnoreRegularFiles) {
             string name = node->fts_name;
             int32_t pos = name.find_last_of('.');
-            if (-1 == pos) {
-
-            } else if (0 == pos) {
+            if (0 == pos) {
                 if (!bIgnoreHiddenFiles) {
                     string ext = name.substr (pos + 1);
                     if (filters.empty ()) {
@@ -90,6 +103,24 @@ bool Fts::walk (OnFile onFile, void *this_) {
                 }
             }
         }
+        if ((node->fts_info & FTS_D) && !bIgnoreRegularDirs) {
+           string name = node->fts_name;
+           int32_t pos = name.find_last_of('.');
+//           printf ("Directory found: %s %s %lu\n", node->fts_name, node->fts_path, name.length());
+           if (0 == pos) {
+               if (!bIgnoreHiddenDirs) {
+                  if (1 == name.length() && 0 == name.compare(".")) {
+
+                  } else {
+                     string ext = name.substr (pos + 1);
+                     onFile (node->fts_name, ext, node->fts_path, this_);
+                  }
+               }
+           } else {
+              string ext = name.substr (pos + 1);
+             onFile (node->fts_name, ext, node->fts_path, this_);
+           }
+        }
     }
 
     if (errno) {
@@ -99,21 +130,8 @@ bool Fts::walk (OnFile onFile, void *this_) {
     return (fts_close(tree) ? false : true);
 }
 
-#if 0
-static void onFile (std::string name, std::string ext, std::string path, void *this_);
-
-static void onFile (std::string name, std::string ext, std::string path, void *this_) {
-    printf ("File: %10s %50s %s\n",
-        ext.data(), name.data(), path.data());
+bool Fts::walk (string root, OnFile onFile, void *this_) {
+   this->root = root;
+   return this->walk(onFile, this_);
 }
 
-int main (int argc, char **argv) {
-    FtsOptions options;
-    options.filters.emplace_back<string>("cpp");
-    options.filters.emplace_back<string>("hpp");
-    options.filters.emplace_back<string>("h");
-    options.filters.emplace_back<string>("c");
-    Fts *fts = new Fts ((argv[1] ? argv[1] : ""), &options);
-    fts->walk(onFile, nullptr);
-}
-#endif

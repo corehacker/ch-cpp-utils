@@ -30,53 +30,63 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   fts.hpp
+ * \file   fs-watch.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Aug 16, 2017
+ * \date   Sep 12, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fts.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <poll.h>
+#include <sys/inotify.h>
+#include <sys/epoll.h>
+#include <unistd.h>
+
 #include <string>
-#include <vector>
-#include <set>
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
-using std::string;
-using std::vector;
-using std::set;
+#include "logger.hpp"
+#include "thread.hpp"
+#include "thread-pool.hpp"
+#include "thread-job.hpp"
+#include "events.hpp"
+#include "fts.hpp"
 
-typedef void (*OnFile) (std::string name, std::string ext, std::string path, void *this_);
+#define MAX_EVENTS 10
 
-typedef struct _FtsOptions {
-    bool bIgnoreHiddenFiles;
-    bool bIgnoreHiddenDirs;
-    bool bIgnoreRegularFiles;
-    bool bIgnoreRegularDirs;
-    vector <string> filters;
+class FsWatch {
+   private:
+      std::string root;
+      int epollFd;
+      int inotifyFd;
+      std::unordered_map<int, std::string> map;
+      std::unordered_set<std::string> set;
+      ThreadPool *epollThread;
+      Events *events;
+      Fts *fts;
+      FtsOptions options;
 
-} FtsOptions;
-
-class Fts {
-public:
-    Fts();
-    Fts(string root);
-    Fts(string root, FtsOptions *options);
-    ~Fts();
-    bool walk (OnFile onFile, void *this_);
-    bool walk (string root, OnFile onFile, void *this_);
-
-private:
-    string root;
-    FTS *tree;
-    set <string> filters;
-    bool bIgnoreHiddenFiles;
-    bool bIgnoreHiddenDirs;
-    bool bIgnoreRegularFiles;
-    bool bIgnoreRegularDirs;
+      void addWatch(std::string dir, bool add);
+      void handleActivity(int fd);
+      static void *_epollThreadRoutine (void *arg, struct event_base *base);
+      void *epollThreadRoutine ();
+      static void _onFile (std::string name, std::string ext, std::string path, void *this_);
+      void onFile (std::string name, std::string ext, std::string path);
+   public:
+      FsWatch();
+      FsWatch(std::string root);
+      ~FsWatch();
+      int init();
+      void start();
+      Target *on(string name, EventTarget target);
 };
+

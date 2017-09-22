@@ -1,0 +1,269 @@
+/*******************************************************************************
+ *
+ *  BSD 2-Clause License
+ *
+ *  Copyright (c) 2017, Sandeep Prakash
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ *  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ *  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ *  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
+ *
+ * \file   fs-watch.cpp
+ *
+ * \author Sandeep Prakash
+ *
+ * \date   Sep 12, 2017
+ *
+ * \brief
+ *
+ ******************************************************************************/
+
+#include "ch-cpp-utils/fs-watch.hpp"
+
+static Logger &log = Logger::getInstance();
+
+FsWatch::FsWatch() {
+   epollThread = NULL;
+   inotifyFd = -1;
+   epollFd = -1;
+   events = NULL;
+   fts = NULL;
+   root = ".";
+}
+
+FsWatch::FsWatch(std::string root) {
+   epollThread = NULL;
+   inotifyFd = -1;
+   epollFd = -1;
+   events = NULL;
+   fts = NULL;
+   this->root = root;
+}
+
+FsWatch::~FsWatch() {
+
+}
+
+void FsWatch::addWatch(std::string dir, bool add) {
+
+   auto find = set.find(dir);
+   if (find != set.end()) {
+      LOG << "Already watching dir " << dir << std::endl;
+      return;
+   }
+
+
+   struct epoll_event ev;
+
+    inotifyFd = inotify_init1(IN_NONBLOCK);
+    if (inotifyFd == -1) {
+        perror("inotify_init1");
+        exit(EXIT_FAILURE);
+    }
+
+   int status = inotify_add_watch(inotifyFd, dir.data(),
+         IN_OPEN |
+         IN_CLOSE |
+         IN_DELETE |
+         IN_CREATE);
+   if (status == -1) {
+      fprintf(stderr, "Cannot watch '%s'\n", dir.data());
+   }
+
+   int op = (true == add ? EPOLL_CTL_ADD : EPOLL_CTL_MOD);
+   ev.events = EPOLLIN;
+   ev.data.fd = inotifyFd;
+   if (epoll_ctl(epollFd, op, inotifyFd, &ev) == -1) {
+      perror("epoll_ctl: inotifyFd");
+   }
+
+   map.insert (std::make_pair (inotifyFd, dir));
+   set.insert(dir);
+   LOG << "Added watch for " << dir << std::endl;
+}
+
+void FsWatch::handleActivity(int fd) {
+   /* Some systems cannot read integer variables if they are not
+      properly aligned. On other systems, incorrect alignment may
+      decrease performance. Hence, the buffer used for reading from
+      the inotify file descriptor should have the same alignment as
+      struct inotify_event. */
+
+   char buf[4096]
+      __attribute__ ((aligned(__alignof__(struct inotify_event))));
+   const struct inotify_event *event;
+   ssize_t len;
+   char *ptr;
+
+   /* Loop while events can be read from inotify file descriptor. */
+
+   for (;;) {
+
+      /* Read some events. */
+
+      len = read(fd, buf, sizeof buf);
+      if (len == -1 && errno != EAGAIN) {
+         perror("read");
+         exit(EXIT_FAILURE);
+      }
+
+      /* If the nonblocking read() found no events to read, then
+         it returns -1 with errno set to EAGAIN. In that case,
+         we exit the loop. */
+
+      if (len <= 0)
+         break;
+
+      /* Loop over all events in the buffer */
+
+      for (ptr = buf; ptr < buf + len;
+            ptr += sizeof(struct inotify_event) + event->len) {
+
+         event = (const struct inotify_event *) ptr;
+
+         /* Print event type */
+
+         if (!(event->mask & IN_ISDIR)) {
+            if (event->mask & IN_CREATE)
+               printf("IN_CREATE: ");
+            if (event->mask & IN_OPEN)
+               printf("IN_OPEN: ");
+            if (event->mask & IN_CLOSE_WRITE)
+               printf("IN_CLOSE_WRITE: ");
+            if (event->mask & IN_DELETE)
+               printf("IN_DELETE: ");
+
+            /* Print the name of the watched directory */
+
+            auto search = map.find(fd);
+            std::string dir = search->second;
+
+            printf("%s/", dir.data());
+
+            /* Print the name of the file */
+
+            if (event->len)
+               printf("%s", event->name);
+
+            /* Print type of filesystem object */
+            printf(" [file]\n");
+         }
+
+         if ((event->mask & IN_ISDIR) && (event->mask & IN_CREATE)) {
+            printf("IN_CREATE:  [directory] ");
+
+            /* Print the name of the watched directory */
+            auto search = map.find(fd);
+            std::string dir = search->second;
+
+            std::string newDir = "";
+            newDir.insert(newDir.length(), dir);
+            if (!('/' == root.back())) {
+               newDir.insert(newDir.length(), "/");
+            }
+            newDir.insert(newDir.length(), event->name);
+            printf("New directory: %s\n", newDir.data());
+            addWatch(newDir, true);
+
+            fts->walk(newDir, FsWatch::_onFile, this);
+         }
+
+         if (!(event->mask & IN_ISDIR) && (event->mask & IN_CLOSE_WRITE)) {
+            events->fire("file");
+         }
+      }
+   }
+}
+
+void *FsWatch::_epollThreadRoutine (void *arg, struct event_base *base) {
+   FsWatch *this_ = (FsWatch *) arg;
+   return this_->epollThreadRoutine();
+}
+
+void *FsWatch::epollThreadRoutine () {
+   int nfds;
+   struct epoll_event events[MAX_EVENTS];
+   LOG << "Listening for events." << std::endl;
+   while (1) {
+      nfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+      if (nfds == -1) {
+         perror("epoll_wait");
+         exit(EXIT_FAILURE);
+      }
+      for (int n = 0; n < nfds; ++n) {
+         auto search = map.find(events[n].data.fd);
+         if (search != map.end()) {
+            handleActivity(events[n].data.fd);
+         }
+      }
+   }
+
+   printf("Listening for events stopped.\n");
+   return NULL;
+}
+
+void FsWatch::_onFile (std::string name, std::string ext, std::string path, void *this_) {
+   FsWatch *watch = (FsWatch *) this_;
+   watch->onFile(name, ext, path);
+}
+
+void FsWatch::onFile (std::string name, std::string ext, std::string path) {
+   addWatch(path, true);
+}
+
+int FsWatch::init() {
+    events = new Events();
+	 epollFd = epoll_create1(0);
+	 if (epollFd == -1) {
+		 perror("epoll_create1");
+		 exit(EXIT_FAILURE);
+	 }
+
+	 addWatch(root, true);
+
+     memset(&options, 0x00, sizeof(FtsOptions));
+     options.bIgnoreRegularFiles = true;
+     options.bIgnoreHiddenFiles = true;
+     options.bIgnoreHiddenDirs = true;
+     options.bIgnoreRegularDirs = false;
+	 fts = new Fts (root, &options);
+	 fts->walk(FsWatch::_onFile, this);
+
+    epollThread = new ThreadPool (1, false);
+
+    LOG << "Init done" << std::endl;
+    return 0;
+}
+
+
+void FsWatch::start() {
+   ThreadJob *job = new ThreadJob (FsWatch::_epollThreadRoutine, this);
+   epollThread->addJob(job);
+}
+
+Target *FsWatch::on(string name, EventTarget target) {
+   return events->on(name, target);
+}
+
