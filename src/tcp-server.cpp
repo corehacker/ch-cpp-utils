@@ -40,10 +40,10 @@
  *
  ******************************************************************************/
 
-/********************************** INCLUDES **********************************/
 #include "ch-cpp-utils/tcp-server.hpp"
 
-/********************************* CONSTANTS **********************************/
+using ChCppUtils::Logger;
+
 static Logger &log = Logger::getInstance();
 
 namespace ChCppUtils {

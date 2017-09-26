@@ -69,13 +69,6 @@
 #include "thread-pool.hpp"
 #include "logger.hpp"
 
-/********************************* CONSTANTS **********************************/
-
-/*********************************** MACROS ***********************************/
-
-/******************************** ENUMERATIONS ********************************/
-
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 namespace ChCppUtils {
 
 typedef void (*OnNewConnection) (int client_fd,

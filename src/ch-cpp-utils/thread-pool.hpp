@@ -56,14 +56,7 @@
 #ifndef __SRC_UTILS_THREAD_POOL_HPP__
 #define __SRC_UTILS_THREAD_POOL_HPP__
 
-/********************************* CONSTANTS **********************************/
-
-/*********************************** MACROS ***********************************/
 #define THREAD_POOL_DEFAULT_COUNT (8)
-
-/******************************** ENUMERATIONS ********************************/
-
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 
 namespace ChCppUtils {
 

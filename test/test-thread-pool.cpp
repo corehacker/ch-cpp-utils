@@ -61,6 +61,7 @@
 using namespace std;
 using ChCppUtils::ThreadJob;
 using ChCppUtils::ThreadPool;
+using ChCppUtils::Logger;
 
 static Logger &log = Logger::getInstance();
 

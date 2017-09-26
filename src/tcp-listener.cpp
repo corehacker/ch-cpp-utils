@@ -40,12 +40,12 @@
  *
  ******************************************************************************/
 
-/********************************** INCLUDES **********************************/
 #include <iostream>
 
 #include "ch-cpp-utils/tcp-listener.hpp"
 
-/********************************* CONSTANTS **********************************/
+using ChCppUtils::Logger;
+
 static Logger &log = Logger::getInstance();
 
 namespace ChCppUtils {

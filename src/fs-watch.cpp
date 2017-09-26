@@ -42,6 +42,8 @@
 
 #include "ch-cpp-utils/fs-watch.hpp"
 
+using ChCppUtils::Logger;
+
 static Logger &log = Logger::getInstance();
 
 namespace ChCppUtils {

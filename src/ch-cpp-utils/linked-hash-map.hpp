@@ -49,18 +49,7 @@
 #ifndef __SRC_UTILS_LINKED_HASH_MAP_HPP__
 #define __SRC_UTILS_LINKED_HASH_MAP_HPP__
 
-
-/********************************* CONSTANTS **********************************/
-
-/*********************************** MACROS ***********************************/
-
-/******************************** ENUMERATIONS ********************************/
-
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
-
-/***************************** FUNCTION PROTOTYPES ****************************/
 namespace ChCppUtils {
-
 
 template<class T>
    class LinkedHashMap

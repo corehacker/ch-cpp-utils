@@ -54,7 +54,6 @@
 
 namespace ChCppUtils {
 
-/*********************************** MACROS ***********************************/
 #define THREAD_SLEEP_FOREVER \
    do { \
       std::chrono::milliseconds ms(1000); \
@@ -63,9 +62,6 @@ namespace ChCppUtils {
       } \
    } while(0)
 
-/******************************** ENUMERATIONS ********************************/
-
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 class Thread {
    public:
       Thread (ThreadGetJob getJob, void *this_);

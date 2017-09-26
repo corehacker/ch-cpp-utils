@@ -40,24 +40,13 @@
  *
  ******************************************************************************/
 
-/********************************** INCLUDES **********************************/
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include "ch-cpp-utils/logger.hpp"
 #include "ch-cpp-utils/thread-pool.hpp"
 
-/********************************* CONSTANTS **********************************/
-
-/*********************************** MACROS ***********************************/
-
-/******************************** ENUMERATIONS ********************************/
-
-/************************* STRUCTURE/UNION DATA TYPES *************************/
-
-/************************ STATIC FUNCTION PROTOTYPES **************************/
-
-/****************************** LOCAL FUNCTIONS *******************************/
+using ChCppUtils::Logger;
 using namespace std;
 
 static Logger &log = Logger::getInstance();

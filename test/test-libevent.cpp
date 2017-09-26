@@ -78,23 +78,16 @@
 
 using ChCppUtils::TcpServer;
 using ChCppUtils::client_ctxt;
+using ChCppUtils::Logger;
 
-/********************************* CONSTANTS **********************************/
 
-/*********************************** MACROS ***********************************/
 #define _200_OK ("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
 #define _500_INTERNAL_SERVER_ERROR ("HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n")
 
-/******************************** ENUMERATIONS ********************************/
-
-/************************* STRUCTURE/UNION DATA TYPES *************************/
-
-/************************ STATIC FUNCTION PROTOTYPES **************************/
 static void event_log_cbk(int severity, const char *msg);
 
 static void onMessage (client_ctxt *client, uint8_t *message, uint32_t length, void *this_);
 
-/****************************** LOCAL FUNCTIONS *******************************/
 using namespace std;
 
 static Logger &log = Logger::getInstance();

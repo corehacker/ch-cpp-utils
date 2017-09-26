@@ -60,15 +60,11 @@
 #ifndef __SRC_UTILS_LOGGER_HPP__
 #define __SRC_UTILS_LOGGER_HPP__
 
-/********************************* CONSTANTS **********************************/
-
-/*********************************** MACROS ***********************************/
 #define LOG log << basename ((char *) __FILE__) << ":" << __FUNCTION__ << ":" << __LINE__ << " | 0x"\
    << std::hex << std::this_thread::get_id () << " | "
 
-/******************************** ENUMERATIONS ********************************/
+namespace ChCppUtils {
 
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 class Logger
 {
    private:
@@ -168,6 +164,6 @@ class Logger
       }
 };
 
-/***************************** FUNCTION PROTOTYPES ****************************/
+}
 
 #endif /* __SRC_UTILS_LOGGER_HPP__ */
