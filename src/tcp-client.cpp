@@ -44,13 +44,15 @@
 
  #include "ch-cpp-utils/tcp-client.hpp"
 
- TcpClient::TcpClient (in_addr_t ip, in_port_t port)
- {
-    mIp = ip;
-    mPort = port;
-    mFd = -1;
- }
+namespace ChCppUtils {
 
- TcpClient::~TcpClient()
- {
- }
+TcpClient::TcpClient(in_addr_t ip, in_port_t port) {
+   mIp = ip;
+   mPort = port;
+   mFd = -1;
+}
+
+TcpClient::~TcpClient() {
+}
+
+}

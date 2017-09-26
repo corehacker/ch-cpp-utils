@@ -46,6 +46,8 @@
 #include <chrono>
 #include "ch-cpp-utils/linked-hash-map.hpp"
 
+using ChCppUtils::LinkedHashMap;
+
 /********************************* CONSTANTS **********************************/
 
 /*********************************** MACROS ***********************************/

@@ -69,13 +69,8 @@
 #include "logger.hpp"
 #include "tcp-listener.hpp"
 
-/********************************* CONSTANTS **********************************/
+namespace ChCppUtils {
 
-/*********************************** MACROS ***********************************/
-
-/******************************** ENUMERATIONS ********************************/
-
-/*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 class TcpServer;
 
 typedef void (*OnLocalEvent) (void *this_);
@@ -149,6 +144,6 @@ private:
 
 };
 
-/***************************** FUNCTION PROTOTYPES ****************************/
+}
 
 #endif /* __SRC_UTILS_TCP_SERVER_HPP__ */

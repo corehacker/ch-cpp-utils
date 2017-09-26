@@ -52,7 +52,7 @@
 #ifndef __SRC_UTILS_THREAD_HPP__
 #define __SRC_UTILS_THREAD_HPP__
 
-/********************************* CONSTANTS **********************************/
+namespace ChCppUtils {
 
 /*********************************** MACROS ***********************************/
 #define THREAD_SLEEP_FOREVER \
@@ -85,6 +85,5 @@ class Thread {
       void runJob (ThreadJob *job);
 };
 
-/***************************** FUNCTION PROTOTYPES ****************************/
-
+}
 #endif /* __SRC_UTILS_THREAD_HPP__ */

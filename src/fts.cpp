@@ -2,7 +2,7 @@
 
 #include "ch-cpp-utils/fts.hpp"
 
-
+namespace ChCppUtils {
 
 Fts::Fts() {
     root = ".";
@@ -133,5 +133,7 @@ bool Fts::walk (OnFile onFile, void *this_) {
 bool Fts::walk (string root, OnFile onFile, void *this_) {
    this->root = root;
    return this->walk(onFile, this_);
+}
+
 }
 

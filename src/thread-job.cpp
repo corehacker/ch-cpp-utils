@@ -55,6 +55,7 @@
 /****************************** LOCAL FUNCTIONS *******************************/
 #include "ch-cpp-utils/thread-job.hpp"
 
+namespace ChCppUtils {
 std::atomic<uint64_t> ThreadJob::counter {0};   // or {0} for a more C++11 experience
 
 ThreadJob::ThreadJob (ThreadJobRoutine routine, void *arg)
@@ -67,4 +68,7 @@ ThreadJob::ThreadJob (ThreadJobRoutine routine, void *arg)
 ThreadJob::~ThreadJob ()
 {
    this->routine = NULL;
+   this->arg = NULL;
+}
+
 }

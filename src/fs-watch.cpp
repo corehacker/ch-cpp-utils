@@ -44,6 +44,7 @@
 
 static Logger &log = Logger::getInstance();
 
+namespace ChCppUtils {
 FsWatch::FsWatch() {
    epollThread = NULL;
    inotifyFd = -1;
@@ -260,5 +261,6 @@ void FsWatch::start(vector<string> filters) {
 void FsWatch::OnNewFileCbk(OnNewFile onNewFile, void *this_) {
    this->onNewFile = onNewFile;
    this->onNewFileThis = this_;
+}
 }
 

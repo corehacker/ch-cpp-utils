@@ -60,6 +60,8 @@ using namespace std;
 
 static Logger &log = Logger::getInstance();
 
+namespace ChCppUtils {
+
 void *
 Thread::threadFunc (void *this_)
 {
@@ -117,3 +119,6 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
 Thread::~Thread ()
 {
 }
+
+}
+

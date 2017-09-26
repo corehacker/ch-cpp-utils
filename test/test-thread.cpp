@@ -59,6 +59,9 @@
 /****************************** LOCAL FUNCTIONS *******************************/
 using namespace std;
 
+using ChCppUtils::Thread;
+using ChCppUtils::ThreadJob;
+
 void *
 routine (void *arg)
 {
@@ -74,7 +77,7 @@ main ()
 //
 //   std::chrono::milliseconds ms(1000);
 //   std::this_thread::sleep_for(ms);
-//   ThreadJob job = ThreadJob (routine, NULL);
+//   ThreadJob *job = new ThreadJob (routine, NULL);
 //
 //   while (true) {
 //     thread->addJob(job);

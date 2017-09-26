@@ -64,6 +64,9 @@
 /******************************** ENUMERATIONS ********************************/
 
 /*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
+
+namespace ChCppUtils {
+
 class ThreadPool
 {
    public:
@@ -85,6 +88,6 @@ class ThreadPool
       void createThreads ();
 };
 
-/***************************** FUNCTION PROTOTYPES ****************************/
+}
 
 #endif /* __SRC_UTILS_THREAD_POOL_HPP__ */

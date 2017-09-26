@@ -67,6 +67,9 @@
 #ifndef __SRC_UTILS_TCP_CLIENT_HPP__
 #define __SRC_UTILS_TCP_CLIENT_HPP__
 
+namespace ChCppUtils {
+
+
 class TcpClient;
 
 class TcpClient {
@@ -82,5 +85,6 @@ class TcpClient {
 
 };
 
+}
 #endif /* __SRC_UTILS_TCP_CLIENT_HPP__ */
  

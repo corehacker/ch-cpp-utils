@@ -46,15 +46,8 @@
 /********************************* CONSTANTS **********************************/
 static Logger &log = Logger::getInstance();
 
-/*********************************** MACROS ***********************************/
+namespace ChCppUtils {
 
-/******************************** ENUMERATIONS ********************************/
-
-/************************* STRUCTURE/UNION DATA TYPES *************************/
-
-/************************ STATIC FUNCTION PROTOTYPES **************************/
-
-/****************************** LOCAL FUNCTIONS *******************************/
 void TcpServer::_onRead (struct bufferevent *bev, void *ctx)
 {
    LOG << "Data on socket!!" << std::endl;
@@ -233,4 +226,6 @@ TcpServer::TcpServer (in_addr_t ip, in_port_t port)
 
 TcpServer::~TcpServer()
 {
+}
+
 }

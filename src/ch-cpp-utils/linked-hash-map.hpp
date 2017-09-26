@@ -59,6 +59,8 @@
 /*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 
 /***************************** FUNCTION PROTOTYPES ****************************/
+namespace ChCppUtils {
+
 
 template<class T>
    class LinkedHashMap
@@ -161,4 +163,5 @@ template<class T>
       }
    }
 
+}
 #endif /* __SRC_UTILS_LINKED_HASH_MAP_HPP__ */

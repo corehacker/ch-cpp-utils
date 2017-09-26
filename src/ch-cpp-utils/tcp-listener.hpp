@@ -76,6 +76,8 @@
 /******************************** ENUMERATIONS ********************************/
 
 /*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
+namespace ChCppUtils {
+
 typedef void (*OnNewConnection) (int client_fd,
       struct sockaddr_in *px_sock_addr_in, void *this_);
 
@@ -104,6 +106,7 @@ private:
    int mFd;
    struct event *mEvent;
 };
-/***************************** FUNCTION PROTOTYPES ****************************/
+
+}
 
 #endif /* __SRC_UTILS_TCP_LISTENER_HPP__ */

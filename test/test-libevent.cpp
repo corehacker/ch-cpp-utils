@@ -76,6 +76,9 @@
 #include "ch-cpp-utils/tcp-server.hpp"
 #include "ch-cpp-utils/logger.hpp"
 
+using ChCppUtils::TcpServer;
+using ChCppUtils::client_ctxt;
+
 /********************************* CONSTANTS **********************************/
 
 /*********************************** MACROS ***********************************/

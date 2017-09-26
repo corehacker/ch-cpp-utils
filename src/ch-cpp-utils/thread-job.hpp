@@ -55,6 +55,8 @@
 /*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
 typedef void * (*ThreadJobRoutine) (void *arg, struct event_base *base);
 
+namespace ChCppUtils {
+
 class ThreadJob {
    private:
 	  static std::atomic <uint64_t> counter;
@@ -65,6 +67,7 @@ class ThreadJob {
       ~ThreadJob ();
 };
 
+}
 /***************************** FUNCTION PROTOTYPES ****************************/
 
 #endif /* __SRC_UTILS_THREAD_JOB_HPP__ */

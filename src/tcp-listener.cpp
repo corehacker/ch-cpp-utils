@@ -48,15 +48,7 @@
 /********************************* CONSTANTS **********************************/
 static Logger &log = Logger::getInstance();
 
-/*********************************** MACROS ***********************************/
-
-/******************************** ENUMERATIONS ********************************/
-
-/************************* STRUCTURE/UNION DATA TYPES *************************/
-
-/************************ STATIC FUNCTION PROTOTYPES **************************/
-
-/****************************** LOCAL FUNCTIONS *******************************/
+namespace ChCppUtils {
 void TcpListener::evNewConnection(evutil_socket_t fd, short events, void *arg) {
    if (NULL == arg) return;
 
@@ -170,3 +162,6 @@ TcpListener::TcpListener (in_addr_t ip, in_port_t port)
 TcpListener::~TcpListener()
 {
 }
+
+}
+

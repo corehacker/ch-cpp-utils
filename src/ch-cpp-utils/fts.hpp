@@ -54,6 +54,8 @@ using std::set;
 #ifndef __CH_CPP_UTILS_FTS_HPP__
 #define __CH_CPP_UTILS_FTS_HPP__
 
+namespace ChCppUtils {
+
 typedef void (*OnFile) (std::string name, std::string ext, std::string path, void *this_);
 
 typedef struct _FtsOptions {
@@ -83,5 +85,7 @@ private:
     bool bIgnoreRegularFiles;
     bool bIgnoreRegularDirs;
 };
+
+}
 #endif /* __CH_CPP_UTILS_FTS_HPP__ */
 

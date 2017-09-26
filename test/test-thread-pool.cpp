@@ -59,6 +59,8 @@
 
 /****************************** LOCAL FUNCTIONS *******************************/
 using namespace std;
+using ChCppUtils::ThreadJob;
+using ChCppUtils::ThreadPool;
 
 static Logger &log = Logger::getInstance();
 

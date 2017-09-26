@@ -1,6 +1,7 @@
 
 #include "ch-cpp-utils/events.hpp"
 
+namespace ChCppUtils {
 Target::Target() {
 	this->target = NULL;
 	this->this_ = NULL;
@@ -70,3 +71,4 @@ void Events::fire(string name) {
 	event->fire();
 }
 
+}

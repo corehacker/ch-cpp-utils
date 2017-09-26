@@ -55,9 +55,11 @@ extern  "C"
 /******************************** ENUMERATIONS ********************************/
 
 /*********************** CLASS/STRUCTURE/UNION DATA TYPES *********************/
+namespace ChCppUtils {
+
 typedef ThreadJob * (*ThreadGetJob) (void *this_);
 
-/***************************** FUNCTION PROTOTYPES ****************************/
+}
 
 #ifdef   __cplusplus
 }

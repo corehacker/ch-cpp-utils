@@ -62,6 +62,7 @@ using namespace std;
 
 static Logger &log = Logger::getInstance();
 
+namespace ChCppUtils {
 ThreadPool::ThreadPool (uint32_t uiCount) :
       mJobQueue (),
       mMutex (),
@@ -131,3 +132,6 @@ ThreadPool::threadGetNextJob (void *this_)
    ThreadPool *this__ = (ThreadPool *) this_;
    return this__->threadGetNextJob_ ();
 }
+
+}
+

@@ -49,6 +49,8 @@
 #include "ch-cpp-utils/logger.hpp"
 #include "ch-cpp-utils/fs-watch.hpp"
 
+using ChCppUtils::FsWatch;
+
 static Logger &log = Logger::getInstance();
 
 static void onNewFile (std::string name, std::string path, void *this_);
