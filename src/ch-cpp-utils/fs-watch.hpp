@@ -68,7 +68,7 @@ namespace ChCppUtils {
 
 #define MAX_EVENTS 10
 
-typedef void (*OnNewFile) (std::string name, std::string path, void *this_);
+typedef void (*OnNewFile) (std::string path, void *this_);
 
 class FsWatch {
    private:
@@ -86,6 +86,12 @@ class FsWatch {
 
       void addWatch(std::string dir, bool add);
       void handleActivity(int fd);
+      std::string getFullPath(int fd, const struct inotify_event *event);
+      void handleFileModify(int fd, const struct inotify_event *event);
+      void handleFileDelete(int fd, const struct inotify_event *event);
+      void handleDirectoryCreate(int fd, const struct inotify_event *event);
+      void handleDirectoryDelete(int fd, const struct inotify_event *event);
+
       static void *_epollThreadRoutine (void *arg, struct event_base *base);
       void *epollThreadRoutine ();
       static void _onFile (std::string name, std::string ext, std::string path, void *this_);

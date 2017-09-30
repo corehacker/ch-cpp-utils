@@ -55,6 +55,8 @@ FsWatch::FsWatch() {
    root = ".";
    onNewFile = NULL;
    onNewFileThis = NULL;
+
+   LOG << "Watching directory: " << root << std::endl;
 }
 
 FsWatch::FsWatch(std::string root) {
@@ -65,6 +67,7 @@ FsWatch::FsWatch(std::string root) {
    onNewFile = NULL;
    onNewFileThis = NULL;
    this->root = root;
+   LOG << "Watching directory: " << root << std::endl;
 }
 
 FsWatch::~FsWatch() {
@@ -72,10 +75,9 @@ FsWatch::~FsWatch() {
 }
 
 void FsWatch::addWatch(std::string dir, bool add) {
-
    auto find = set.find(dir);
    if (find != set.end()) {
-//      LOG << "Already watching dir " << dir << std::endl;
+      LOG << "Already watching dir " << dir << std::endl;
       return;
    }
 
@@ -87,11 +89,7 @@ void FsWatch::addWatch(std::string dir, bool add) {
         exit(EXIT_FAILURE);
     }
 
-   int status = inotify_add_watch(inotifyFd, dir.data(),
-         IN_OPEN |
-         IN_CLOSE |
-         IN_DELETE |
-         IN_CREATE);
+   int status = inotify_add_watch(inotifyFd, dir.data(), IN_ALL_EVENTS);
    if (status == -1) {
       fprintf(stderr, "Cannot watch '%s'\n", dir.data());
    }
@@ -105,7 +103,54 @@ void FsWatch::addWatch(std::string dir, bool add) {
 
    map.insert (std::make_pair (inotifyFd, dir));
    set.insert(dir);
-//   LOG << "Added watch for " << dir << std::endl;
+   LOG << "Added watch for " << dir << std::endl;
+}
+
+std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
+   std::string name = event->name;
+   auto search = map.find(fd);
+   std::string dir = search->second;
+
+   std::string path = "";
+   path.insert(path.length(), dir);
+   if (!('/' == root.back())) {
+      path.insert(path.length(), "/");
+   }
+   path.insert(path.length(), name);
+   addWatch(path, true);
+   return path;
+}
+
+void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
+   if (NULL != onNewFile) {
+      std::string path = getFullPath(fd, event);
+      std::string name = event->name;
+      if (filters.empty ()) {
+         onNewFile(path, onNewFileThis);
+      } else {
+         int32_t pos = name.find_last_of('.');
+         std::string ext = name.substr (pos + 1);
+         if (filters.count (ext) > 0) {
+            onNewFile(path, onNewFileThis);
+         }
+      }
+   }
+}
+
+void FsWatch::handleFileDelete(int fd, const struct inotify_event *event) {
+   LOG << "File DELETE: " << event->name << std::endl;
+}
+
+void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
+   std::string newDir = getFullPath(fd, event);
+
+   addWatch(newDir, true);
+
+   fts->walk(newDir, FsWatch::_onFile, this);
+}
+
+void FsWatch::handleDirectoryDelete(int fd, const struct inotify_event *event) {
+   LOG << "Directory DELETE: " << event->name << std::endl;
 }
 
 void FsWatch::handleActivity(int fd) {
@@ -142,47 +187,20 @@ void FsWatch::handleActivity(int fd) {
 
          event = (const struct inotify_event *) ptr;
 
-         if (!(event->mask & IN_ISDIR)) {
-            auto search = map.find(fd);
-            std::string dir = search->second;
-         }
-
          if ((event->mask & IN_ISDIR) && (event->mask & IN_CREATE)) {
-            auto search = map.find(fd);
-            std::string dir = search->second;
-
-            std::string newDir = "";
-            newDir.insert(newDir.length(), dir);
-            if (!('/' == root.back())) {
-               newDir.insert(newDir.length(), "/");
-            }
-            newDir.insert(newDir.length(), event->name);
-            addWatch(newDir, true);
-
-            fts->walk(newDir, FsWatch::_onFile, this);
+            handleDirectoryCreate(fd, event);
          }
 
          if (!(event->mask & IN_ISDIR) && (event->mask & IN_CLOSE_WRITE)) {
-            if (NULL != onNewFile) {
-               std::string name = event->name;
-               auto search = map.find(fd);
-               std::string dir = search->second;
-               std::string path = "";
-               path.insert(path.length(), dir);
-               if (!('/' == root.back())) {
-                  path.insert(path.length(), "/");
-               }
-               path.insert(path.length(), name);
-               if (filters.empty ()) {
-                  onNewFile(name, path, onNewFileThis);
-               } else {
-                  int32_t pos = name.find_last_of('.');
-                  std::string ext = name.substr (pos + 1);
-                  if (filters.count (ext) > 0) {
-                     onNewFile(name, path, onNewFileThis);
-                  }
-               }
-            }
+            handleFileModify(fd, event);
+         }
+
+         if (!(event->mask & IN_ISDIR) && (event->mask & IN_DELETE)) {
+            handleFileDelete(fd, event);
+         }
+
+         if ((event->mask & IN_ISDIR) && (event->mask & IN_DELETE)) {
+            handleDirectoryDelete(fd, event);
          }
       }
    }
@@ -196,7 +214,7 @@ void *FsWatch::_epollThreadRoutine (void *arg, struct event_base *base) {
 void *FsWatch::epollThreadRoutine () {
    int nfds;
    struct epoll_event events[MAX_EVENTS];
-   LOG << "Listening for events." << std::endl;
+   LOG << "Listening for directory tree changes." << std::endl;
    while (1) {
       nfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
       if (nfds == -1) {
