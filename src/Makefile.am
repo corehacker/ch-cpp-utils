@@ -8,7 +8,8 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  thread-job.cpp  \
 									  thread-pool.cpp \
 									  fs-watch.cpp \
-									  events.cpp
+									  events.cpp \
+									  dirtree.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -22,4 +23,5 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/thread-job.hpp  \
 								 ch-cpp-utils/thread-pool.hpp \
 								 ch-cpp-utils/fs-watch.hpp \
-								 ch-cpp-utils/events.hpp
+								 ch-cpp-utils/events.hpp \
+								 ch-cpp-utils/dirtree.hpp

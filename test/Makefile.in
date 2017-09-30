@@ -90,7 +90,8 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = test-linked-hash-map$(EXEEXT) test-thread$(EXEEXT) \
 	test-thread-pool$(EXEEXT) test-logger$(EXEEXT) \
-	test-libevent$(EXEEXT) test-fs-watch$(EXEEXT)
+	test-libevent$(EXEEXT) test-fs-watch$(EXEEXT) \
+	test-dirtree$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -106,13 +107,16 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_test_fs_watch_OBJECTS = test_fs_watch-test-fs-watch.$(OBJEXT)
-test_fs_watch_OBJECTS = $(am_test_fs_watch_OBJECTS)
-test_fs_watch_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
+am_test_dirtree_OBJECTS = test_dirtree-test-dirtree.$(OBJEXT)
+test_dirtree_OBJECTS = $(am_test_dirtree_OBJECTS)
+test_dirtree_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_test_fs_watch_OBJECTS = test_fs_watch-test-fs-watch.$(OBJEXT)
+test_fs_watch_OBJECTS = $(am_test_fs_watch_OBJECTS)
+test_fs_watch_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
 am_test_libevent_OBJECTS = test_libevent-test-libevent.$(OBJEXT)
 test_libevent_OBJECTS = $(am_test_libevent_OBJECTS)
 test_libevent_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
@@ -171,12 +175,14 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(test_fs_watch_SOURCES) $(test_libevent_SOURCES) \
-	$(test_linked_hash_map_SOURCES) $(test_logger_SOURCES) \
-	$(test_thread_SOURCES) $(test_thread_pool_SOURCES)
-DIST_SOURCES = $(test_fs_watch_SOURCES) $(test_libevent_SOURCES) \
-	$(test_linked_hash_map_SOURCES) $(test_logger_SOURCES) \
-	$(test_thread_SOURCES) $(test_thread_pool_SOURCES)
+SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
+	$(test_libevent_SOURCES) $(test_linked_hash_map_SOURCES) \
+	$(test_logger_SOURCES) $(test_thread_SOURCES) \
+	$(test_thread_pool_SOURCES)
+DIST_SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
+	$(test_libevent_SOURCES) $(test_linked_hash_map_SOURCES) \
+	$(test_logger_SOURCES) $(test_thread_SOURCES) \
+	$(test_thread_pool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -355,6 +361,11 @@ test_libevent_LDADD = ../src/.libs/libch-cpp-utils.a
 test_fs_watch_SOURCES = test-fs-watch.cpp
 test_fs_watch_CPPFLAGS = -I../src
 test_fs_watch_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+test_dirtree_SOURCES = test-dirtree.cpp
+test_dirtree_CPPFLAGS = -I../src
+test_dirtree_LDADD = ../src/.libs/libch-cpp-utils.a
 ACLOCAL_AMFLAGS = -I m4
 all: all-am
 
@@ -439,6 +450,10 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+test-dirtree$(EXEEXT): $(test_dirtree_OBJECTS) $(test_dirtree_DEPENDENCIES) $(EXTRA_test_dirtree_DEPENDENCIES) 
+	@rm -f test-dirtree$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_dirtree_OBJECTS) $(test_dirtree_LDADD) $(LIBS)
+
 test-fs-watch$(EXEEXT): $(test_fs_watch_OBJECTS) $(test_fs_watch_DEPENDENCIES) $(EXTRA_test_fs_watch_DEPENDENCIES) 
 	@rm -f test-fs-watch$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_fs_watch_OBJECTS) $(test_fs_watch_LDADD) $(LIBS)
@@ -469,6 +484,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_dirtree-test-dirtree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_fs_watch-test-fs-watch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_libevent-test-libevent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_linked_hash_map-test-linked-hash-map.Po@am__quote@
@@ -499,6 +515,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+test_dirtree-test-dirtree.o: test-dirtree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_dirtree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_dirtree-test-dirtree.o -MD -MP -MF $(DEPDIR)/test_dirtree-test-dirtree.Tpo -c -o test_dirtree-test-dirtree.o `test -f 'test-dirtree.cpp' || echo '$(srcdir)/'`test-dirtree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_dirtree-test-dirtree.Tpo $(DEPDIR)/test_dirtree-test-dirtree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-dirtree.cpp' object='test_dirtree-test-dirtree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_dirtree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_dirtree-test-dirtree.o `test -f 'test-dirtree.cpp' || echo '$(srcdir)/'`test-dirtree.cpp
+
+test_dirtree-test-dirtree.obj: test-dirtree.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_dirtree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_dirtree-test-dirtree.obj -MD -MP -MF $(DEPDIR)/test_dirtree-test-dirtree.Tpo -c -o test_dirtree-test-dirtree.obj `if test -f 'test-dirtree.cpp'; then $(CYGPATH_W) 'test-dirtree.cpp'; else $(CYGPATH_W) '$(srcdir)/test-dirtree.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_dirtree-test-dirtree.Tpo $(DEPDIR)/test_dirtree-test-dirtree.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-dirtree.cpp' object='test_dirtree-test-dirtree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_dirtree_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_dirtree-test-dirtree.obj `if test -f 'test-dirtree.cpp'; then $(CYGPATH_W) 'test-dirtree.cpp'; else $(CYGPATH_W) '$(srcdir)/test-dirtree.cpp'; fi`
 
 test_fs_watch-test-fs-watch.o: test-fs-watch.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_fs_watch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_fs_watch-test-fs-watch.o -MD -MP -MF $(DEPDIR)/test_fs_watch-test-fs-watch.Tpo -c -o test_fs_watch-test-fs-watch.o `test -f 'test-fs-watch.cpp' || echo '$(srcdir)/'`test-fs-watch.cpp

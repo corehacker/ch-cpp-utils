@@ -2,7 +2,8 @@ bin_PROGRAMS = test-linked-hash-map \
 					test-thread test-thread-pool \
 					test-logger \
 					test-libevent \
-					test-fs-watch
+					test-fs-watch \
+					test-dirtree
 
 test_linked_hash_map_SOURCES = test-linked-hash-map.cpp
 
@@ -51,5 +52,13 @@ test_fs_watch_SOURCES = test-fs-watch.cpp
 test_fs_watch_CPPFLAGS = -I../src
 
 test_fs_watch_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_dirtree_SOURCES = test-dirtree.cpp
+
+test_dirtree_CPPFLAGS = -I../src
+
+test_dirtree_LDADD = ../src/.libs/libch-cpp-utils.a
 
 ACLOCAL_AMFLAGS = -I m4
