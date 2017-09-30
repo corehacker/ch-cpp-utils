@@ -54,10 +54,10 @@ using ChCppUtils::Logger;
 
 static Logger &log = Logger::getInstance();
 
-static void onNewFile (std::string name, std::string path, void *this_);
+static void onNewFile (std::string path, void *this_);
 
-static void onNewFile (std::string name, std::string path, void *this_) {
-   LOG << "onNewFile: " << name << " | " << path << std::endl;
+static void onNewFile (std::string path, void *this_) {
+   LOG << "onNewFile: " << path << std::endl;
 }
 
 
