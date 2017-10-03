@@ -1,0 +1,55 @@
+.settings
+.cproject
+.project
+.dirstamp
+src/*.o
+src/*.lo
+src/*.la
+src/.libs
+test/*.o
+test/*.lo
+.deps
+Makefile
+config.h
+config.log
+config.status
+libtool
+src/Makefile
+stamp-h1
+test/Makefile
+test/test-dirtree
+test/test-fs-watch
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
