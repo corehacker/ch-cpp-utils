@@ -55,7 +55,7 @@ FsWatch::FsWatch() {
    root = ".";
    onNewFile = NULL;
    onNewFileThis = NULL;
-
+   tree = NULL;
    LOG << "Watching directory: " << root << std::endl;
 }
 
@@ -67,6 +67,7 @@ FsWatch::FsWatch(std::string root) {
    onNewFile = NULL;
    onNewFileThis = NULL;
    this->root = root;
+   tree = NULL;
    LOG << "Watching directory: " << root << std::endl;
 }
 
@@ -103,7 +104,30 @@ void FsWatch::addWatch(std::string dir, bool add) {
 
    map.insert (std::make_pair (inotifyFd, dir));
    set.insert(dir);
-   LOG << "Added watch for " << dir << std::endl;
+
+   TreeNode *node = new TreeNode();
+   node->fd = inotifyFd;
+   node->path = dir;
+   tree->insert(dir, node);
+   tree->print();
+
+   LOG << "Added watch for " << dir << ", Fd: " << inotifyFd << std::endl;
+}
+
+void FsWatch::_dropCbk (string path, void *data, void *this_) {
+   FsWatch *watch = (FsWatch *) this_;
+   watch->dropCbk(path, data);
+}
+
+void FsWatch::dropCbk (string path, void *data) {
+   LOG << "Dropping path: " << path << std::endl;
+   TreeNode *node = (TreeNode *) data;
+   LOG << "Dropping Fd: " << node->fd << std::endl;
+}
+
+void FsWatch::removeWatch(std::string dir) {
+   tree->drop(dir, FsWatch::_dropCbk, this);
+   tree->print();
 }
 
 std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
@@ -151,6 +175,9 @@ void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
 
 void FsWatch::handleDirectoryDelete(int fd, const struct inotify_event *event) {
    LOG << "Directory DELETE: " << event->name << std::endl;
+
+   std::string deleteDir = getFullPath(fd, event);
+   removeWatch(deleteDir);
 }
 
 void FsWatch::handleActivity(int fd) {
@@ -243,7 +270,10 @@ void FsWatch::onFile (std::string name, std::string ext, std::string path) {
 }
 
 int FsWatch::init() {
-	 epollFd = epoll_create1(0);
+
+   tree = new DirTree();
+
+   epollFd = epoll_create1(0);
 	 if (epollFd == -1) {
 		 perror("epoll_create1");
 		 exit(EXIT_FAILURE);

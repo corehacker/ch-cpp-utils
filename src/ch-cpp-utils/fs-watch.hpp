@@ -60,6 +60,7 @@
 #include "thread-job.hpp"
 #include "events.hpp"
 #include "fts.hpp"
+#include "dirtree.hpp"
 
 #ifndef __CH_CPP_UTILS_FS_WATCH_HPP__
 #define __CH_CPP_UTILS_FS_WATCH_HPP__
@@ -83,8 +84,10 @@ class FsWatch {
       OnNewFile onNewFile;
       void *onNewFileThis;
       std::unordered_set <string> filters;
+      DirTree *tree;
 
       void addWatch(std::string dir, bool add);
+      void removeWatch(std::string dir);
       void handleActivity(int fd);
       std::string getFullPath(int fd, const struct inotify_event *event);
       void handleFileModify(int fd, const struct inotify_event *event);
@@ -96,6 +99,9 @@ class FsWatch {
       void *epollThreadRoutine ();
       static void _onFile (std::string name, std::string ext, std::string path, void *this_);
       void onFile (std::string name, std::string ext, std::string path);
+
+      static void _dropCbk (string path, void *data, void *this_);
+      void dropCbk (string path, void *data);
    public:
       FsWatch();
       FsWatch(std::string root);
@@ -105,6 +111,12 @@ class FsWatch {
       void start(vector<string> filters);
       void OnNewFileCbk(OnNewFile onNewFile, void *this_);
 };
+
+typedef struct _TreeNode {
+   std::string path;
+
+   int fd;
+} TreeNode;
 
 }
 #endif /* __CH_CPP_UTILS_FS_WATCH_HPP__ */
