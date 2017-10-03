@@ -53,3 +53,7 @@ test/test-fs-watch
 *.out
 *.app
 
+
+autom4te.cache
+build-aux
+config.h.in~
