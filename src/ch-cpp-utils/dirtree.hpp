@@ -24,6 +24,8 @@ vector<string> tokenize(string str, string delim);
 
 typedef class _Node Node;
 
+typedef void (*DropChildCbk) (Node *node, string suffix, void *this_);
+
 class _Node {
 public:
    void addChild(string key, Node *node) {
@@ -48,6 +50,10 @@ public:
       this->children = children;
    }
 
+   void dropChildren(DropChildCbk dropChildCbk, void *this_) {
+      dropChildren(dropChildCbk, "", this_);
+   }
+
    void* getData() const {
       return data;
    }
@@ -68,7 +74,25 @@ private:
    unordered_map<string, Node *> children;
    string key;
    void *data;
+
+   void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
+      for( const auto& n : children) {
+         n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
+      }
+      if (dropChildCbk) dropChildCbk(this, suffix + "/" + key, this_);
+   }
 };
+
+typedef void (*DropCbk) (string path, void *data, void *this_);
+
+class DirTree;
+
+typedef struct _DropChildCbkData {
+   DirTree *tree;
+   string prefix;
+   DropCbk dropCbk;
+   void *this_;
+} DropChildCbkData;
 
 class DirTree {
 private:
@@ -76,13 +100,18 @@ private:
 
    string getNextToken(string path, size_t from);
    void print(Node *root, uint32_t depth);
+
+   static void _dropChildCbk(Node *node, string suffix, void *this_);
+   void dropChildCbk(DropChildCbkData *data, Node *node, string suffix, void *this_);
 public:
    DirTree();
    ~DirTree();
    void insert(string key, void *data);
-   void drop(string key);
+   void drop(string key, DropCbk dropCbk, void *this_);
    void print();
 };
+
+
 
 }
 
