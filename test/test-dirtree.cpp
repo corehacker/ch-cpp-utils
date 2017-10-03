@@ -5,6 +5,7 @@
  *      Author: corehacker
  */
 
+#include <iostream>
 #include <ch-cpp-utils/dirtree.hpp>
 #include "ch-cpp-utils/thread.hpp"
 #include "ch-cpp-utils/logger.hpp"
@@ -20,16 +21,18 @@ typedef struct _TreeNode {
    std::string path;
 } TreeNode;
 
+static void dropCbk (string path, void *data, void *this_) {
+   LOG << "Dropping path: " << path << std::endl;
+}
+
 int main(int argc, char **argv) {
 
    DirTree *tree = new DirTree();
    TreeNode *treeNode = new TreeNode();
    string path = "path";
-//   if (argc == 2 && NULL != argv[1]) {
-//      path = argv[1];
-//   }
 
-   for (int i = 1; i < argc; i++) {
+   int i = 1;
+   for (i = 1; i < (argc - 1); i++) {
       path = argv[i];
       treeNode->path = path;
       tree->insert(path, treeNode);
@@ -37,14 +40,10 @@ int main(int argc, char **argv) {
 
    tree->print();
 
+   string dropPath = argv[i];
+   LOG << "Drop path: " << dropPath << std::endl;
 
-//   vector<string> tokens = ChCppUtils::tokenize(path, "/");
-//
-//   for (uint32_t i = 0; i < tokens.size(); i++) {
-//      LOG << "Tokens: " << tokens.at(i) << std::endl;
-//   }
-
-
+   tree->drop(dropPath, dropCbk, NULL);
 
    THREAD_SLEEP_FOREVER;
 }
