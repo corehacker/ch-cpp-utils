@@ -1,0 +1,13 @@
+language: c++
+
+compiler:
+  - g++
+
+script: |
+  ./autogen.sh
+  ./configure
+  make
+  
+notifications:
+  email:
+    - 123sandy@gmail.com
