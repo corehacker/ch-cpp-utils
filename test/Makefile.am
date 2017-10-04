@@ -1,4 +1,5 @@
-bin_PROGRAMS = test-linked-hash-map \
+bin_PROGRAMS = \
+					test-linked-hash-map \
 					test-thread test-thread-pool \
 					test-logger \
 					test-libevent \
