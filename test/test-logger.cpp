@@ -54,9 +54,9 @@ int main () {
 
    log << "test1" << endl;
    log << "test2" << endl;
-   std::chrono::milliseconds ms(1000);
-   while (true) {
-      std::this_thread::sleep_for(ms);
-   }
+//   std::chrono::milliseconds ms(1000);
+//   while (true) {
+//      std::this_thread::sleep_for(ms);
+//   }
    return 0;
 }
