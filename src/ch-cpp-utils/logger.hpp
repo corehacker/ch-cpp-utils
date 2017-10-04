@@ -72,10 +72,11 @@ class Logger
       std::mutex mQMutex;
       std::mutex mLogMutex;
       std::condition_variable mQCondition;
-      // pthread_t mThread;
-	  std::thread       *mThread;
+      std::condition_variable mShutdownSignal;
+	   std::thread       *mThread;
       std::deque<std::ostringstream *> mLogQueue;
       std::unordered_map<std::thread::id, std::ostringstream *> mLogMap;
+      bool shutdown;
 
       static void *threadFunc (void *this_) {
          Logger *logger = (Logger *) this_;
@@ -85,7 +86,7 @@ class Logger
 
       void threadFunc_ () {
          printf ("Running logger thread routine\n");
-         while (true)
+         while (!shutdown)
          {
             if (!mLogQueue.empty ())
             {
@@ -103,6 +104,8 @@ class Logger
                mQCondition.wait (lk);
             }
          }
+         printf ("Exiting logger thread routine\n");
+         mShutdownSignal.notify_one ();
       }
 
    public:
@@ -116,9 +119,9 @@ class Logger
       Logger (std::ostream &o = std::cout) :
             m_file (o)
       {
+         shutdown = false;
          printf ("Creating logger thread\n");
-         // pthread_create (&mThread, NULL, Logger::threadFunc, this);
-		 mThread = new std::thread(Logger::threadFunc, this);
+         mThread = new std::thread(Logger::threadFunc, this);
       }
 
       template<typename T>
@@ -126,6 +129,9 @@ class Logger
       {
          std::thread::id threadId = std::this_thread::get_id ();
          mLogMutex.lock ();
+         if (shutdown) {
+            return *this;
+         }
          auto threadEntry = mLogMap.find(threadId);
          if(threadEntry == mLogMap.end()) {
             mLogMap.insert(std::make_pair (threadId, new std::ostringstream ()));
@@ -143,6 +149,9 @@ class Logger
          std::thread::id threadId = std::this_thread::get_id ();
 
          mLogMutex.lock ();
+         if (shutdown) {
+            return *this;
+         }
          auto threadEntry = mLogMap.find(threadId);
 
          if(threadEntry == mLogMap.end()) {
@@ -161,6 +170,22 @@ class Logger
          mLogQueue.push_back (log);
          mQCondition.notify_one ();
          return *this;
+      }
+
+      ~Logger() {
+         printf("\n\n*****************~Logger\n\n");
+         mLogMutex.lock ();
+         shutdown = true;
+         mLogMutex.unlock();
+         std::unique_lock < std::mutex > lk (mQMutex);
+
+         printf ("Waiting for logger thread to exit.\n");
+         mShutdownSignal.wait (lk);
+         printf ("Logger thread to exited.\n");
+
+         for( const auto& logEntry : mLogMap) {
+            delete logEntry.second;
+         }
       }
 };
 
