@@ -49,7 +49,6 @@ static Logger &log = Logger::getInstance();
 namespace ChCppUtils {
 FsWatch::FsWatch() {
    epollThread = NULL;
-   inotifyFd = -1;
    epollFd = -1;
    fts = NULL;
    root = ".";
@@ -61,7 +60,6 @@ FsWatch::FsWatch() {
 
 FsWatch::FsWatch(std::string root) {
    epollThread = NULL;
-   inotifyFd = -1;
    epollFd = -1;
    fts = NULL;
    onNewFile = NULL;
@@ -83,6 +81,7 @@ void FsWatch::addWatch(std::string dir, bool add) {
    }
 
    struct epoll_event ev;
+   int inotifyFd = -1;
 
     inotifyFd = inotify_init1(IN_NONBLOCK);
     if (inotifyFd == -1) {
@@ -90,8 +89,8 @@ void FsWatch::addWatch(std::string dir, bool add) {
         exit(EXIT_FAILURE);
     }
 
-   int status = inotify_add_watch(inotifyFd, dir.data(), IN_ALL_EVENTS);
-   if (status == -1) {
+   int watchFd = inotify_add_watch(inotifyFd, dir.data(), IN_ALL_EVENTS);
+   if (watchFd == -1) {
       fprintf(stderr, "Cannot watch '%s'\n", dir.data());
    }
 
@@ -107,11 +106,12 @@ void FsWatch::addWatch(std::string dir, bool add) {
 
    TreeNode *node = new TreeNode();
    node->fd = inotifyFd;
+   node->wd = watchFd;
    node->path = dir;
    tree->insert(dir, node);
    tree->print();
 
-   LOG << "Added watch for " << dir << ", Fd: " << inotifyFd << std::endl;
+   LOG << "Added watch for " << dir << ", Fd: " << inotifyFd << ", Watch Fd: " << watchFd << std::endl;
 }
 
 void FsWatch::_dropCbk (string path, void *data, void *this_) {
@@ -122,7 +122,21 @@ void FsWatch::_dropCbk (string path, void *data, void *this_) {
 void FsWatch::dropCbk (string path, void *data) {
    LOG << "Dropping path: " << path << std::endl;
    TreeNode *node = (TreeNode *) data;
-   LOG << "Dropping Fd: " << node->fd << std::endl;
+   LOG << "Dropping Fd: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+
+   set.erase(path);
+//   map.erase(path);
+
+   struct epoll_event ev;
+   ev.events = EPOLLIN;
+   ev.data.fd = node->fd;
+   if (epoll_ctl(epollFd, EPOLL_CTL_DEL, node->fd, &ev) == -1) {
+      perror("epoll_ctl: inotifyFd");
+   }
+   LOG << "Removed epoll watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+   inotify_rm_watch(node->fd, node->wd);
+   LOG << "Removed inotify watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+   close(node->fd);
 }
 
 void FsWatch::removeWatch(std::string dir) {

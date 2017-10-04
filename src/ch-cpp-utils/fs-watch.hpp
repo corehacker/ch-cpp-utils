@@ -75,7 +75,6 @@ class FsWatch {
    private:
       std::string root;
       int epollFd;
-      int inotifyFd;
       std::unordered_map<int, std::string> map;
       std::unordered_set<std::string> set;
       ThreadPool *epollThread;
@@ -116,6 +115,8 @@ typedef struct _TreeNode {
    std::string path;
 
    int fd;
+
+   int wd;
 } TreeNode;
 
 }
