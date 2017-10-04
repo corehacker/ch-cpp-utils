@@ -104,6 +104,7 @@ class Logger
                mQCondition.wait (lk);
             }
          }
+         mThread->detach();
          printf ("Exiting logger thread routine\n");
          mShutdownSignal.notify_one ();
       }
@@ -186,6 +187,7 @@ class Logger
          for( const auto& logEntry : mLogMap) {
             delete logEntry.second;
          }
+         delete mThread;
       }
 };
 
