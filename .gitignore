@@ -57,3 +57,4 @@ test/test-fs-watch
 autom4te.cache
 build-aux
 config.h.in~
+m4
