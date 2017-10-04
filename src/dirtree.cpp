@@ -25,29 +25,15 @@ namespace ChCppUtils {
 
 DirTree::DirTree() {
    root = NULL;
+   root = new Node();
+   root->setKey("root");
 }
 
-DirTree::~DirTree() {}
+DirTree::~DirTree() {
+   NULL_ROOT;
 
-vector<string> tokenize(string str, string delim) {
-   vector<string> tokens;
-   size_t pos = 0;
-   size_t start = 0;
-
-   LOG << "String: " << str << ", Delim: " << delim << std::endl;
-
-   while((pos = str.find(delim, pos)) != string::npos) {
-      LOG << "Pos: " << pos << ", start: " << start << std::endl;
-      if (pos == start) {
-         start = pos + 1;
-         break;
-      }
-      tokens.emplace_back(str.substr(start, pos));
-      start = pos + 1;
-   }
-   tokens.emplace_back(str.substr(start));
-
-   return tokens;
+   LOG << "Deleting root... " << std::endl;
+   delete root;
 }
 
 string DirTree::getNextToken(string path, size_t from) {
@@ -69,14 +55,6 @@ void DirTree::insert(string key, void *data) {
    Node *node = root;
    size_t from = 0;
    string token = getNextToken(key, 0);
-   if (NULL == node) {
-      root = new Node();
-      root->setKey(token);
-      node = root;
-   }
-   from += token.size() + 1;
-   LOG << "Token: " + token << " From: " << from << std::endl;
-   token = getNextToken(key, from);
 
    while (token.size() != 0) {
       if (!node->hasChild(token)) {
@@ -103,7 +81,6 @@ void DirTree::_dropChildCbk(Node *node, string suffix, void *this_) {
 }
 
 void DirTree::dropChildCbk(DropChildCbkData *data, Node *node, string suffix, void *this_) {
-
    size_t last = data->prefix.rfind("/");
    string path = data->prefix.substr(0, last);
    path += suffix;
@@ -111,6 +88,32 @@ void DirTree::dropChildCbk(DropChildCbkData *data, Node *node, string suffix, vo
       data->dropCbk(path, node->getData(), data->this_);
    }
 }
+
+/*
+ *
+ * /one/two/three/four
+ * /one/two
+ *
+ * /one/two/three/four
+ * /one/three
+ *
+ */
+
+void DirTree::dropTree(string key, Node *parent, Node *child, DropCbk dropCbk, void *this_) {
+   DropChildCbkData *data = new DropChildCbkData();
+   data->tree = this;
+   data->dropCbk = dropCbk;
+   data->this_ = this_;
+   data->prefix = key;
+   child->dropChildren(DirTree::_dropChildCbk, data);
+
+   delete data;
+
+   parent->deleteChild(child->getKey());
+
+   delete child;
+}
+
 
 void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    NULL_ROOT;
@@ -120,37 +123,34 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    }
    LOG << "Actual Path: " + key << std::endl;
 
-   Node *node = root;
    size_t from = 0;
-   string token = getNextToken(key, 0);
-
-   from += token.size() + 1;
-   LOG << "Token: " + token << " From: " << from << std::endl;
-   token = getNextToken(key, from);
-
    bool found = false;
-   while (token.size() != 0) {
+   Node *node = root;
+   Node *parent = NULL;
+   string token;
+   while(true) {
+      token = getNextToken(key, from);
+      if (0 == token.size()) {
+         LOG << "End of tokens" << std::endl;
+         break;
+      }
+
+      LOG << "Token: " + token << " From: " << from << std::endl;
+      parent = node;
       node = node->getChild(token);
       if (NULL == node) {
          LOG << "Break in chain. Not found." << std::endl;
          found = false;
          break;
-      } else {
-         found = true;
       }
-
+      found = true;
       from += token.size() + 1;
-      LOG << "Token: " + token << " From: " << from << std::endl;
-      token = getNextToken(key, from);
-   }
+      LOG << "Next Token From: " << from << std::endl;
+   } // End of while.
+
    if (found) {
-      LOG << "Found directory tree!" << std::endl;
-      DropChildCbkData *data = new DropChildCbkData();
-      data->tree = this;
-      data->dropCbk = dropCbk;
-      data->this_ = this_;
-      data->prefix = key;
-      node->dropChildren(DirTree::_dropChildCbk, data);
+      LOG << "Found directory tree, key: \"" << key << "\", Node: \"" << node->getKey() << "\"" << std::endl;
+      dropTree(key, parent, node, dropCbk, this_);
    }
 }
 

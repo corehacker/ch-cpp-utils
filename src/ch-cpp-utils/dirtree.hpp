@@ -11,6 +11,10 @@
 #include <vector>
 #include <unordered_map>
 
+#include "logger.hpp"
+
+using ChCppUtils::Logger;
+
 #ifndef SRC_CH_CPP_UTILS_TREE_HPP_
 #define SRC_CH_CPP_UTILS_TREE_HPP_
 
@@ -20,16 +24,18 @@ using std::vector;
 
 namespace ChCppUtils {
 
+static Logger &log = Logger::getInstance();
+
 vector<string> tokenize(string str, string delim);
 
-typedef class _Node Node;
+class Node;
 
 typedef void (*DropChildCbk) (Node *node, string suffix, void *this_);
 
-class _Node {
+class Node {
 public:
    void addChild(string key, Node *node) {
-      this->children.insert(std::make_pair(key, node));
+      children.insert(std::make_pair(key, node));
    }
 
    bool hasChild(string key) {
@@ -40,6 +46,10 @@ public:
    Node *getChild(string key) {
       auto search = children.find(key);
       return ((search != children.end()) ? search->second : NULL);
+   }
+
+   void deleteChild(string key) {
+      children.erase(key);
    }
 
    const unordered_map<string, Node*>& getChildren() const {
@@ -70,15 +80,22 @@ public:
       this->key = key;
    }
 
+   ~Node() {
+   }
+
 private:
    unordered_map<string, Node *> children;
    string key;
    void *data;
 
    void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
+      LOG << "Dropping children of " << key << std::endl;
       for( const auto& n : children) {
+         LOG << "Dropping child " << n.first << std::endl;
          n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
+         delete n.second;
       }
+      children.clear();
       if (dropChildCbk) dropChildCbk(this, suffix + "/" + key, this_);
    }
 };
@@ -103,6 +120,8 @@ private:
 
    static void _dropChildCbk(Node *node, string suffix, void *this_);
    void dropChildCbk(DropChildCbkData *data, Node *node, string suffix, void *this_);
+
+   void dropTree(string key, Node *parent, Node *child, DropCbk dropCbk, void *this_);
 public:
    DirTree();
    ~DirTree();
@@ -110,8 +129,6 @@ public:
    void drop(string key, DropCbk dropCbk, void *this_);
    void print();
 };
-
-
 
 }
 

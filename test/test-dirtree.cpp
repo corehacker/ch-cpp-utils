@@ -23,17 +23,20 @@ typedef struct _TreeNode {
 
 static void dropCbk (string path, void *data, void *this_) {
    LOG << "Dropping path: " << path << std::endl;
+   TreeNode *node = (TreeNode *) data;
+   delete node;
 }
 
 int main(int argc, char **argv) {
 
    DirTree *tree = new DirTree();
-   TreeNode *treeNode = new TreeNode();
+   TreeNode *treeNode = NULL;
    string path = "path";
 
    int i = 1;
    for (i = 1; i < (argc - 1); i++) {
       path = argv[i];
+      treeNode = new TreeNode();
       treeNode->path = path;
       tree->insert(path, treeNode);
    }
@@ -45,7 +48,13 @@ int main(int argc, char **argv) {
 
    tree->drop(dropPath, dropCbk, NULL);
 
-   THREAD_SLEEP_FOREVER;
+   tree->drop(dropPath, dropCbk, NULL);
+
+   tree->print();
+
+   delete tree;
+
+//   THREAD_SLEEP_FOREVER;
 }
 
 
