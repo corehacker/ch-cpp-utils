@@ -67,17 +67,17 @@ class ThreadPool
       ThreadPool (uint32_t uiCount = THREAD_POOL_DEFAULT_COUNT,
                   bool base = false);
       ~ThreadPool ();
-      void addJob (ThreadJob *job);
+      void addJob (ThreadJobBase *job);
    private:
-      std::deque<ThreadJob *> mJobQueue;
+      std::deque<ThreadJobBase *> mJobQueue;
       std::mutex mMutex;
       std::condition_variable mCondition;
       std::vector<Thread *> mThreads;
       uint32_t uiCount;
       bool mBase;
 
-      ThreadJob *threadGetNextJob_ ();
-      static ThreadJob *threadGetNextJob (void *this_);
+      ThreadJobBase *threadGetNextJob_ ();
+      static ThreadJobBase *threadGetNextJob (void *this_);
       void createThreads ();
 };
 

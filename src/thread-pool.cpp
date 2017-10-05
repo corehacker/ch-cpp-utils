@@ -73,7 +73,18 @@ ThreadPool::ThreadPool (uint32_t uiCount,
 
 ThreadPool::~ThreadPool ()
 {
+   printf("\n*****************~ThreadPool\n");
+   for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++)
+   {
+      ThreadExitJob *job = new ThreadExitJob();
+      addJob(job);
+   }
 
+   for (auto thread : mThreads)
+   {
+      LOG << "Deleting thread" << std::endl;
+      delete thread;
+   }
 }
 
 void ThreadPool::createThreads ()
@@ -86,15 +97,15 @@ void ThreadPool::createThreads ()
 }
 
 void
-ThreadPool::addJob (ThreadJob *job)
+ThreadPool::addJob (ThreadJobBase *job)
 {
-   LOG << "Adding Job" << std::endl;
    std::lock_guard < std::mutex > lock (mMutex);
+   LOG << "Adding Job" << std::endl;
    mJobQueue.push_back (job);
-   mCondition.notify_one ();
+   mCondition.notify_one();
 }
 
-ThreadJob *
+ThreadJobBase *
 ThreadPool::threadGetNextJob_ ()
 {
    while (true)
@@ -102,7 +113,7 @@ ThreadPool::threadGetNextJob_ ()
       std::unique_lock < std::mutex > lk (mMutex);
       if (!mJobQueue.empty ())
       {
-         ThreadJob *job = mJobQueue.at (0);
+         ThreadJobBase *job = mJobQueue.at (0);
          LOG << "New Job" << std::endl;
          mJobQueue.pop_front ();
          return job;
@@ -115,7 +126,7 @@ ThreadPool::threadGetNextJob_ ()
    }
 }
 
-ThreadJob *
+ThreadJobBase *
 ThreadPool::threadGetNextJob (void *this_)
 {
    ThreadPool *this__ = (ThreadPool *) this_;

@@ -50,7 +50,7 @@ extern  "C"
 
 namespace ChCppUtils {
 
-typedef ThreadJob * (*ThreadGetJob) (void *this_);
+typedef ThreadJobBase * (*ThreadGetJob) (void *this_);
 
 }
 

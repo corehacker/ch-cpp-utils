@@ -84,6 +84,7 @@ class FsWatch {
       void *onNewFileThis;
       std::unordered_set <string> filters;
       DirTree *tree;
+      bool stopWatching;
 
       void addWatch(std::string dir, bool add);
       void removeWatch(std::string dir);

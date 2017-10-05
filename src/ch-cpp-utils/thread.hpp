@@ -54,6 +54,12 @@
 
 namespace ChCppUtils {
 
+#define THREAD_SLEEP_1000MS \
+   do { \
+      std::chrono::milliseconds ms(1000); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
 #define THREAD_SLEEP_FOREVER \
    do { \
       std::chrono::milliseconds ms(1000); \
@@ -67,18 +73,20 @@ class Thread {
       Thread (ThreadGetJob getJob, void *this_);
       Thread (ThreadGetJob getJob, void *this_, bool base = false);
       ~Thread ();
-      void addJob (ThreadJob *job);
+      void addJob (ThreadJobBase *job);
    private:
-      // pthread_t         mThread;
-	  std::thread       *mThread;
+	   std::thread       *mThread;
       ThreadGetJob      mGetJob;
       void              *mGetJobThis;
       struct event_base *mEventBase;
       bool              mBase;
 
+      std::mutex mMutex;
+      std::condition_variable mSignal;
+
       static void *threadFunc (void *this_);
       void run ();
-      void runJob (ThreadJob *job);
+      void runJob (ThreadJobBase *job);
 };
 
 }

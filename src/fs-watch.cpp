@@ -55,6 +55,7 @@ FsWatch::FsWatch() {
    onNewFile = NULL;
    onNewFileThis = NULL;
    tree = NULL;
+   stopWatching = false;
    LOG << "Watching directory: " << root << std::endl;
 }
 
@@ -66,11 +67,19 @@ FsWatch::FsWatch(std::string root) {
    onNewFileThis = NULL;
    this->root = root;
    tree = NULL;
+   stopWatching = false;
    LOG << "Watching directory: " << root << std::endl;
 }
 
 FsWatch::~FsWatch() {
+   printf("\n*****************~FsWatch\n");
+   stopWatching = true;
 
+   delete epollThread;
+
+   delete fts;
+
+   delete tree;
 }
 
 void FsWatch::addWatch(std::string dir, bool add) {
@@ -80,7 +89,7 @@ void FsWatch::addWatch(std::string dir, bool add) {
       return;
    }
 
-   struct epoll_event ev;
+   struct epoll_event ev = {0};
    int inotifyFd = -1;
 
     inotifyFd = inotify_init1(IN_NONBLOCK);
@@ -256,8 +265,8 @@ void *FsWatch::epollThreadRoutine () {
    int nfds;
    struct epoll_event events[MAX_EVENTS];
    LOG << "Listening for directory tree changes." << std::endl;
-   while (1) {
-      nfds = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+   while (!stopWatching) {
+      nfds = epoll_wait(epollFd, events, MAX_EVENTS, 1000);
       if (nfds == -1) {
          perror("epoll_wait");
          exit(EXIT_FAILURE);
@@ -270,7 +279,7 @@ void *FsWatch::epollThreadRoutine () {
       }
    }
 
-   printf("Listening for events stopped.\n");
+   LOG << "Listening for events stopped." << std::endl;
    return NULL;
 }
 

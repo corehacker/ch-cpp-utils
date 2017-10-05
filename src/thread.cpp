@@ -56,6 +56,7 @@ Thread::threadFunc (void *this_)
 {
    Thread *t = (Thread *) this_;
    t->run ();
+   LOG << "Exiting thread routine" <<std::endl;
    return NULL;
 }
 
@@ -73,15 +74,27 @@ Thread::run ()
       LOG << "Not creating event base: " << mEventBase << std::endl;
    }
    while (true) {
-      ThreadJob *job = mGetJob (mGetJobThis);
+      ThreadJobBase *job = mGetJob (mGetJobThis);
+      if(job->isExit()) {
+         break;
+         delete job;
+      }
       runJob (job);
    }
+   LOG << "Exited thread." << std::endl;
+   mThread->detach();
+   LOG << "Detached thread." << std::endl;
+
+   mSignal.notify_one ();
 }
 
 void
-Thread::runJob (ThreadJob *job)
+Thread::runJob (ThreadJobBase *job)
 {
-   job->routine (job->arg, mEventBase);
+   if (job->routine) {
+      job->routine (job->arg, mEventBase);
+   }
+   delete job;
 }
 
 Thread::Thread (ThreadGetJob getJob, void *this_)
@@ -91,7 +104,6 @@ Thread::Thread (ThreadGetJob getJob, void *this_)
    mGetJobThis = this_;
    mBase = false;
    mEventBase = NULL;
-   // pthread_create (&mThread, NULL, Thread::threadFunc, this);
    mThread = new std::thread(Thread::threadFunc, this);
 }
 
@@ -101,12 +113,17 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
    mGetJobThis = this_;
    mBase = base;
    mEventBase = NULL;
-   // pthread_create (&mThread, NULL, Thread::threadFunc, this);
    mThread = new std::thread(Thread::threadFunc, this);
 }
 
 Thread::~Thread ()
 {
+   std::unique_lock < std::mutex > lk (mMutex);
+
+   LOG << "Waiting for thread to exit." << std::endl;
+   mSignal.wait (lk);
+
+   delete mThread;
 }
 
 }

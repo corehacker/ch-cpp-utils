@@ -50,14 +50,31 @@ typedef void * (*ThreadJobRoutine) (void *arg, struct event_base *base);
 
 namespace ChCppUtils {
 
-class ThreadJob {
-   private:
-	  static std::atomic <uint64_t> counter;
-   public:
-      ThreadJobRoutine routine;
-      void *arg;
-      ThreadJob (ThreadJobRoutine routine, void *arg);
-      ~ThreadJob ();
+class ThreadJobBase {
+private:
+   bool exit;
+   static std::atomic <uint64_t> counter;
+public:
+   ThreadJobRoutine routine;
+   void *arg;
+   ThreadJobBase (ThreadJobRoutine routine, void *arg, bool exit);
+   ~ThreadJobBase ();
+
+   bool isExit() const {
+      return exit;
+   }
+};
+
+class ThreadJob : public ThreadJobBase {
+public:
+   ThreadJob (ThreadJobRoutine routine, void *arg);
+   ~ThreadJob ();
+};
+
+class ThreadExitJob : public ThreadJobBase {
+public:
+   ThreadExitJob();
+   ~ThreadExitJob();
 };
 
 }

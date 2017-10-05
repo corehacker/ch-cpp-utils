@@ -70,5 +70,9 @@ int main () {
    watch->OnNewFileCbk(onNewFile, NULL);
    watch->start(filters);
 
-   THREAD_SLEEP_FOREVER;
+   THREAD_SLEEP_1000MS;
+
+   delete watch;
+
+   THREAD_SLEEP_1000MS;
 }

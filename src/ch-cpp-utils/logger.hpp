@@ -86,6 +86,7 @@ class Logger
 
       void threadFunc_ () {
          printf ("Running logger thread routine\n");
+         std::chrono::duration<int, std::milli> ms(1000);
          while (!shutdown)
          {
             if (!mLogQueue.empty ())
@@ -101,7 +102,8 @@ class Logger
             else
             {
                std::unique_lock < std::mutex > lk (mQMutex);
-               mQCondition.wait (lk);
+//               mQCondition.wait (lk);
+               mQCondition.wait_for(lk, ms);
             }
          }
          mThread->detach();
@@ -187,6 +189,16 @@ class Logger
          for( const auto& logEntry : mLogMap) {
             delete logEntry.second;
          }
+
+         while (!mLogQueue.empty ())
+         {
+            std::ostringstream *log = mLogQueue.at (0);
+            mLogQueue.pop_front ();
+            std::cout << log->str ();
+            delete log;
+            fflush (stdout);
+         }
+
          delete mThread;
       }
 };

@@ -43,19 +43,31 @@
 #include "ch-cpp-utils/thread-job.hpp"
 
 namespace ChCppUtils {
-std::atomic<uint64_t> ThreadJob::counter {0};   // or {0} for a more C++11 experience
+std::atomic<uint64_t> ThreadJobBase::counter {0};   // or {0} for a more C++11 experience
 
-ThreadJob::ThreadJob (ThreadJobRoutine routine, void *arg)
-{
+ThreadJobBase::ThreadJobBase (ThreadJobRoutine routine, void *arg, bool exit) {
    counter++;
    this->routine = routine;
    this->arg = arg;
+   this->exit = exit;
 }
 
-ThreadJob::~ThreadJob ()
-{
+ThreadJobBase::~ThreadJobBase () {
    this->routine = NULL;
    this->arg = NULL;
+}
+
+ThreadJob::ThreadJob (ThreadJobRoutine routine, void *arg) :
+      ThreadJobBase(routine, arg, false) {
+}
+
+ThreadJob::~ThreadJob () {
+}
+
+ThreadExitJob::ThreadExitJob() : ThreadJobBase(NULL, NULL, true) {
+}
+
+ThreadExitJob::~ThreadExitJob() {
 }
 
 }
