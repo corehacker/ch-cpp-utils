@@ -188,7 +188,7 @@ class Logger
          printf ("Logger thread to exited.\n");
 
          for( const auto& logEntry : mLogMap) {
-            delete logEntry.second;
+            SAFE_DELETE_RO(logEntry.second);
          }
 
          while (!mLogQueue.empty ())

@@ -94,7 +94,7 @@ private:
       for( const auto& n : children) {
          LOG << "Dropping child " << n.first << std::endl;
          n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
-         delete n.second;
+         SAFE_DELETE_RO(n.second);
       }
       children.clear();
       if (dropChildCbk) dropChildCbk(this, suffix + "/" + key, this_);

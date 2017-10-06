@@ -17,5 +17,12 @@
       } \
    } while(0)
 
+#define SAFE_DELETE_RO(pointer) \
+   do { \
+      if(pointer) { \
+         delete pointer; \
+      } \
+   } while(0)
+
 
 #endif /* SRC_CH_CPP_UTILS_DEFINES_HPP_ */
