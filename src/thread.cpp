@@ -76,8 +76,8 @@ Thread::run ()
    while (true) {
       ThreadJobBase *job = mGetJob (mGetJobThis);
       if(job->isExit()) {
-         break;
          delete job;
+         break;
       }
       runJob (job);
    }

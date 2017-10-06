@@ -79,6 +79,8 @@ FsWatch::~FsWatch() {
 
    delete fts;
 
+   removeWatch(root);
+
    delete tree;
 }
 
@@ -146,6 +148,8 @@ void FsWatch::dropCbk (string path, void *data) {
    inotify_rm_watch(node->fd, node->wd);
    LOG << "Removed inotify watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
    close(node->fd);
+
+   delete node;
 }
 
 void FsWatch::removeWatch(std::string dir) {
