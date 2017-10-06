@@ -43,6 +43,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "ch-cpp-utils/defines.hpp"
 #include "ch-cpp-utils/thread-pool.hpp"
 #include "ch-cpp-utils/tcp-listener.hpp"
 #include "ch-cpp-utils/tcp-server.hpp"
@@ -72,7 +73,7 @@ int main () {
 
    THREAD_SLEEP_1000MS;
 
-   delete watch;
+   SAFE_DELETE(watch);
 
    THREAD_SLEEP_1000MS;
 }

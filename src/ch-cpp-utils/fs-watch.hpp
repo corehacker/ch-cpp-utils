@@ -54,6 +54,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "defines.hpp"
 #include "logger.hpp"
 #include "thread.hpp"
 #include "thread-pool.hpp"

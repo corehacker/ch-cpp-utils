@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include "ch-cpp-utils/defines.hpp"
 #include <ch-cpp-utils/dirtree.hpp>
 #include "ch-cpp-utils/thread.hpp"
 #include "ch-cpp-utils/logger.hpp"
@@ -24,7 +25,7 @@ typedef struct _TreeNode {
 static void dropCbk (string path, void *data, void *this_) {
    LOG << "Dropping path: " << path << std::endl;
    TreeNode *node = (TreeNode *) data;
-   delete node;
+   SAFE_DELETE(node);
 }
 
 int main(int argc, char **argv) {
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 
    tree->print();
 
-   delete tree;
+   SAFE_DELETE(tree);
 
 //   THREAD_SLEEP_FOREVER;
 }

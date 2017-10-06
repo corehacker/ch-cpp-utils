@@ -5,7 +5,7 @@
  *      Author: corehacker
  */
 
-#include <dirtree.hpp>
+#include "dirtree.hpp"
 #include "ch-cpp-utils/logger.hpp"
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +33,8 @@ DirTree::~DirTree() {
    NULL_ROOT;
 
    LOG << "Deleting root... " << std::endl;
-   delete root;
+
+   SAFE_DELETE(root);
 }
 
 string DirTree::getNextToken(string path, size_t from) {
@@ -107,11 +108,11 @@ void DirTree::dropTree(string key, Node *parent, Node *child, DropCbk dropCbk, v
    data->prefix = key;
    child->dropChildren(DirTree::_dropChildCbk, data);
 
-   delete data;
+   SAFE_DELETE(data);
 
    parent->deleteChild(child->getKey());
 
-   delete child;
+   SAFE_DELETE(child);
 }
 
 

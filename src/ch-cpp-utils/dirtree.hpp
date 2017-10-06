@@ -11,6 +11,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "defines.hpp"
 #include "logger.hpp"
 
 using ChCppUtils::Logger;

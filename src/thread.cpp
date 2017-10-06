@@ -76,7 +76,7 @@ Thread::run ()
    while (true) {
       ThreadJobBase *job = mGetJob (mGetJobThis);
       if(job->isExit()) {
-         delete job;
+         SAFE_DELETE(job);
          break;
       }
       runJob (job);
@@ -94,7 +94,7 @@ Thread::runJob (ThreadJobBase *job)
    if (job->routine) {
       job->routine (job->arg, mEventBase);
    }
-   delete job;
+   SAFE_DELETE(job);
 }
 
 Thread::Thread (ThreadGetJob getJob, void *this_)
@@ -123,7 +123,7 @@ Thread::~Thread ()
    LOG << "Waiting for thread to exit." << std::endl;
    mSignal.wait (lk);
 
-   delete mThread;
+   SAFE_DELETE(mThread);
 }
 
 }

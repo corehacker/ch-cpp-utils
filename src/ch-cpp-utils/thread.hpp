@@ -46,6 +46,7 @@
 #include <deque>
 #include <mutex>
 #include <condition_variable>
+#include "defines.hpp"
 #include "thread-job.hpp"
 #include "thread-get-job.hpp"
 

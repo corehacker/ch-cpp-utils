@@ -43,6 +43,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "defines.hpp"
 #include "ch-cpp-utils/logger.hpp"
 #include "ch-cpp-utils/thread-pool.hpp"
 
@@ -83,7 +84,7 @@ ThreadPool::~ThreadPool ()
    for (auto thread : mThreads)
    {
       LOG << "Deleting thread" << std::endl;
-      delete thread;
+      SAFE_DELETE(thread);
    }
 }
 

@@ -75,13 +75,12 @@ FsWatch::~FsWatch() {
    printf("\n*****************~FsWatch\n");
    stopWatching = true;
 
-   delete epollThread;
-
-   delete fts;
+   SAFE_DELETE(epollThread);
+   SAFE_DELETE(fts);
 
    removeWatch(root);
 
-   delete tree;
+   SAFE_DELETE(tree);
 }
 
 void FsWatch::addWatch(std::string dir, bool add) {
@@ -136,7 +135,6 @@ void FsWatch::dropCbk (string path, void *data) {
    LOG << "Dropping Fd: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
 
    set.erase(path);
-//   map.erase(path);
 
    struct epoll_event ev;
    ev.events = EPOLLIN;
@@ -149,7 +147,7 @@ void FsWatch::dropCbk (string path, void *data) {
    LOG << "Removed inotify watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
    close(node->fd);
 
-   delete node;
+   SAFE_DELETE(node);
 }
 
 void FsWatch::removeWatch(std::string dir) {

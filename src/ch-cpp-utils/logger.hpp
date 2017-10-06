@@ -56,6 +56,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <condition_variable>
+#include "defines.hpp"
 
 #ifndef __SRC_UTILS_LOGGER_HPP__
 #define __SRC_UTILS_LOGGER_HPP__
@@ -96,7 +97,7 @@ class Logger
                mLogQueue.pop_front ();
                mQMutex.unlock ();
                std::cout << log->str ();
-               delete log;
+               SAFE_DELETE(log);
                fflush (stdout);
             }
             else
@@ -195,11 +196,11 @@ class Logger
             std::ostringstream *log = mLogQueue.at (0);
             mLogQueue.pop_front ();
             std::cout << log->str ();
-            delete log;
+            SAFE_DELETE(log);
             fflush (stdout);
          }
 
-         delete mThread;
+         SAFE_DELETE(mThread);
       }
 };
 
