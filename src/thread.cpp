@@ -73,19 +73,31 @@ Thread::run ()
       mEventBase = NULL;
       LOG << "Not creating event base: " << mEventBase << std::endl;
    }
+
+   mSemaphore.notify();
+   LOG << "Notified start." << std::endl;
    while (true) {
       ThreadJobBase *job = mGetJob (mGetJobThis);
       if(job->isExit()) {
+         LOG << "Exit Job Command" << std::endl;
          SAFE_DELETE(job);
          break;
       }
       runJob (job);
    }
+
+   if(mEventBase) {
+      event_base_free(mEventBase);
+      mEventBase = NULL;
+   }
+
    LOG << "Exited thread." << std::endl;
    mThread->detach();
    LOG << "Detached thread." << std::endl;
 
-   mSignal.notify_one ();
+   mSemaphore.notify();
+
+   LOG << "Notified exit." << std::endl;
 }
 
 void
@@ -97,6 +109,17 @@ Thread::runJob (ThreadJobBase *job)
    SAFE_DELETE(job);
 }
 
+thread::id Thread::getId() {
+   return mThread->get_id();
+}
+
+void Thread::join() {
+   if (mThread->joinable()) {
+      LOG << "Joining thread: 0x" << std::hex << getId() << std::dec  << std::endl;
+      mThread->join();
+   }
+}
+
 Thread::Thread (ThreadGetJob getJob, void *this_)
 {
    LOG << "Creating thread" << std::endl;
@@ -105,6 +128,11 @@ Thread::Thread (ThreadGetJob getJob, void *this_)
    mBase = false;
    mEventBase = NULL;
    mThread = new std::thread(Thread::threadFunc, this);
+
+
+   LOG << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
+   mSemaphore.wait();
+   LOG << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
 }
 
 Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
@@ -114,15 +142,18 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
    mBase = base;
    mEventBase = NULL;
    mThread = new std::thread(Thread::threadFunc, this);
+
+   LOG << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
+   mSemaphore.wait();
+   LOG << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
 }
 
 Thread::~Thread ()
 {
-   std::unique_lock < std::mutex > lk (mMutex);
-
-   LOG << "Waiting for thread to exit." << std::endl;
-   mSignal.wait (lk);
-
+   thread::id id = getId();
+   LOG << "Waiting for thread to exit: 0x" << std::hex << id << std::dec  << std::endl;
+   mSemaphore.wait();
+   LOG << "Thread exited: 0x" << std::hex << id << std::dec  << std::endl;
    SAFE_DELETE(mThread);
 }
 
