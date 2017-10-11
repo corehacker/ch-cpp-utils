@@ -40,12 +40,13 @@
  *
  ******************************************************************************/
 
-// #include <pthread.h>
 #include <libgen.h>
 #include <unistd.h>
 
 #include <type_traits>
+#include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <chrono>
 #include <thread>
@@ -61,8 +62,12 @@
 #ifndef __SRC_UTILS_LOGGER_HPP__
 #define __SRC_UTILS_LOGGER_HPP__
 
-#define LOG log << basename ((char *) __FILE__) << ":" << __FUNCTION__ << ":" << __LINE__ << " | 0x"\
-   << std::hex << std::this_thread::get_id () << " | "
+#define LOG log << \
+   "0x" << std::hex << std::this_thread::get_id () << std::dec << \
+   " | " << std::setw(20) << basename ((char *) __FILE__) << \
+   ":" << std::setw(20) << __FUNCTION__ << \
+   ":" << std::setw(4) << __LINE__ << " | "
+
 
 namespace ChCppUtils {
 
@@ -73,7 +78,7 @@ class Logger
       std::mutex mQMutex;
       std::mutex mLogMutex;
       std::condition_variable mQCondition;
-      std::condition_variable mShutdownSignal;
+      std::condition_variable mStartStopSignal;
 	   std::thread       *mThread;
       std::deque<std::ostringstream *> mLogQueue;
       std::unordered_map<std::thread::id, std::ostringstream *> mLogMap;
@@ -87,6 +92,7 @@ class Logger
 
       void threadFunc_ () {
          printf ("Running logger thread routine\n");
+         mStartStopSignal.notify_one ();
          std::chrono::duration<int, std::milli> ms(1000);
          while (!shutdown)
          {
@@ -103,13 +109,12 @@ class Logger
             else
             {
                std::unique_lock < std::mutex > lk (mQMutex);
-//               mQCondition.wait (lk);
                mQCondition.wait_for(lk, ms);
             }
          }
          mThread->detach();
          printf ("Exiting logger thread routine\n");
-         mShutdownSignal.notify_one ();
+         mStartStopSignal.notify_one ();
       }
 
    public:
@@ -126,23 +131,46 @@ class Logger
          shutdown = false;
          printf ("Creating logger thread\n");
          mThread = new std::thread(Logger::threadFunc, this);
+         std::unique_lock < std::mutex > lk (mQMutex);
+         mStartStopSignal.wait (lk);
+         printf ("Created logger thread %p\n", mThread);
+      }
+
+      std::ostringstream *getThreadEntry() {
+         std::thread::id threadId = std::this_thread::get_id ();
+         auto threadEntry = mLogMap.find(threadId);
+         if(threadEntry == mLogMap.end()) {
+            mLogMap.insert(std::make_pair (threadId, new std::ostringstream ()));
+            clear();
+         }
+         threadEntry = mLogMap.find(threadId);
+         return threadEntry->second;
+      }
+
+      void clear() {
+         std::thread::id threadId = std::this_thread::get_id ();
+         auto threadEntry = mLogMap.find(threadId);
+
+         threadEntry->second->str("");
+         threadEntry->second->clear();
+
+         std::time_t result = std::time(nullptr);
+         std::string ctime = std::ctime(&result);
+         ctime.erase(ctime.find('\n'));
+         (*threadEntry->second) << ctime << " | ";
       }
 
       template<typename T>
       Logger &operator<< (const T &a)
       {
-         std::thread::id threadId = std::this_thread::get_id ();
          mLogMutex.lock ();
          if (shutdown) {
             return *this;
          }
-         auto threadEntry = mLogMap.find(threadId);
-         if(threadEntry == mLogMap.end()) {
-            mLogMap.insert(std::make_pair (threadId, new std::ostringstream ()));
-         }
 
-         threadEntry = mLogMap.find(threadId);
-         (*threadEntry->second) << a;
+         std::ostringstream *threadEntry = getThreadEntry();
+
+         (*threadEntry) << a;
          mLogMutex.unlock ();
 
          return *this;
@@ -150,24 +178,15 @@ class Logger
 
       Logger &operator<< (std::ostream& (*pf) (std::ostream&))
       {
-         std::thread::id threadId = std::this_thread::get_id ();
-
          mLogMutex.lock ();
          if (shutdown) {
             return *this;
          }
-         auto threadEntry = mLogMap.find(threadId);
+         std::ostringstream *threadEntry = getThreadEntry();
+         (*threadEntry) << pf;
 
-         if(threadEntry == mLogMap.end()) {
-            mLogMap.insert(std::make_pair (threadId, new std::ostringstream ()));
-         }
-
-         threadEntry = mLogMap.find(threadId);
-         (*threadEntry->second) << pf;
-
-         std::ostringstream *log = new std::ostringstream (threadEntry->second->str());
-         threadEntry->second->str("");
-         threadEntry->second->clear();
+         std::ostringstream *log = new std::ostringstream (threadEntry->str());
+         clear();
          mLogMutex.unlock ();
 
          std::lock_guard < std::mutex > lock (mQMutex);
@@ -177,15 +196,12 @@ class Logger
       }
 
       ~Logger() {
-         printf("\n\n*****************~Logger\n\n");
          mLogMutex.lock ();
          shutdown = true;
          mLogMutex.unlock();
          std::unique_lock < std::mutex > lk (mQMutex);
-
-         printf ("Waiting for logger thread to exit.\n");
-         mShutdownSignal.wait (lk);
-         printf ("Logger thread to exited.\n");
+         mStartStopSignal.wait (lk);
+         printf ("Logger thread exited.\n");
 
          for( const auto& logEntry : mLogMap) {
             SAFE_DELETE_RO(logEntry.second);
