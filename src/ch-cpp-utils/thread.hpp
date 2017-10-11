@@ -47,17 +47,38 @@
 #include <mutex>
 #include <condition_variable>
 #include "defines.hpp"
+#include "semaphore.hpp"
 #include "thread-job.hpp"
 #include "thread-get-job.hpp"
 
 #ifndef __SRC_UTILS_THREAD_HPP__
 #define __SRC_UTILS_THREAD_HPP__
 
+using std::thread;
+
 namespace ChCppUtils {
 
 #define THREAD_SLEEP_1000MS \
    do { \
       std::chrono::milliseconds ms(1000); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
+#define THREAD_SLEEP_100MS \
+   do { \
+      std::chrono::milliseconds ms(100); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
+#define THREAD_SLEEP_500MS \
+   do { \
+      std::chrono::milliseconds ms(500); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
+#define THREAD_SLEEP_30S \
+   do { \
+      std::chrono::milliseconds ms(30 * 1000); \
       std::this_thread::sleep_for(ms); \
    } while(0)
 
@@ -75,15 +96,15 @@ class Thread {
       Thread (ThreadGetJob getJob, void *this_, bool base = false);
       ~Thread ();
       void addJob (ThreadJobBase *job);
+      thread::id getId();
+      void join();
    private:
 	   std::thread       *mThread;
       ThreadGetJob      mGetJob;
       void              *mGetJobThis;
       struct event_base *mEventBase;
       bool              mBase;
-
-      std::mutex mMutex;
-      std::condition_variable mSignal;
+      Semaphore         mSemaphore;
 
       static void *threadFunc (void *this_);
       void run ();
