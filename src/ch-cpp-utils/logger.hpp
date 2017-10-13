@@ -58,6 +58,7 @@
 #include <unordered_map>
 #include <condition_variable>
 #include "defines.hpp"
+#include "semaphore.hpp"
 
 #ifndef __SRC_UTILS_LOGGER_HPP__
 #define __SRC_UTILS_LOGGER_HPP__
@@ -76,13 +77,12 @@ class Logger
    private:
       std::ostream &m_file;
       std::mutex mQMutex;
-      std::mutex mLogMutex;
       std::condition_variable mQCondition;
-      std::condition_variable mStartStopSignal;
 	   std::thread       *mThread;
       std::deque<std::ostringstream *> mLogQueue;
       std::unordered_map<std::thread::id, std::ostringstream *> mLogMap;
       bool shutdown;
+      Semaphore mSemaphore;
 
       static void *threadFunc (void *this_) {
          Logger *logger = (Logger *) this_;
@@ -92,7 +92,9 @@ class Logger
 
       void threadFunc_ () {
          printf ("Running logger thread routine\n");
-         mStartStopSignal.notify_one ();
+
+         mSemaphore.notify();
+
          std::chrono::duration<int, std::milli> ms(1000);
          while (!shutdown)
          {
@@ -114,7 +116,8 @@ class Logger
          }
          mThread->detach();
          printf ("Exiting logger thread routine\n");
-         mStartStopSignal.notify_one ();
+
+         mSemaphore.notify();
       }
 
    public:
@@ -131,8 +134,7 @@ class Logger
          shutdown = false;
          printf ("Creating logger thread\n");
          mThread = new std::thread(Logger::threadFunc, this);
-         std::unique_lock < std::mutex > lk (mQMutex);
-         mStartStopSignal.wait (lk);
+         mSemaphore.wait();
          printf ("Created logger thread %p\n", mThread);
       }
 
@@ -163,7 +165,7 @@ class Logger
       template<typename T>
       Logger &operator<< (const T &a)
       {
-         mLogMutex.lock ();
+         std::lock_guard < std::mutex > lock (mQMutex);
          if (shutdown) {
             return *this;
          }
@@ -171,14 +173,12 @@ class Logger
          std::ostringstream *threadEntry = getThreadEntry();
 
          (*threadEntry) << a;
-         mLogMutex.unlock ();
-
          return *this;
       }
 
       Logger &operator<< (std::ostream& (*pf) (std::ostream&))
       {
-         mLogMutex.lock ();
+         std::lock_guard < std::mutex > lock (mQMutex);
          if (shutdown) {
             return *this;
          }
@@ -187,20 +187,19 @@ class Logger
 
          std::ostringstream *log = new std::ostringstream (threadEntry->str());
          clear();
-         mLogMutex.unlock ();
 
-         std::lock_guard < std::mutex > lock (mQMutex);
          mLogQueue.push_back (log);
          mQCondition.notify_one ();
          return *this;
       }
 
       ~Logger() {
-         mLogMutex.lock ();
+         mQMutex.lock ();
          shutdown = true;
-         mLogMutex.unlock();
-         std::unique_lock < std::mutex > lk (mQMutex);
-         mStartStopSignal.wait (lk);
+         mQMutex.unlock();
+
+         mSemaphore.wait();
+
          printf ("Logger thread exited.\n");
 
          for( const auto& logEntry : mLogMap) {
