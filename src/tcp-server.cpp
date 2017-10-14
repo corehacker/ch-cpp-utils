@@ -42,15 +42,11 @@
 
 #include "ch-cpp-utils/tcp-server.hpp"
 
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
-
 namespace ChCppUtils {
 
 void TcpServer::_onRead (struct bufferevent *bev, void *ctx)
 {
-   LOG << "Data on socket!!" << std::endl;
+   LOG(INFO) << "Data on socket!!" << std::endl;
 
    client_ctxt *client = (client_ctxt *) ctx;
    TcpServer *server = client->tcpServer;
@@ -95,7 +91,7 @@ void TcpServer::_onError (struct bufferevent *bev, short what, void *ctx)
 void TcpServer::onError (client_ctxt *client, struct bufferevent *bev, short what)
 {
 	client->disconnected = true;
-	LOG << "onError" << std::endl;
+	LOG(INFO) << "onError" << std::endl;
 	if (mOnDisconnect) {
 		mOnDisconnect (client, what, mOnDisconnectThis);
    }
@@ -103,7 +99,7 @@ void TcpServer::onError (client_ctxt *client, struct bufferevent *bev, short wha
 
 void TcpServer::onTimerExpiry (evutil_socket_t fd, short what, void *ctx)
 {
-   LOG << "Timer expired" << std::endl;
+   LOG(INFO) << "Timer expired" << std::endl;
    local_event_ctxt *local_event = (local_event_ctxt *) ctx;
    if (local_event->onLocalEvent)
    {
@@ -116,7 +112,7 @@ void * TcpServer::workerRoutine (void *arg, struct event_base *base)
    if (NULL == arg || NULL == base) return NULL;
 
    client_ctxt *client = (client_ctxt *) arg;
-   LOG << "Running Worker Thread Job, Base: " << base << std::endl;
+   LOG(INFO) << "Running Worker Thread Job, Base: " << base << std::endl;
 
    client->client_bev = bufferevent_socket_new (base,
          client->client_fd, 0);
@@ -133,7 +129,7 @@ void * TcpServer::workerRoutine (void *arg, struct event_base *base)
 
 void * TcpServer::localEventRoutine (void *arg, struct event_base *base)
 {
-   LOG << "Running Local Event Job, Base: " << base << std::endl;
+   LOG(INFO) << "Running Local Event Job, Base: " << base << std::endl;
    local_event_ctxt *local_event = (local_event_ctxt *) arg;
 
    local_event->event = evtimer_new (base, TcpServer::onTimerExpiry, arg);
@@ -154,7 +150,7 @@ void TcpServer::onConnection (int client_fd,
 void TcpServer::handleConnection (int client_fd,
                              struct sockaddr_in *px_sock_addr_in)
 {
-   LOG << "New connection" << std::endl;
+   LOG(INFO) << "New connection" << std::endl;
    client_ctxt *client = (client_ctxt *) malloc (sizeof (client_ctxt));
    memset (client, 0x00, sizeof (*client));
    client->client_fd = client_fd;

@@ -48,6 +48,7 @@
 #include <sys/inotify.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <glog/logging.h>
 
 #include <string>
 #include <iostream>
@@ -55,7 +56,6 @@
 #include <unordered_set>
 
 #include "defines.hpp"
-#include "logger.hpp"
 #include "thread.hpp"
 #include "thread-pool.hpp"
 #include "thread-job.hpp"

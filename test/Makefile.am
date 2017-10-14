@@ -1,7 +1,6 @@
 bin_PROGRAMS = \
 					test-linked-hash-map \
 					test-thread test-thread-pool \
-					test-logger \
 					test-libevent \
 					test-fs-watch \
 					test-dirtree
@@ -32,11 +31,11 @@ test_thread_pool_SOURCES = test-thread-pool.cpp
 
 #######################
 
-test_logger_SOURCES = test-logger.cpp
+# test_logger_SOURCES = test-logger.cpp
 
-test_logger_CPPFLAGS = -I../src
+# test_logger_CPPFLAGS = -I../src
 
-test_logger_LDADD = ../src/.libs/libch-cpp-utils.a
+# test_logger_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 

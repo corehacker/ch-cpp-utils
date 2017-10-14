@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include <atomic>
+#include <glog/logging.h>
 
 #ifndef __SRC_UTILS_THREAD_JOB_HPP__
 #define __SRC_UTILS_THREAD_JOB_HPP__

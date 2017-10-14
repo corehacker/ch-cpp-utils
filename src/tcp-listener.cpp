@@ -44,10 +44,6 @@
 
 #include "ch-cpp-utils/tcp-listener.hpp"
 
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
-
 namespace ChCppUtils {
 void TcpListener::evNewConnection(evutil_socket_t fd, short events, void *arg) {
    if (NULL == arg) return;
@@ -62,7 +58,7 @@ void TcpListener::acceptConnection(evutil_socket_t fd, short events) {
    struct sockaddr_in *px_sock_addr_in;
    int client_fd;
 
-   LOG << "New connection!!" << std::endl;
+   LOG(INFO) << "New connection!!" << std::endl;
 
    px_sock_addr_in = (struct sockaddr_in *) malloc (
          sizeof (struct sockaddr_in));
@@ -72,7 +68,7 @@ void TcpListener::acceptConnection(evutil_socket_t fd, short events) {
    client_fd = accept (mFd,
          (struct sockaddr *) px_sock_addr_in, &ui_sock_addr_len);
    if (client_fd > 0) {
-      LOG << "Accepted connection!!" << std::endl;
+      LOG(INFO) << "Accepted connection!!" << std::endl;
 
       if (mOnConnection) {
          mOnConnection (client_fd, px_sock_addr_in, mOnConnectionThis);
@@ -96,7 +92,7 @@ void * TcpListener::threadCbk (void *arg, struct event_base *base)
 
 void TcpListener::eventDispatch (struct event_base *base)
 {
-   LOG << "Running Listen Thread Job, Base: " << base << std::endl;
+   LOG(INFO) << "Running Listen Thread Job, Base: " << base << std::endl;
 
    mEvent = event_new(base, mFd, EV_READ,
                       TcpListener::evNewConnection, this);
@@ -104,7 +100,7 @@ void TcpListener::eventDispatch (struct event_base *base)
    struct timeval to = {0xFFFFFFFF, 0xFFFFFFFF};
    event_add(mEvent, &to);
 
-   LOG << "Listening on " << mPort << std::endl;
+   LOG(INFO) << "Listening on " << mPort << std::endl;
    event_base_dispatch(base);
 }
 
@@ -136,7 +132,7 @@ int TcpListener::start () {
    evutil_make_socket_nonblocking(mFd);
 
    ThreadJob *job = new ThreadJob (TcpListener::threadCbk, this);
-   LOG << "Adding job for listen socket: arg: " << job->arg << std::endl;
+   LOG(INFO) << "Adding job for listen socket: arg: " << job->arg << std::endl;
    mThread->addJob(job);
 
    return 0;

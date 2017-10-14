@@ -6,13 +6,8 @@
  */
 
 #include "dirtree.hpp"
-#include "ch-cpp-utils/logger.hpp"
 #include <stdio.h>
 #include <string.h>
-
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
 
 namespace ChCppUtils {
 
@@ -32,7 +27,7 @@ DirTree::DirTree() {
 DirTree::~DirTree() {
    NULL_ROOT;
 
-   LOG << "Deleting root... " << std::endl;
+   LOG(INFO) << "Deleting root... " << std::endl;
 
    SAFE_DELETE(root);
 }
@@ -47,7 +42,7 @@ void DirTree::insert(string key, void *data) {
    if (key[0] != '/' && key[0] != '.') {
       key.insert(0, "./", 0, 2);
    }
-   LOG << "Actual Path: " + key << std::endl;
+   LOG(INFO) << "Actual Path: " + key << std::endl;
 
    if (key[0] == '/') {
       key.erase(0, 1);
@@ -66,7 +61,7 @@ void DirTree::insert(string key, void *data) {
       node = node->getChild(token);
 
       from += token.size() + 1;
-      LOG << "Token: " + token << " From: " << from << std::endl;
+      LOG(INFO) << "Token: " + token << " From: " << from << std::endl;
       token = getNextToken(key, from);
    }
    if(node) {
@@ -122,7 +117,7 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    if (key[0] != '/' && key[0] != '.') {
       key.insert(0, "./", 0, 2);
    }
-   LOG << "Actual Path: " + key << std::endl;
+   LOG(INFO) << "Actual Path: " + key << std::endl;
 
    size_t from = 0;
    bool found = false;
@@ -132,25 +127,25 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    while(true) {
       token = getNextToken(key, from);
       if (0 == token.size()) {
-         LOG << "End of tokens" << std::endl;
+         LOG(INFO) << "End of tokens" << std::endl;
          break;
       }
 
-      LOG << "Token: " + token << " From: " << from << std::endl;
+      LOG(INFO) << "Token: " + token << " From: " << from << std::endl;
       parent = node;
       node = node->getChild(token);
       if (NULL == node) {
-         LOG << "Break in chain. Not found." << std::endl;
+         LOG(INFO) << "Break in chain. Not found." << std::endl;
          found = false;
          break;
       }
       found = true;
       from += token.size() + 1;
-      LOG << "Next Token From: " << from << std::endl;
+      LOG(INFO) << "Next Token From: " << from << std::endl;
    } // End of while.
 
    if (found) {
-      LOG << "Found directory tree, key: \"" << key << "\", Node: \"" << node->getKey() << "\"" << std::endl;
+      LOG(INFO) << "Found directory tree, key: \"" << key << "\", Node: \"" << node->getKey() << "\"" << std::endl;
       dropTree(key, parent, node, dropCbk, this_);
    }
 }

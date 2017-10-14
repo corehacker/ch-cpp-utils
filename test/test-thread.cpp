@@ -44,6 +44,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <glog/logging.h>
 #include "ch-cpp-utils/thread.hpp"
 
 /********************************* CONSTANTS **********************************/
@@ -71,8 +72,11 @@ routine (void *arg)
 }
 
 int
-main ()
+main (int argc, char* argv[])
 {
+   // Initialize Google's logging library.
+   google::InitGoogleLogging(argv[0]);
+
 //   Thread *thread = new Thread ();
 //
 //   std::chrono::milliseconds ms(1000);

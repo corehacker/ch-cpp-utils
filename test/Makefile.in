@@ -89,9 +89,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = test-linked-hash-map$(EXEEXT) test-thread$(EXEEXT) \
-	test-thread-pool$(EXEEXT) test-logger$(EXEEXT) \
-	test-libevent$(EXEEXT) test-fs-watch$(EXEEXT) \
-	test-dirtree$(EXEEXT)
+	test-thread-pool$(EXEEXT) test-libevent$(EXEEXT) \
+	test-fs-watch$(EXEEXT) test-dirtree$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -124,9 +123,6 @@ am_test_linked_hash_map_OBJECTS =  \
 	test_linked_hash_map-test-linked-hash-map.$(OBJEXT)
 test_linked_hash_map_OBJECTS = $(am_test_linked_hash_map_OBJECTS)
 test_linked_hash_map_LDADD = $(LDADD)
-am_test_logger_OBJECTS = test_logger-test-logger.$(OBJEXT)
-test_logger_OBJECTS = $(am_test_logger_OBJECTS)
-test_logger_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
 am_test_thread_OBJECTS = test_thread-test-thread.$(OBJEXT)
 test_thread_OBJECTS = $(am_test_thread_OBJECTS)
 test_thread_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
@@ -177,12 +173,10 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
 	$(test_libevent_SOURCES) $(test_linked_hash_map_SOURCES) \
-	$(test_logger_SOURCES) $(test_thread_SOURCES) \
-	$(test_thread_pool_SOURCES)
+	$(test_thread_SOURCES) $(test_thread_pool_SOURCES)
 DIST_SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
 	$(test_libevent_SOURCES) $(test_linked_hash_map_SOURCES) \
-	$(test_logger_SOURCES) $(test_thread_SOURCES) \
-	$(test_thread_pool_SOURCES)
+	$(test_thread_SOURCES) $(test_thread_pool_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -348,9 +342,12 @@ test_thread_pool_LDADD = ../src/.libs/libch-cpp-utils.a
 test_thread_pool_SOURCES = test-thread-pool.cpp
 
 #######################
-test_logger_SOURCES = test-logger.cpp
-test_logger_CPPFLAGS = -I../src
-test_logger_LDADD = ../src/.libs/libch-cpp-utils.a
+
+# test_logger_SOURCES = test-logger.cpp
+
+# test_logger_CPPFLAGS = -I../src
+
+# test_logger_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 test_libevent_SOURCES = test-libevent.cpp
@@ -466,10 +463,6 @@ test-linked-hash-map$(EXEEXT): $(test_linked_hash_map_OBJECTS) $(test_linked_has
 	@rm -f test-linked-hash-map$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_linked_hash_map_OBJECTS) $(test_linked_hash_map_LDADD) $(LIBS)
 
-test-logger$(EXEEXT): $(test_logger_OBJECTS) $(test_logger_DEPENDENCIES) $(EXTRA_test_logger_DEPENDENCIES) 
-	@rm -f test-logger$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(test_logger_OBJECTS) $(test_logger_LDADD) $(LIBS)
-
 test-thread$(EXEEXT): $(test_thread_OBJECTS) $(test_thread_DEPENDENCIES) $(EXTRA_test_thread_DEPENDENCIES) 
 	@rm -f test-thread$(EXEEXT)
 	$(AM_V_CXXLD)$(test_thread_LINK) $(test_thread_OBJECTS) $(test_thread_LDADD) $(LIBS)
@@ -488,7 +481,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_fs_watch-test-fs-watch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_libevent-test-libevent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_linked_hash_map-test-linked-hash-map.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_logger-test-logger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_thread-test-thread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_thread_pool-test-thread-pool.Po@am__quote@
 
@@ -571,20 +563,6 @@ test_linked_hash_map-test-linked-hash-map.obj: test-linked-hash-map.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-linked-hash-map.cpp' object='test_linked_hash_map-test-linked-hash-map.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_linked_hash_map_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_linked_hash_map-test-linked-hash-map.obj `if test -f 'test-linked-hash-map.cpp'; then $(CYGPATH_W) 'test-linked-hash-map.cpp'; else $(CYGPATH_W) '$(srcdir)/test-linked-hash-map.cpp'; fi`
-
-test_logger-test-logger.o: test-logger.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_logger_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_logger-test-logger.o -MD -MP -MF $(DEPDIR)/test_logger-test-logger.Tpo -c -o test_logger-test-logger.o `test -f 'test-logger.cpp' || echo '$(srcdir)/'`test-logger.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_logger-test-logger.Tpo $(DEPDIR)/test_logger-test-logger.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-logger.cpp' object='test_logger-test-logger.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_logger_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_logger-test-logger.o `test -f 'test-logger.cpp' || echo '$(srcdir)/'`test-logger.cpp
-
-test_logger-test-logger.obj: test-logger.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_logger_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_logger-test-logger.obj -MD -MP -MF $(DEPDIR)/test_logger-test-logger.Tpo -c -o test_logger-test-logger.obj `if test -f 'test-logger.cpp'; then $(CYGPATH_W) 'test-logger.cpp'; else $(CYGPATH_W) '$(srcdir)/test-logger.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_logger-test-logger.Tpo $(DEPDIR)/test_logger-test-logger.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-logger.cpp' object='test_logger-test-logger.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_logger_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_logger-test-logger.obj `if test -f 'test-logger.cpp'; then $(CYGPATH_W) 'test-logger.cpp'; else $(CYGPATH_W) '$(srcdir)/test-logger.cpp'; fi`
 
 test_thread-test-thread.o: test-thread.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_thread_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_thread-test-thread.o -MD -MP -MF $(DEPDIR)/test_thread-test-thread.Tpo -c -o test_thread-test-thread.o `test -f 'test-thread.cpp' || echo '$(srcdir)/'`test-thread.cpp

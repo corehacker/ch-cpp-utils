@@ -71,14 +71,13 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <glog/logging.h>
 #include "ch-cpp-utils/thread-pool.hpp"
 #include "ch-cpp-utils/tcp-listener.hpp"
 #include "ch-cpp-utils/tcp-server.hpp"
-#include "ch-cpp-utils/logger.hpp"
 
 using ChCppUtils::TcpServer;
 using ChCppUtils::client_ctxt;
-using ChCppUtils::Logger;
 
 
 #define _200_OK ("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
@@ -89,8 +88,6 @@ static void event_log_cbk(int severity, const char *msg);
 static void onMessage (client_ctxt *client, uint8_t *message, uint32_t length, void *this_);
 
 using namespace std;
-
-static Logger &log = Logger::getInstance();
 
 static void event_log_cbk(int severity, const char *msg) {
 
@@ -118,9 +115,9 @@ static void onMessage (client_ctxt *client, uint8_t *message, uint32_t length, v
    char *response;
    uint32_t size;
 
-   LOG << "New Message" << std::endl;
-   LOG << "Read " << length << " bytes from socket." << std::endl;
-   LOG << std::endl << message << std::endl;
+   LOG(INFO) << "New Message" << std::endl;
+   LOG(INFO) << "Read " << length << " bytes from socket." << std::endl;
+   LOG(INFO) << std::endl << message << std::endl;
 
    response = (char *) malloc (sizeof (_200_OK));
    strncpy (response, _200_OK, sizeof (_200_OK));
@@ -130,7 +127,10 @@ static void onMessage (client_ctxt *client, uint8_t *message, uint32_t length, v
    free (response);
 }
 
-int main () {
+int main (int argc, char* argv[]) {
+   // Initialize Google's logging library.
+   google::InitGoogleLogging(argv[0]);
+
    //signal(SIGSEGV, handler);
    //signal(SIGABRT, handler);
    event_set_log_callback(event_log_cbk);

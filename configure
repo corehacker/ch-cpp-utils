@@ -16749,6 +16749,55 @@ fi
 
 
 
+##########################################################################
+# check for glog library
+##########################################################################
+#dnl add the external library to the list of libraries which will be used for our test program
+LIBS="-lglog $LIBS"
+
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+#dnl check for the presence of 'libtotest'
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the glog availability" >&5
+$as_echo_n "checking for the glog availability... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+                #include <glog/logging.h>
+int
+main ()
+{
+google::InitGoogleLogging("test")
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  LIBCH_GLOG_PRESENCE=1
+else
+  LIBCH_GLOG_PRESENCE=0
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+if test "$LIBCH_GLOG_PRESENCE" = "1"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+else
+    as_fn_error $? "not found !" "$LINENO" 5
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
 ac_config_headers="$ac_config_headers config.h"
 
 ac_config_files="$ac_config_files Makefile src/Makefile test/Makefile"

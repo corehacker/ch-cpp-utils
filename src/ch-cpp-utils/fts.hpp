@@ -46,6 +46,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <glog/logging.h>
 
 using std::string;
 using std::vector;

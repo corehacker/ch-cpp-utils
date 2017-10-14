@@ -10,11 +10,9 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <glog/logging.h>
 
 #include "defines.hpp"
-#include "logger.hpp"
-
-using ChCppUtils::Logger;
 
 #ifndef SRC_CH_CPP_UTILS_TREE_HPP_
 #define SRC_CH_CPP_UTILS_TREE_HPP_
@@ -24,8 +22,6 @@ using std::string;
 using std::vector;
 
 namespace ChCppUtils {
-
-static Logger &log = Logger::getInstance();
 
 vector<string> tokenize(string str, string delim);
 
@@ -90,9 +86,9 @@ private:
    void *data;
 
    void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
-      LOG << "Dropping children of " << key << std::endl;
+      LOG(INFO) << "Dropping children of " << key << std::endl;
       for( const auto& n : children) {
-         LOG << "Dropping child " << n.first << std::endl;
+         LOG(INFO) << "Dropping child " << n.first << std::endl;
          n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
          SAFE_DELETE_RO(n.second);
       }

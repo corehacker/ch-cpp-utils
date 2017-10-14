@@ -44,8 +44,8 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <glog/logging.h>
 #include "ch-cpp-utils/thread-pool.hpp"
-#include "ch-cpp-utils/logger.hpp"
 
 /********************************* CONSTANTS **********************************/
 
@@ -61,34 +61,40 @@
 using namespace std;
 using ChCppUtils::ThreadJob;
 using ChCppUtils::ThreadPool;
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
 
 void *
 routine (void *arg, struct event_base *base)
 {
-   LOG << std::this_thread::get_id () << " Running Job Routine" << std::endl;
+   LOG(INFO) << std::this_thread::get_id () << " Running Job Routine" << std::endl;
 
    return NULL;
 }
 
 int
-main ()
+main (int argc, char* argv[])
 {
-   ThreadPool *pool = new ThreadPool (8, false);
+   // Initialize Google's logging library.
+   google::InitGoogleLogging(argv[0]);
+
+   LOG(INFO) << "Logger initialized";
+
    uint32_t uiCount = 0;
 
-   std::chrono::milliseconds ms(1000);
-   std::this_thread::sleep_for(ms);
-   ThreadJob *job = new ThreadJob (routine, NULL);
-   LOG << "Job: " << job->arg << std::endl;
    while (true) {
-      pool->addJob(job);
+   ThreadPool *pool = new ThreadPool (2, false);
 
-      std::this_thread::sleep_for(ms);
-      if (uiCount++ == 10) break;
+
+//   while (true) {
+//      ThreadJob *job = new ThreadJob (routine, NULL);
+//      LOG(INFO) << "Job: " << job->arg << std::endl;
+//      pool->addJob(job);
+//
+//      THREAD_SLEEP_500MS;
+//      if (uiCount++ == 2) break;
+//   }
+
+   delete pool;
+   if (uiCount++ == 2000) break;
    }
-
    return 0;
 }

@@ -6,14 +6,10 @@
  */
 
 #include <iostream>
+#include <glog/logging.h>
 #include "ch-cpp-utils/defines.hpp"
 #include <ch-cpp-utils/dirtree.hpp>
 #include "ch-cpp-utils/thread.hpp"
-#include "ch-cpp-utils/logger.hpp"
-
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
 
 using ChCppUtils::DirTree;
 using ChCppUtils::Node;
@@ -23,12 +19,15 @@ typedef struct _TreeNode {
 } TreeNode;
 
 static void dropCbk (string path, void *data, void *this_) {
-   LOG << "Dropping path: " << path << std::endl;
+   LOG(INFO) << "Dropping path: " << path << std::endl;
    TreeNode *node = (TreeNode *) data;
    SAFE_DELETE(node);
 }
 
 int main(int argc, char **argv) {
+
+   // Initialize Google's logging library.
+   google::InitGoogleLogging(argv[0]);
 
    DirTree *tree = new DirTree();
    TreeNode *treeNode = NULL;
@@ -45,7 +44,7 @@ int main(int argc, char **argv) {
    tree->print();
 
    string dropPath = argv[i];
-   LOG << "Drop path: " << dropPath << std::endl;
+   LOG(INFO) << "Drop path: " << dropPath << std::endl;
 
    tree->drop(dropPath, dropCbk, NULL);
 

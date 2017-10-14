@@ -105,6 +105,28 @@ fi
 dnl ----------------------------------------------------------------------------
 
 
+##########################################################################
+# check for glog library
+##########################################################################
+#dnl add the external library to the list of libraries which will be used for our test program
+LIBS="-lglog $LIBS"
+
+AC_LANG_PUSH([C++])
+#dnl check for the presence of 'libtotest'
+AC_MSG_CHECKING([for the glog availability])
+AC_LINK_IFELSE([
+                AC_LANG_PROGRAM([#include <glog/logging.h>],
+                                [google::InitGoogleLogging("test")])
+                ],
+                [LIBCH_GLOG_PRESENCE=1], [LIBCH_GLOG_PRESENCE=0])
+
+if test "$LIBCH_GLOG_PRESENCE" = "1"; then
+    AC_MSG_RESULT([found])
+else
+    AC_MSG_ERROR([not found !])
+fi
+AC_LANG_POP
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES(Makefile src/Makefile test/Makefile)
 AC_OUTPUT

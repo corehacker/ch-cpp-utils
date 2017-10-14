@@ -43,26 +43,26 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <glog/logging.h>
 #include "ch-cpp-utils/defines.hpp"
 #include "ch-cpp-utils/thread-pool.hpp"
 #include "ch-cpp-utils/tcp-listener.hpp"
 #include "ch-cpp-utils/tcp-server.hpp"
-#include "ch-cpp-utils/logger.hpp"
 #include "ch-cpp-utils/fs-watch.hpp"
 
 using ChCppUtils::FsWatch;
-using ChCppUtils::Logger;
-
-static Logger &log = Logger::getInstance();
 
 static void onNewFile (std::string path, void *this_);
 
 static void onNewFile (std::string path, void *this_) {
-   LOG << "onNewFile: " << path << std::endl;
+   LOG(INFO) << "onNewFile: " << path << std::endl;
 }
 
 
-int main () {
+int main (int argc, char* argv[]) {
+   // Initialize Google's logging library.
+   google::InitGoogleLogging(argv[0]);
+
    vector<string> filters;
    filters.emplace_back("jpg");
    filters.emplace_back("png");
@@ -71,9 +71,7 @@ int main () {
    watch->OnNewFileCbk(onNewFile, NULL);
    watch->start(filters);
 
-   THREAD_SLEEP_1000MS;
+   THREAD_SLEEP_30S;
 
    SAFE_DELETE(watch);
-
-   THREAD_SLEEP_1000MS;
 }
