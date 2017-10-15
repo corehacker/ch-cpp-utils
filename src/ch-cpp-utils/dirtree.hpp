@@ -85,9 +85,7 @@ private:
    void *data;
 
    void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
-      LOG(INFO) << "Dropping children of " << key << std::endl;
       for( const auto& n : children) {
-         LOG(INFO) << "Dropping child " << n.first << std::endl;
          n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
          SAFE_DELETE_RO(n.second);
       }
