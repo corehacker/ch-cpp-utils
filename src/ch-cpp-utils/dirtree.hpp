@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <glog/logging.h>
 
 #include "defines.hpp"
 

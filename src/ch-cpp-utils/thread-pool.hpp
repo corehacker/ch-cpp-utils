@@ -48,7 +48,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <stdlib.h>
-#include <glog/logging.h>
 
 #include "thread-job.hpp"
 #include "thread-get-job.hpp"

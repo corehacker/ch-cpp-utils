@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include <glog/logging.h>
 
 using std::vector;
 using std::unordered_map;

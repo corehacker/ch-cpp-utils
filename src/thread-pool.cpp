@@ -43,6 +43,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <glog/logging.h>
 #include "defines.hpp"
 #include "ch-cpp-utils/thread-pool.hpp"
 

@@ -40,6 +40,7 @@
  *
  ******************************************************************************/
 
+#include <glog/logging.h>
 #include <iostream>
 
 #include "ch-cpp-utils/tcp-listener.hpp"

@@ -5,6 +5,7 @@
  *      Author: corehacker
  */
 
+#include <glog/logging.h>
 #include "dirtree.hpp"
 #include <stdio.h>
 #include <string.h>

@@ -40,6 +40,7 @@
  *
  ******************************************************************************/
 
+#include <glog/logging.h>
 #include "ch-cpp-utils/tcp-server.hpp"
 
 namespace ChCppUtils {

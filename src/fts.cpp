@@ -1,5 +1,6 @@
 
 
+#include <glog/logging.h>
 #include "ch-cpp-utils/fts.hpp"
 
 namespace ChCppUtils {

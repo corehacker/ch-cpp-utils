@@ -40,6 +40,7 @@
  *
  ******************************************************************************/
 
+#include <glog/logging.h>
 #include "ch-cpp-utils/fs-watch.hpp"
 
 namespace ChCppUtils {

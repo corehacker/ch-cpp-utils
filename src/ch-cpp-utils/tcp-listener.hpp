@@ -66,7 +66,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <glog/logging.h>
 #include "thread-pool.hpp"
 
 namespace ChCppUtils {

@@ -40,9 +40,10 @@
  *
  ******************************************************************************/
 
- #include <iostream>
+#include <iostream>
+#include <glog/logging.h>
 
- #include "ch-cpp-utils/tcp-client.hpp"
+#include "ch-cpp-utils/tcp-client.hpp"
 
 namespace ChCppUtils {
 

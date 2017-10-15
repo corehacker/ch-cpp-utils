@@ -39,7 +39,7 @@
  * \brief
  *
  ******************************************************************************/
-
+#include <glog/logging.h>
 #include "ch-cpp-utils/thread-job.hpp"
 
 namespace ChCppUtils {

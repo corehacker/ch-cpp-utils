@@ -48,7 +48,6 @@
 #include <sys/inotify.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <glog/logging.h>
 
 #include <string>
 #include <iostream>

@@ -45,7 +45,6 @@
 #include <memory>
 #include <list>
 #include <unordered_map>
-#include <glog/logging.h>
 
 #ifndef __SRC_UTILS_LINKED_HASH_MAP_HPP__
 #define __SRC_UTILS_LINKED_HASH_MAP_HPP__

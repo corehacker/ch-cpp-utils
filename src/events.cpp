@@ -1,4 +1,5 @@
 
+#include <glog/logging.h>
 #include "ch-cpp-utils/events.hpp"
 
 namespace ChCppUtils {

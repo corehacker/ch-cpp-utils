@@ -64,7 +64,6 @@
 #include <thread>
 #include <chrono>
 
-#include <glog/logging.h>
 
 #ifndef __SRC_UTILS_TCP_CLIENT_HPP__
 #define __SRC_UTILS_TCP_CLIENT_HPP__

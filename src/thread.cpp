@@ -41,6 +41,7 @@
  ******************************************************************************/
 
 #include <iostream>
+#include <glog/logging.h>
 #include "ch-cpp-utils/thread.hpp"
 
 using namespace std;
