@@ -19,6 +19,7 @@ stamp-h1
 test/Makefile
 test/test-dirtree
 test/test-fs-watch
+test/test-http-client
 
 # Prerequisites
 *.d
