@@ -10,7 +10,9 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  fs-watch.cpp \
 									  events.cpp \
 									  dirtree.cpp \
-									  semaphore.cpp
+									  semaphore.cpp \
+									  base64.cpp \
+									  http-client.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -27,4 +29,6 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/events.hpp \
 								 ch-cpp-utils/dirtree.hpp \
 								 ch-cpp-utils/semaphore.hpp \
-								 ch-cpp-utils/defines.hpp
+								 ch-cpp-utils/defines.hpp \
+								 ch-cpp-utils/base64.h \
+								 ch-cpp-utils/http-client.hpp

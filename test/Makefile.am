@@ -3,7 +3,8 @@ bin_PROGRAMS = \
 					test-thread test-thread-pool \
 					test-libevent \
 					test-fs-watch \
-					test-dirtree
+					test-dirtree \
+					test-http-client
 
 test_linked_hash_map_SOURCES = test-linked-hash-map.cpp
 
@@ -60,5 +61,15 @@ test_dirtree_SOURCES = test-dirtree.cpp
 test_dirtree_CPPFLAGS = -I../src
 
 test_dirtree_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_http_client_SOURCES = test-http-client.cpp
+
+test_http_client_CPPFLAGS = -I../src
+
+test_http_client_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
 
 ACLOCAL_AMFLAGS = -I m4

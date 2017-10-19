@@ -147,6 +147,7 @@ void TcpListener::onNewConnection (OnNewConnection onConnection, void *this_)
 
 TcpListener::TcpListener (in_addr_t ip, in_port_t port)
 {
+   LOG(INFO) << "IP: " << ip << ", Port: " << port;
    mIp = ip;
    mPort = port;
    mThread = new ThreadPool (1, true);

@@ -135,7 +135,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libch_cpp_utils_la_LIBADD =
 am_libch_cpp_utils_la_OBJECTS = fts.lo tcp-client.lo tcp-listener.lo \
 	tcp-server.lo thread.lo thread-job.lo thread-pool.lo \
-	fs-watch.lo events.lo dirtree.lo semaphore.lo
+	fs-watch.lo events.lo dirtree.lo semaphore.lo base64.lo \
+	http-client.lo
 libch_cpp_utils_la_OBJECTS = $(am_libch_cpp_utils_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -339,7 +340,9 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  fs-watch.cpp \
 									  events.cpp \
 									  dirtree.cpp \
-									  semaphore.cpp
+									  semaphore.cpp \
+									  base64.cpp \
+									  http-client.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -356,7 +359,9 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/events.hpp \
 								 ch-cpp-utils/dirtree.hpp \
 								 ch-cpp-utils/semaphore.hpp \
-								 ch-cpp-utils/defines.hpp
+								 ch-cpp-utils/defines.hpp \
+								 ch-cpp-utils/base64.h \
+								 ch-cpp-utils/http-client.hpp
 
 all: all-am
 
@@ -436,10 +441,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dirtree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/events.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fs-watch.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fts.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-client.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semaphore.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcp-client.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcp-listener.Plo@am__quote@
