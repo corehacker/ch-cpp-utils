@@ -56,15 +56,32 @@ mutex gMutex;
 unordered_map<string, HttpClient> gClients;
 
 HttpConnection::HttpConnection(struct event_base *base, string hostname, uint16_t port) {
-	connection = evhttp_connection_base_new(base, NULL,
-	         hostname.data(), port);
+	connection = nullptr;
 	busy = false;
 	mHostname = hostname;
     mPort = port;
+    mBase = base;
 }
 
 HttpConnection::~HttpConnection() {
 
+}
+
+
+
+void HttpConnection::connect() {
+	if(!connection) {
+		connection = evhttp_connection_base_new(mBase, NULL, mHostname.data(),
+				mPort);
+		LOG(INFO) << "Creating libevent connection context.";
+	}
+}
+
+void HttpConnection::destroy() {
+	if(!connection) {
+		evhttp_connection_free(connection);
+		connection = nullptr;
+	}
 }
 
 string HttpConnection::getId() {
@@ -106,6 +123,21 @@ void *HttpClientImpl::dispatch(HttpRequestContext *request) {
    return nullptr;
 }
 
+void HttpClientImpl::_evConnectionClosed (struct evhttp_connection *conn, void *arg) {
+	HttpRequestContext *context = (HttpRequestContext *) arg;
+	context->client->evConnectionClosed(conn, context);
+}
+
+void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
+		HttpRequestContext *context) {
+	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort;
+	LOG(INFO) << "Setting connection context for reuse.";
+	lock_guard<mutex> lock(mMutex);
+	context->connection->destroy();
+	context->connection->setBusy(false);
+	mFree.insert(context->connection->getId());
+}
+
 HttpRequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 	HttpRequestContext *request = new HttpRequestContext();
 	request->client = this;
@@ -124,6 +156,11 @@ HttpRequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 		connection = new HttpConnection(mBase, mHostname, mPort);
 		mConnections.insert(make_pair(connection->getId(), connection));
 	}
+	connection->connect();
+
+	evhttp_connection_set_closecb(connection->getConnection(),
+			HttpClientImpl::_evConnectionClosed, request);
+
 	connection->setBusy(true);
 	mFree.erase(connection->getId());
 	request->connection = connection;

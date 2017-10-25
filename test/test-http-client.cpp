@@ -102,5 +102,5 @@ int main(int argc, char* argv[]) {
 	makeRequest();
 //	makeRequest();
 
-   THREAD_SLEEP_30S;
+   THREAD_SLEEP_FOREVER;
 }

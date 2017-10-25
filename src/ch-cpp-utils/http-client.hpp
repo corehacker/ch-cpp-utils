@@ -90,10 +90,15 @@ private:
 	bool busy;
 	string mHostname;
     uint16_t mPort;
+    struct event_base *mBase;
 public:
 	HttpConnection(struct event_base *base, string hostname, uint16_t port);
 
 	~HttpConnection();
+
+	void connect();
+
+	void destroy();
 
 	string getId();
 
@@ -128,6 +133,9 @@ private:
 
    HttpClientImpl();
    HttpClientImpl(string &hostname, uint16_t port);
+
+   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
+   void evConnectionClosed (struct evhttp_connection *conn, HttpRequestContext *context);
 public:
    ~HttpClientImpl();
    static HttpClient GetInstance(string hostname, uint16_t port);
