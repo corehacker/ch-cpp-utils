@@ -47,38 +47,53 @@
 
 using std::string;
 
-using ChCppUtils::HttpClient;
-using ChCppUtils::HttpClientImpl;
+using ChCppUtils::Http::HttpClient;
+using ChCppUtils::Http::HttpClientImpl;
 using ChCppUtils::base64_encode;
+using ChCppUtils::Http::HttpRequest;
+using ChCppUtils::Http::HttpRequestLoadEvent;
+
+static void onLoad(HttpRequestLoadEvent *event, void *this_) {
+	LOG(INFO) << "New Async Request (Complete): ";
+}
 
 int main(int argc, char* argv[]) {
    // Initialize Google's logging library.
 //   google::InitGoogleLogging(argv[0]);
 
-   string hostname = "localhost";
-   HttpClient client = HttpClientImpl::GetInstance(hostname, 9200);
+	string hostname = "localhost";
+	std::string authorization = "Basic ";
+	std::string user = "elastic:changeme";
+	authorization += base64_encode((unsigned char *) user.data(), user.length());
 
-   std::string authorization = "Basic ";
-   std::string user = "elastic:changeme";
-   authorization += base64_encode((unsigned char *) user.data(), user.length());
+	LOG(INFO) << "Authorization: " << authorization;
 
-   LOG(INFO) << "Authorization: " << authorization;
+	std::string body = "";
+	body += "{";
+	body += "\"path\":\"file.jpg\",";
+	body += "\"key\":\"1\"";
+	body += "}";
+	LOG(INFO)<< "Body: " << body;
 
 
-   string url = "/movies/movie/1";
+   LOG(INFO) << "";
+   LOG(INFO) << "";
+   LOG(INFO) << "";
 
-   unordered_map<string, string> headers;
-   headers.insert(std::make_pair("Authorization", authorization));
-   headers.insert(std::make_pair("Content-Type", "application/json; charset=UTF-8"));
+   string url = "http://localhost:9200/movies/movie/1";
+   HttpRequest *request = new HttpRequest();
+   request->onLoad(onLoad).bind(nullptr);
+   request->open(EVHTTP_REQ_PUT, url)
+		   .setHeader("Authorization", authorization)
+		   .setHeader("Content-Type", "application/json; charset=UTF-8")
+		   .send((void *) body.data(), body.length());
 
-   std::string body = "";
-   body += "{";
-   body += "\"path\":\"file.jpg\",";
-   body += "\"key\":\"1\"";
-   body += "}";
-   LOG(INFO) << "Body: " << body;
-
-   client->send(url, headers, EVHTTP_REQ_PUT, (void *) body.data(), body.length());
+   HttpRequest *request1 = new HttpRequest();
+   request1->onLoad(onLoad).bind(nullptr);
+   request1->open(EVHTTP_REQ_PUT, url)
+		   .setHeader("Authorization", authorization)
+		   .setHeader("Content-Type", "application/json; charset=UTF-8")
+		   .send((void *) body.data(), body.length());
 
    THREAD_SLEEP_30S;
 }

@@ -43,6 +43,9 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <mutex>
+#include <random>
 #include <ch-cpp-utils/thread-pool.hpp>
 #include <ch-cpp-utils/thread-job.hpp>
 
@@ -53,24 +56,63 @@ using std::shared_ptr;
 using std::make_shared;
 using std::string;
 using std::unordered_map;
+using std::unordered_set;
+using std::mutex;
+using std::lock_guard;
+using std::to_string;
+using std::make_pair;
 
 using ChCppUtils::ThreadPool;
 using ChCppUtils::ThreadJob;
 
 namespace ChCppUtils {
 
+namespace Http {
+
+class HttpConnection;
 class HttpClientImpl;
+class HttpRequest;
 
 using HttpClient = std::shared_ptr<HttpClientImpl>;
 
-typedef struct _HttpRequest {
+typedef struct _HttpRequestContext {
    HttpClientImpl *client;
+   HttpRequest *httpRequest;
    string url;
-   unordered_map<string, string> headers;
    struct event_base *base;
-   struct evhttp_connection *connection;
+   HttpConnection *connection;
    struct evhttp_request *request;
-} HttpRequest;
+} HttpRequestContext;
+
+class HttpConnection {
+private:
+	struct evhttp_connection *connection;
+	bool busy;
+	string mHostname;
+    uint16_t mPort;
+public:
+	HttpConnection(struct event_base *base, string hostname, uint16_t port);
+
+	~HttpConnection();
+
+	string getId();
+
+	bool isBusy() const {
+		return busy;
+	}
+
+	void setBusy(bool busy) {
+		this->busy = busy;
+	}
+
+	struct evhttp_connection* getConnection() const {
+		return connection;
+	}
+
+	void setConnection(struct evhttp_connection* connection) {
+		this->connection = connection;
+	}
+};
 
 
 class HttpClientImpl {
@@ -78,27 +120,84 @@ private:
    string mHostname;
    uint16_t mPort;
    ThreadPool *mPool;
+   struct event_base *mBase;
+
+   mutex mMutex;
+   unordered_map<string, HttpConnection *> mConnections;
+   unordered_set<string> mFree;
 
    HttpClientImpl();
    HttpClientImpl(string &hostname, uint16_t port);
 public:
    ~HttpClientImpl();
-   static HttpClient GetInstance(string &hostname, uint16_t port);
+   static HttpClient GetInstance(string hostname, uint16_t port);
 
    static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch(HttpRequest *request);
+   void *dispatch(HttpRequestContext *request);
 
-   static void _evHttpReqDone(struct evhttp_request *req, void *arg);
-   void evHttpReqDone(struct evhttp_request *req, HttpRequest *request);
+   HttpRequestContext *open(evhttp_cmd_type method, string url);
 
-   void send(
-         string url,
-         unordered_map<string, string> headers,
-         evhttp_cmd_type method,
-         void *body,
-         size_t length);
+   void send(HttpRequestContext *request);
 };
 
-}
+class HttpRequestEvent {
+
+};
+
+class HttpRequestErrorEvent : public HttpRequestEvent {
+
+};
+
+class HttpRequestLoadEvent : public HttpRequestEvent {
+
+};
+
+typedef void (*_OnLoad)(HttpRequestLoadEvent *event, void *this_);
+
+typedef void (*_OnError)(HttpRequestErrorEvent *event, void *this_);
+
+class HttpRequest;
+
+class HttpRequest {
+public:
+	class On {
+	protected:
+		void *this_;
+	};
+
+	class OnLoad : public On {
+	public:
+		OnLoad();
+		OnLoad &set(_OnLoad onload);
+		void bind(void *this_);
+		void fire();
+	private:
+		_OnLoad onload;
+	};
+
+private:
+	OnLoad onload;
+
+	struct evhttp_uri *uri;
+	evhttp_cmd_type method;
+	HttpClient client;
+	HttpRequestContext *context;
+
+	bool send(size_t contentLength);
+	static void _evHttpReqDone(struct evhttp_request *req, void *arg);
+	void evHttpReqDone(struct evhttp_request *req);
+public:
+	HttpRequest();
+	~HttpRequest();
+
+	OnLoad &onLoad(_OnLoad onload);
+	HttpRequest &open(evhttp_cmd_type method, string url);
+	HttpRequest &setHeader(string name, string value);
+	bool send();
+	bool send(void *body, size_t length);
+};
+
+} // End namespace Http.
+} // End namespace ChCppUtils.
 
 #endif /* SRC_HTTP_CLIENT_HPP_ */
