@@ -136,6 +136,7 @@ public:
    void *dispatch(HttpRequestContext *request);
 
    HttpRequestContext *open(evhttp_cmd_type method, string url);
+   void close(HttpRequestContext *context);
 
    void send(HttpRequestContext *request);
 };

@@ -130,6 +130,12 @@ HttpRequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 	return request;
 }
 
+void HttpClientImpl::close(HttpRequestContext *context) {
+	lock_guard<mutex> lock(mMutex);
+	context->connection->setBusy(false);
+	mFree.insert(context->connection->getId());
+}
+
 void HttpClientImpl::send(HttpRequestContext *request) {
 	ThreadJob *dispatch = new ThreadJob (HttpClientImpl::_dispatch, request);
 	mPool->addJob(dispatch);
@@ -196,6 +202,8 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
       LOG(INFO) << "Request success";
       LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
    }
+
+   context->client->close(context);
 
    onload.fire();
 

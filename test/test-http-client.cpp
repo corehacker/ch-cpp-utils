@@ -53,14 +53,19 @@ using ChCppUtils::base64_encode;
 using ChCppUtils::Http::HttpRequest;
 using ChCppUtils::Http::HttpRequestLoadEvent;
 
+static void onLoad(HttpRequestLoadEvent *event, void *this_);
+void makeRequest();
+bool request = true;
+
 static void onLoad(HttpRequestLoadEvent *event, void *this_) {
-	LOG(INFO) << "New Async Request (Complete): ";
+	LOG(INFO) << "New Async Request (Complete)";
+	if(request) {
+		makeRequest();
+		request = false;
+	}
 }
 
-int main(int argc, char* argv[]) {
-   // Initialize Google's logging library.
-//   google::InitGoogleLogging(argv[0]);
-
+void makeRequest() {
 	string hostname = "localhost";
 	std::string authorization = "Basic ";
 	std::string user = "elastic:changeme";
@@ -88,12 +93,14 @@ int main(int argc, char* argv[]) {
 		   .setHeader("Content-Type", "application/json; charset=UTF-8")
 		   .send((void *) body.data(), body.length());
 
-   HttpRequest *request1 = new HttpRequest();
-   request1->onLoad(onLoad).bind(nullptr);
-   request1->open(EVHTTP_REQ_PUT, url)
-		   .setHeader("Authorization", authorization)
-		   .setHeader("Content-Type", "application/json; charset=UTF-8")
-		   .send((void *) body.data(), body.length());
+}
+
+int main(int argc, char* argv[]) {
+   // Initialize Google's logging library.
+//   google::InitGoogleLogging(argv[0]);
+
+	makeRequest();
+//	makeRequest();
 
    THREAD_SLEEP_30S;
 }
