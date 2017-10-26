@@ -75,14 +75,64 @@ class HttpRequest;
 
 using HttpClient = std::shared_ptr<HttpClientImpl>;
 
-typedef struct _HttpRequestContext {
-   HttpClientImpl *client;
-   HttpRequest *httpRequest;
-   string url;
-   struct event_base *base;
-   HttpConnection *connection;
-   struct evhttp_request *request;
-} HttpRequestContext;
+class RequestContext {
+public:
+	struct event_base* getBase() {
+		return base;
+	}
+
+	void setBase(struct event_base* base) {
+		this->base = base;
+	}
+
+	HttpClientImpl* getClient() {
+		return client;
+	}
+
+	void setClient(HttpClientImpl* client) {
+		this->client = client;
+	}
+
+	HttpConnection* getConnection() {
+		return connection;
+	}
+
+	void setConnection(HttpConnection* connection) {
+		this->connection = connection;
+	}
+
+	HttpRequest* getHttpRequest() {
+		return httpRequest;
+	}
+
+	void setHttpRequest(HttpRequest* httpRequest) {
+		this->httpRequest = httpRequest;
+	}
+
+	struct evhttp_request* getRequest() {
+		return request;
+	}
+
+	void setRequest(struct evhttp_request* request) {
+		this->request = request;
+	}
+
+	string& getUrl() {
+		return url;
+	}
+
+	void setUrl(string& url) {
+		this->url = url;
+	}
+
+private:
+	HttpClientImpl *client;
+	HttpRequest *httpRequest;
+	string url;
+	struct event_base *base;
+	HttpConnection *connection;
+	struct evhttp_request *request;
+};
 
 class HttpConnection {
 private:
@@ -102,7 +152,7 @@ public:
 
 	string getId();
 
-	bool isBusy() const {
+	bool isBusy() {
 		return busy;
 	}
 
@@ -110,7 +160,7 @@ public:
 		this->busy = busy;
 	}
 
-	struct evhttp_connection* getConnection() const {
+	struct evhttp_connection* getConnection() {
 		return connection;
 	}
 
@@ -135,22 +185,25 @@ private:
    HttpClientImpl(string &hostname, uint16_t port);
 
    static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-   void evConnectionClosed (struct evhttp_connection *conn, HttpRequestContext *context);
+   void evConnectionClosed (struct evhttp_connection *conn, RequestContext *context);
 public:
    ~HttpClientImpl();
    static HttpClient GetInstance(string hostname, uint16_t port);
 
    static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch(HttpRequestContext *request);
+   void *dispatch(RequestContext *request);
 
-   HttpRequestContext *open(evhttp_cmd_type method, string url);
-   void close(HttpRequestContext *context);
+   RequestContext *open(evhttp_cmd_type method, string url);
+   void close(RequestContext *context);
 
-   void send(HttpRequestContext *request);
+   void send(RequestContext *request);
 };
 
 class HttpRequestEvent {
-
+public:
+	HttpRequestEvent(void *this_);
+private:
+	void *this_;
 };
 
 class HttpRequestErrorEvent : public HttpRequestEvent {
@@ -190,7 +243,7 @@ private:
 	struct evhttp_uri *uri;
 	evhttp_cmd_type method;
 	HttpClient client;
-	HttpRequestContext *context;
+	RequestContext *context;
 
 	bool send(size_t contentLength);
 	static void _evHttpReqDone(struct evhttp_request *req, void *arg);

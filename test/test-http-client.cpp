@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 //   google::InitGoogleLogging(argv[0]);
 
 	makeRequest();
-//	makeRequest();
+	makeRequest();
 
    THREAD_SLEEP_FOREVER;
 }

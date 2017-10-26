@@ -67,8 +67,6 @@ HttpConnection::~HttpConnection() {
 
 }
 
-
-
 void HttpConnection::connect() {
 	if(!connection) {
 		connection = evhttp_connection_base_new(mBase, NULL, mHostname.data(),
@@ -110,39 +108,43 @@ HttpClientImpl::~HttpClientImpl() {
 }
 
 void *HttpClientImpl::_dispatch(void *arg, struct event_base *base) {
-   HttpRequestContext *request = (HttpRequestContext *) arg;
-   return request->client->dispatch(request);
+	RequestContext *context = (RequestContext *) arg;
+	HttpClientImpl *client = context->getClient();
+	return client->dispatch(context);
 }
 
-void *HttpClientImpl::dispatch(HttpRequestContext *request) {
+void *HttpClientImpl::dispatch(RequestContext *request) {
    LOG(INFO) << "New Async Request (Dispatching): " << mHostname << ":" <<
-            mPort << request->url;
-   event_base_dispatch(request->base);
+            mPort << request->getUrl();
+   event_base_dispatch(request->getBase());
    LOG(INFO) << "New Async Request (Dispatched): " << mHostname << ":" <<
-            mPort << request->url;
+            mPort << request->getUrl();
    return nullptr;
 }
 
 void HttpClientImpl::_evConnectionClosed (struct evhttp_connection *conn, void *arg) {
-	HttpRequestContext *context = (HttpRequestContext *) arg;
-	context->client->evConnectionClosed(conn, context);
+	RequestContext *context = (RequestContext *) arg;
+	HttpClientImpl *client = context->getClient();
+	client->evConnectionClosed(conn, context);
 }
 
 void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
-		HttpRequestContext *context) {
+		RequestContext *context) {
 	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort;
 	LOG(INFO) << "Setting connection context for reuse.";
+	HttpConnection *connection = context->getConnection();
 	lock_guard<mutex> lock(mMutex);
-	context->connection->destroy();
-	context->connection->setBusy(false);
-	mFree.insert(context->connection->getId());
+	connection->destroy();
+	connection->setBusy(false);
+	mFree.insert(connection->getId());
 }
 
-HttpRequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
-	HttpRequestContext *request = new HttpRequestContext();
-	request->client = this;
-	request->url = url;
-	request->base = mBase;
+RequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
+	RequestContext *context = new RequestContext();
+
+	context->setClient(this);
+	context->setUrl(url);
+	context->setBase(mBase);
 
 	lock_guard<mutex> lock(mMutex);
 	HttpConnection *connection = nullptr;
@@ -159,21 +161,22 @@ HttpRequestContext *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 	connection->connect();
 
 	evhttp_connection_set_closecb(connection->getConnection(),
-			HttpClientImpl::_evConnectionClosed, request);
+			HttpClientImpl::_evConnectionClosed, context);
 
 	connection->setBusy(true);
 	mFree.erase(connection->getId());
-	request->connection = connection;
-	return request;
+	context->setConnection(connection);
+	return context;
 }
 
-void HttpClientImpl::close(HttpRequestContext *context) {
+void HttpClientImpl::close(RequestContext *context) {
 	lock_guard<mutex> lock(mMutex);
-	context->connection->setBusy(false);
-	mFree.insert(context->connection->getId());
+	HttpConnection *connection = context->getConnection();
+	connection->setBusy(false);
+	mFree.insert(connection->getId());
 }
 
-void HttpClientImpl::send(HttpRequestContext *request) {
+void HttpClientImpl::send(RequestContext *request) {
 	ThreadJob *dispatch = new ThreadJob (HttpClientImpl::_dispatch, request);
 	mPool->addJob(dispatch);
 }
@@ -208,7 +211,7 @@ void HttpRequest::OnLoad::bind(void *this_) {
 }
 
 void HttpRequest::OnLoad::fire() {
-	if(this->onload) this->onload(new HttpRequestLoadEvent(), this->this_);
+	if(this->onload) this->onload(nullptr, this->this_);
 }
 
 HttpRequest::HttpRequest() {
@@ -240,11 +243,12 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
       LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
    }
 
-   context->client->close(context);
+   HttpClientImpl *client = context->getClient();
+   client->close(context);
 
    onload.fire();
 
-   event_base_loopbreak(this->context->base);
+   event_base_loopbreak(context->getBase());
 }
 
 HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
@@ -260,30 +264,38 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 
 	context = client->open(method, evhttp_uri_get_path(uri));
 
-	context->request = evhttp_request_new(HttpRequest::_evHttpReqDone, this);
+	context->setRequest(evhttp_request_new(HttpRequest::_evHttpReqDone, this));
+
+//	context->request = evhttp_request_new(HttpRequest::_evHttpReqDone, this);
 	LOG(INFO) << "New Async Request (Created): " << url;
-	evhttp_add_header(context->request->output_headers, "Connection",
-			 "keep-alive");
+	struct evhttp_request *request = context->getRequest();
+	evhttp_add_header(request->output_headers, "Connection", "keep-alive");
 	LOG(INFO) << "HEADER - " << "Connection: keep-alive";
 
 	return *this;
 }
 
 HttpRequest &HttpRequest::setHeader(string name, string value) {
-	evhttp_add_header(context->request->output_headers, name.data(),
+	struct evhttp_request *request = context->getRequest();
+	evhttp_add_header(request->output_headers, name.data(),
 	            value.data());
 	LOG(INFO) << "HEADER - " << name << ": " << value;
 	return *this;
 }
 
 bool HttpRequest::send(size_t contentLength) {
-	evhttp_add_header(context->request->output_headers, "Content-Length",
+	struct evhttp_request *request = context->getRequest();
+	evhttp_add_header(request->output_headers, "Content-Length",
 			to_string(contentLength).data());
 	LOG(INFO)<<"HEADER - " << "Content-Length" << ": " <<
 			to_string(contentLength).data();
-	evhttp_make_request(context->connection->getConnection(),
-			context->request, method, evhttp_uri_get_path(uri));
-	context->client->send(context);
+
+	HttpConnection *connection = context->getConnection();
+	evhttp_make_request(connection->getConnection(),
+			context->getRequest(), method, evhttp_uri_get_path(uri));
+
+	HttpClientImpl *client = context->getClient();
+	client->send(context);
 	return true;
 }
 
@@ -292,7 +304,8 @@ bool HttpRequest::send() {
 }
 
 bool HttpRequest::send(void *body, size_t len) {
-	body && len && !evbuffer_add(context->request->output_buffer, body, len);
+	struct evhttp_request *request = context->getRequest();
+	body && len && !evbuffer_add(request->output_buffer, body, len);
 	return send(len);
 }
 
