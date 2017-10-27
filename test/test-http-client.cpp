@@ -44,6 +44,7 @@
 #include <event2/http.h>
 #include "ch-cpp-utils/base64.h"
 #include "ch-cpp-utils/http-client.hpp"
+#include "ch-cpp-utils/http-request.hpp"
 
 using std::string;
 
@@ -51,6 +52,7 @@ using ChCppUtils::Http::HttpClient;
 using ChCppUtils::Http::HttpClientImpl;
 using ChCppUtils::base64_encode;
 using ChCppUtils::Http::HttpRequest;
+using ChCppUtils::Http::HttpResponse;
 using ChCppUtils::Http::HttpRequestLoadEvent;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_);
@@ -58,11 +60,13 @@ void makeRequest();
 bool request = true;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_) {
-	LOG(INFO) << "New Async Request (Complete)";
-	if(request) {
-		makeRequest();
-		request = false;
-	}
+	HttpResponse *response = event->getResponse();
+	LOG(INFO) << "New Async Request (Complete): " <<
+			response->getResponseCode() << " " << response->getResponseText();
+//	if(request) {
+//		makeRequest();
+//		request = false;
+//	}
 }
 
 void makeRequest() {
@@ -99,7 +103,7 @@ int main(int argc, char* argv[]) {
    // Initialize Google's logging library.
 //   google::InitGoogleLogging(argv[0]);
 
-	makeRequest();
+//	makeRequest();
 	makeRequest();
 
    THREAD_SLEEP_FOREVER;
