@@ -30,7 +30,7 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   test-http-client.cpp
+ * \file   http-connection.cpp
  *
  * \author Sandeep Prakash
  *
@@ -39,72 +39,87 @@
  * \brief
  *
  ******************************************************************************/
-#include <string>
-#include <glog/logging.h>
+
+#include <event2/event.h>
 #include <event2/http.h>
-#include "ch-cpp-utils/base64.h"
-#include "ch-cpp-utils/http-client.hpp"
-#include "ch-cpp-utils/http-request.hpp"
+#include <event2/http_struct.h>
+#include <event2/buffer.h>
+#include <glog/logging.h>
 
-using std::string;
+#include "http-client.hpp"
+#include "http-connection.hpp"
 
-using ChCppUtils::Http::HttpClient;
-using ChCppUtils::Http::HttpClientImpl;
-using ChCppUtils::base64_encode;
-using ChCppUtils::Http::HttpRequest;
-using ChCppUtils::Http::HttpResponse;
-using ChCppUtils::Http::HttpRequestLoadEvent;
+namespace ChCppUtils {
 
-static void onLoad(HttpRequestLoadEvent *event, void *this_);
-void makeRequest();
-bool request = true;
+namespace Http {
 
-static void onLoad(HttpRequestLoadEvent *event, void *this_) {
-	HttpResponse *response = event->getResponse();
-	LOG(INFO) << "New Async Request (Complete): " <<
-			response->getResponseCode() << " " << response->getResponseText();
-//	if(request) {
-//		makeRequest();
-//		request = false;
-//	}
+HttpConnection::HttpConnection(HttpClientImpl *client, string hostname,
+		uint16_t port) {
+	this->client = client;
+	connection = nullptr;
+	busy = false;
+	mHostname = hostname;
+    mPort = port;
 }
 
-void makeRequest() {
-	string hostname = "localhost";
-	std::string authorization = "Basic ";
-	std::string user = "elastic:changeme";
-	authorization += base64_encode((unsigned char *) user.data(), user.length());
-
-	LOG(INFO) << "Authorization: " << authorization;
-
-	std::string body = "";
-	body += "{";
-	body += "\"path\":\"file.jpg\",";
-	body += "\"key\":\"1\"";
-	body += "}";
-	LOG(INFO)<< "Body: " << body;
-
-
-   LOG(INFO) << "";
-   LOG(INFO) << "";
-   LOG(INFO) << "";
-
-   string url = "http://localhost:9200/movies/movie/1";
-   HttpRequest *request = new HttpRequest();
-   request->onLoad(onLoad).bind(nullptr);
-   request->open(EVHTTP_REQ_PUT, url)
-		   .setHeader("Authorization", authorization)
-		   .setHeader("Content-Type", "application/json; charset=UTF-8")
-		   .send((void *) body.data(), body.length());
+HttpConnection::~HttpConnection() {
 
 }
 
-int main(int argc, char* argv[]) {
-   // Initialize Google's logging library.
-//   google::InitGoogleLogging(argv[0]);
-
-//	makeRequest();
-	makeRequest();
-
-   THREAD_SLEEP_FOREVER;
+void HttpConnection::connect() {
+	if(!connection) {
+		connection = evhttp_connection_base_new(client->getBase(), NULL,
+				mHostname.data(), mPort);
+		LOG(INFO) << "Creating libevent connection context.";
+	}
 }
+
+void HttpConnection::destroy() {
+	if(!connection) {
+		evhttp_connection_free(connection);
+		connection = nullptr;
+	}
+}
+
+string HttpConnection::getId() {
+//	std::random_device rd;  //Will be used to obtain a seed for the random number engine
+//	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+//	std::uniform_int_distribution<> dis(1, UINT32_MAX);
+	return mHostname + ":" + to_string(mPort) + ":"; //  + to_string(dis(gen));
+}
+
+bool HttpConnection::isBusy() {
+	return busy;
+}
+
+void HttpConnection::setBusy(bool busy) {
+	this->busy = busy;
+}
+
+struct evhttp_connection* HttpConnection::getConnection() {
+	return connection;
+}
+
+void HttpConnection::setConnection(struct evhttp_connection* connection) {
+	this->connection = connection;
+}
+
+HttpClientImpl* HttpConnection::getClient() {
+	return client;
+}
+
+void HttpConnection::setClient(HttpClientImpl* client) {
+	this->client = client;
+}
+
+void HttpConnection::send() {
+	client->send();
+}
+
+void HttpConnection::release() {
+	client->close(this);
+}
+
+} // End namespace Http.
+} // End namespace ChCppUtils.
+
