@@ -45,7 +45,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <mutex>
-#include <random>
 #include <ch-cpp-utils/thread-pool.hpp>
 #include <ch-cpp-utils/thread-job.hpp>
 
@@ -69,106 +68,10 @@ namespace ChCppUtils {
 
 namespace Http {
 
-class HttpConnection;
 class HttpClientImpl;
-class HttpRequest;
+class HttpConnection;
 
 using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class RequestContext {
-public:
-	struct event_base* getBase() {
-		return base;
-	}
-
-	void setBase(struct event_base* base) {
-		this->base = base;
-	}
-
-	HttpClientImpl* getClient() {
-		return client;
-	}
-
-	void setClient(HttpClientImpl* client) {
-		this->client = client;
-	}
-
-	HttpConnection* getConnection() {
-		return connection;
-	}
-
-	void setConnection(HttpConnection* connection) {
-		this->connection = connection;
-	}
-
-	HttpRequest* getHttpRequest() {
-		return httpRequest;
-	}
-
-	void setHttpRequest(HttpRequest* httpRequest) {
-		this->httpRequest = httpRequest;
-	}
-
-	struct evhttp_request* getRequest() {
-		return request;
-	}
-
-	void setRequest(struct evhttp_request* request) {
-		this->request = request;
-	}
-
-	string& getUrl() {
-		return url;
-	}
-
-	void setUrl(string& url) {
-		this->url = url;
-	}
-
-private:
-	HttpClientImpl *client;
-	HttpRequest *httpRequest;
-	string url;
-	struct event_base *base;
-	HttpConnection *connection;
-	struct evhttp_request *request;
-};
-
-class HttpConnection {
-private:
-	struct evhttp_connection *connection;
-	bool busy;
-	string mHostname;
-    uint16_t mPort;
-    struct event_base *mBase;
-public:
-	HttpConnection(struct event_base *base, string hostname, uint16_t port);
-
-	~HttpConnection();
-
-	void connect();
-
-	void destroy();
-
-	string getId();
-
-	bool isBusy() {
-		return busy;
-	}
-
-	void setBusy(bool busy) {
-		this->busy = busy;
-	}
-
-	struct evhttp_connection* getConnection() {
-		return connection;
-	}
-
-	void setConnection(struct evhttp_connection* connection) {
-		this->connection = connection;
-	}
-};
-
 
 class HttpClientImpl {
 private:
@@ -185,78 +88,21 @@ private:
    HttpClientImpl(string &hostname, uint16_t port);
 
    static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-   void evConnectionClosed (struct evhttp_connection *conn, RequestContext *context);
+	void evConnectionClosed(struct evhttp_connection *conn,
+			HttpConnection *connection);
 public:
    ~HttpClientImpl();
    static HttpClient GetInstance(string hostname, uint16_t port);
 
+   struct event_base *getBase();
+
    static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch(RequestContext *request);
+   void *dispatch();
 
-   RequestContext *open(evhttp_cmd_type method, string url);
-   void close(RequestContext *context);
+   HttpConnection *open(evhttp_cmd_type method, string url);
+   void close(HttpConnection *connection);
 
-   void send(RequestContext *request);
-};
-
-class HttpRequestEvent {
-public:
-	HttpRequestEvent(void *this_);
-private:
-	void *this_;
-};
-
-class HttpRequestErrorEvent : public HttpRequestEvent {
-
-};
-
-class HttpRequestLoadEvent : public HttpRequestEvent {
-
-};
-
-typedef void (*_OnLoad)(HttpRequestLoadEvent *event, void *this_);
-
-typedef void (*_OnError)(HttpRequestErrorEvent *event, void *this_);
-
-class HttpRequest;
-
-class HttpRequest {
-public:
-	class On {
-	protected:
-		void *this_;
-	};
-
-	class OnLoad : public On {
-	public:
-		OnLoad();
-		OnLoad &set(_OnLoad onload);
-		void bind(void *this_);
-		void fire();
-	private:
-		_OnLoad onload;
-	};
-
-private:
-	OnLoad onload;
-
-	struct evhttp_uri *uri;
-	evhttp_cmd_type method;
-	HttpClient client;
-	RequestContext *context;
-
-	bool send(size_t contentLength);
-	static void _evHttpReqDone(struct evhttp_request *req, void *arg);
-	void evHttpReqDone(struct evhttp_request *req);
-public:
-	HttpRequest();
-	~HttpRequest();
-
-	OnLoad &onLoad(_OnLoad onload);
-	HttpRequest &open(evhttp_cmd_type method, string url);
-	HttpRequest &setHeader(string name, string value);
-	bool send();
-	bool send(void *body, size_t length);
+   void send();
 };
 
 } // End namespace Http.
