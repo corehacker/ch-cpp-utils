@@ -50,8 +50,8 @@
 #include "http-connection.hpp"
 
 namespace ChCppUtils {
-
 namespace Http {
+namespace Client {
 
 HttpConnection::HttpConnection(HttpClientImpl *client, string hostname,
 		uint16_t port) {
@@ -120,6 +120,7 @@ void HttpConnection::release() {
 	client->close(this);
 }
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 

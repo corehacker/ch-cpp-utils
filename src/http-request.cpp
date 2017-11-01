@@ -50,9 +50,8 @@
 #include "http-request.hpp"
 
 namespace ChCppUtils {
-
 namespace Http {
-
+namespace Client {
 
 HttpResponse::HttpResponse() {
 	responseCode = 0;
@@ -246,6 +245,7 @@ string& HttpRequest::getResponseText() {
 	return responseText;
 }
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 

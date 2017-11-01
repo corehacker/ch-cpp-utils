@@ -50,8 +50,8 @@
 #include "http-connection.hpp"
 
 namespace ChCppUtils {
-
 namespace Http {
+namespace Client {
 
 mutex gMutex;
 unordered_map<string, HttpClient> gClients;
@@ -160,6 +160,7 @@ struct event_base *HttpClientImpl::getBase() {
 	return mBase;
 }
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 

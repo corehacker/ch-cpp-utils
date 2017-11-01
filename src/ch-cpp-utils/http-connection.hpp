@@ -50,8 +50,8 @@ using std::string;
 using std::to_string;
 
 namespace ChCppUtils {
-
 namespace Http {
+namespace Client {
 
 class HttpClientImpl;
 
@@ -80,6 +80,7 @@ public:
 	void release();
 };
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 

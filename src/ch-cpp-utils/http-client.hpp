@@ -65,8 +65,8 @@ using ChCppUtils::ThreadPool;
 using ChCppUtils::ThreadJob;
 
 namespace ChCppUtils {
-
 namespace Http {
+namespace Client {
 
 class HttpClientImpl;
 class HttpConnection;
@@ -105,6 +105,7 @@ public:
    void send();
 };
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
