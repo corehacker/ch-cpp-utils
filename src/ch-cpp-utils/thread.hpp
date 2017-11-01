@@ -90,21 +90,28 @@ namespace ChCppUtils {
       } \
    } while(0)
 
+typedef void (*ThreadInitCbk) (void *this_);
+
 class Thread {
    public:
       Thread (ThreadGetJob getJob, void *this_);
       Thread (ThreadGetJob getJob, void *this_, bool base = false);
+      Thread (ThreadGetJob getJob, void *this_, bool base,
+    		  ThreadInitCbk initCbk, void *initCbkThis);
       ~Thread ();
       void addJob (ThreadJobBase *job);
       thread::id getId();
       void join();
    private:
-	   std::thread       *mThread;
+      std::thread      	*mThread;
       ThreadGetJob      mGetJob;
       void              *mGetJobThis;
-      struct event_base *mEventBase;
       bool              mBase;
       Semaphore         mSemaphore;
+      ThreadInitCbk     mInitCbk;
+      void 				*mInitCbkThis;
+   protected:
+      struct event_base *mEventBase;
 
       static void *threadFunc (void *this_);
       void run ();

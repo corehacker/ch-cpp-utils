@@ -70,6 +70,9 @@ Thread::run ()
       mEventBase = NULL;
       LOG(INFO) << "Not creating event base: " << mEventBase << std::endl;
    }
+   if(mInitCbk) {
+	   mInitCbk(mInitCbkThis);
+   }
 
    mSemaphore.notify();
    LOG(INFO) << "Notified start." << std::endl;
@@ -124,6 +127,8 @@ Thread::Thread (ThreadGetJob getJob, void *this_)
    mGetJobThis = this_;
    mBase = false;
    mEventBase = NULL;
+   mInitCbk = nullptr;
+   mInitCbkThis = nullptr;
    mThread = new std::thread(Thread::threadFunc, this);
 
 
@@ -138,6 +143,8 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
    mGetJobThis = this_;
    mBase = base;
    mEventBase = NULL;
+   mInitCbk = nullptr;
+   mInitCbkThis = nullptr;
    mThread = new std::thread(Thread::threadFunc, this);
 
    LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
@@ -145,8 +152,25 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
    LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
 }
 
+Thread::Thread (ThreadGetJob getJob, void *this_, bool base,
+    		  ThreadInitCbk initCbk, void *initCbkThis) {
+	LOG(INFO) << "*****->Thread";
+	mGetJob = getJob;
+	mGetJobThis = this_;
+	mBase = base;
+	mEventBase = NULL;
+	mInitCbk = initCbk;
+	mInitCbkThis = initCbkThis;
+	mThread = new std::thread(Thread::threadFunc, this);
+
+	LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
+	mSemaphore.wait();
+	LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
+}
+
 Thread::~Thread ()
 {
+	LOG(INFO) << "*****~Thread";
    thread::id id = getId();
    LOG(INFO) << "Waiting for thread to exit: 0x" << std::hex << id << std::dec  << std::endl;
    mSemaphore.wait();
