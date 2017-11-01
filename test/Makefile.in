@@ -91,7 +91,8 @@ host_triplet = @host@
 bin_PROGRAMS = test-linked-hash-map$(EXEEXT) test-thread$(EXEEXT) \
 	test-thread-pool$(EXEEXT) test-libevent$(EXEEXT) \
 	test-fs-watch$(EXEEXT) test-dirtree$(EXEEXT) \
-	test-http-client$(EXEEXT)
+	test-http-client$(EXEEXT) test-http-thread$(EXEEXT) \
+	test-http-server-pool$(EXEEXT)
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -121,6 +122,14 @@ am_test_http_client_OBJECTS =  \
 	test_http_client-test-http-client.$(OBJEXT)
 test_http_client_OBJECTS = $(am_test_http_client_OBJECTS)
 test_http_client_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
+am_test_http_server_pool_OBJECTS =  \
+	test_http_server_pool-test-http-server-pool.$(OBJEXT)
+test_http_server_pool_OBJECTS = $(am_test_http_server_pool_OBJECTS)
+test_http_server_pool_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
+am_test_http_thread_OBJECTS =  \
+	test_http_thread-test-http-thread.$(OBJEXT)
+test_http_thread_OBJECTS = $(am_test_http_thread_OBJECTS)
+test_http_thread_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
 am_test_libevent_OBJECTS = test_libevent-test-libevent.$(OBJEXT)
 test_libevent_OBJECTS = $(am_test_libevent_OBJECTS)
 test_libevent_DEPENDENCIES = ../src/.libs/libch-cpp-utils.a
@@ -177,11 +186,13 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
-	$(test_http_client_SOURCES) $(test_libevent_SOURCES) \
+	$(test_http_client_SOURCES) $(test_http_server_pool_SOURCES) \
+	$(test_http_thread_SOURCES) $(test_libevent_SOURCES) \
 	$(test_linked_hash_map_SOURCES) $(test_thread_SOURCES) \
 	$(test_thread_pool_SOURCES)
 DIST_SOURCES = $(test_dirtree_SOURCES) $(test_fs_watch_SOURCES) \
-	$(test_http_client_SOURCES) $(test_libevent_SOURCES) \
+	$(test_http_client_SOURCES) $(test_http_server_pool_SOURCES) \
+	$(test_http_thread_SOURCES) $(test_libevent_SOURCES) \
 	$(test_linked_hash_map_SOURCES) $(test_thread_SOURCES) \
 	$(test_thread_pool_SOURCES)
 am__can_run_installinfo = \
@@ -377,6 +388,16 @@ test_http_client_CPPFLAGS = -I../src
 test_http_client_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
+test_http_thread_SOURCES = test-http-thread.cpp
+test_http_thread_CPPFLAGS = -I../src
+test_http_thread_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+test_http_server_pool_SOURCES = test-http-server-pool.cpp
+test_http_server_pool_CPPFLAGS = -I../src
+test_http_server_pool_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
 ACLOCAL_AMFLAGS = -I m4
 all: all-am
 
@@ -473,6 +494,14 @@ test-http-client$(EXEEXT): $(test_http_client_OBJECTS) $(test_http_client_DEPEND
 	@rm -f test-http-client$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_http_client_OBJECTS) $(test_http_client_LDADD) $(LIBS)
 
+test-http-server-pool$(EXEEXT): $(test_http_server_pool_OBJECTS) $(test_http_server_pool_DEPENDENCIES) $(EXTRA_test_http_server_pool_DEPENDENCIES) 
+	@rm -f test-http-server-pool$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_http_server_pool_OBJECTS) $(test_http_server_pool_LDADD) $(LIBS)
+
+test-http-thread$(EXEEXT): $(test_http_thread_OBJECTS) $(test_http_thread_DEPENDENCIES) $(EXTRA_test_http_thread_DEPENDENCIES) 
+	@rm -f test-http-thread$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(test_http_thread_OBJECTS) $(test_http_thread_LDADD) $(LIBS)
+
 test-libevent$(EXEEXT): $(test_libevent_OBJECTS) $(test_libevent_DEPENDENCIES) $(EXTRA_test_libevent_DEPENDENCIES) 
 	@rm -f test-libevent$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(test_libevent_OBJECTS) $(test_libevent_LDADD) $(LIBS)
@@ -498,6 +527,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_dirtree-test-dirtree.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_fs_watch-test-fs-watch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_http_client-test-http-client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_http_server_pool-test-http-server-pool.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_http_thread-test-http-thread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_libevent-test-libevent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_linked_hash_map-test-linked-hash-map.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_thread-test-thread.Po@am__quote@
@@ -568,6 +599,34 @@ test_http_client-test-http-client.obj: test-http-client.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-http-client.cpp' object='test_http_client-test-http-client.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_client_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_http_client-test-http-client.obj `if test -f 'test-http-client.cpp'; then $(CYGPATH_W) 'test-http-client.cpp'; else $(CYGPATH_W) '$(srcdir)/test-http-client.cpp'; fi`
+
+test_http_server_pool-test-http-server-pool.o: test-http-server-pool.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_server_pool_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_http_server_pool-test-http-server-pool.o -MD -MP -MF $(DEPDIR)/test_http_server_pool-test-http-server-pool.Tpo -c -o test_http_server_pool-test-http-server-pool.o `test -f 'test-http-server-pool.cpp' || echo '$(srcdir)/'`test-http-server-pool.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_http_server_pool-test-http-server-pool.Tpo $(DEPDIR)/test_http_server_pool-test-http-server-pool.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-http-server-pool.cpp' object='test_http_server_pool-test-http-server-pool.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_server_pool_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_http_server_pool-test-http-server-pool.o `test -f 'test-http-server-pool.cpp' || echo '$(srcdir)/'`test-http-server-pool.cpp
+
+test_http_server_pool-test-http-server-pool.obj: test-http-server-pool.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_server_pool_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_http_server_pool-test-http-server-pool.obj -MD -MP -MF $(DEPDIR)/test_http_server_pool-test-http-server-pool.Tpo -c -o test_http_server_pool-test-http-server-pool.obj `if test -f 'test-http-server-pool.cpp'; then $(CYGPATH_W) 'test-http-server-pool.cpp'; else $(CYGPATH_W) '$(srcdir)/test-http-server-pool.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_http_server_pool-test-http-server-pool.Tpo $(DEPDIR)/test_http_server_pool-test-http-server-pool.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-http-server-pool.cpp' object='test_http_server_pool-test-http-server-pool.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_server_pool_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_http_server_pool-test-http-server-pool.obj `if test -f 'test-http-server-pool.cpp'; then $(CYGPATH_W) 'test-http-server-pool.cpp'; else $(CYGPATH_W) '$(srcdir)/test-http-server-pool.cpp'; fi`
+
+test_http_thread-test-http-thread.o: test-http-thread.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_thread_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_http_thread-test-http-thread.o -MD -MP -MF $(DEPDIR)/test_http_thread-test-http-thread.Tpo -c -o test_http_thread-test-http-thread.o `test -f 'test-http-thread.cpp' || echo '$(srcdir)/'`test-http-thread.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_http_thread-test-http-thread.Tpo $(DEPDIR)/test_http_thread-test-http-thread.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-http-thread.cpp' object='test_http_thread-test-http-thread.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_thread_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_http_thread-test-http-thread.o `test -f 'test-http-thread.cpp' || echo '$(srcdir)/'`test-http-thread.cpp
+
+test_http_thread-test-http-thread.obj: test-http-thread.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_thread_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_http_thread-test-http-thread.obj -MD -MP -MF $(DEPDIR)/test_http_thread-test-http-thread.Tpo -c -o test_http_thread-test-http-thread.obj `if test -f 'test-http-thread.cpp'; then $(CYGPATH_W) 'test-http-thread.cpp'; else $(CYGPATH_W) '$(srcdir)/test-http-thread.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test_http_thread-test-http-thread.Tpo $(DEPDIR)/test_http_thread-test-http-thread.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test-http-thread.cpp' object='test_http_thread-test-http-thread.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_http_thread_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test_http_thread-test-http-thread.obj `if test -f 'test-http-thread.cpp'; then $(CYGPATH_W) 'test-http-thread.cpp'; else $(CYGPATH_W) '$(srcdir)/test-http-thread.cpp'; fi`
 
 test_libevent-test-libevent.o: test-libevent.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(test_libevent_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test_libevent-test-libevent.o -MD -MP -MF $(DEPDIR)/test_libevent-test-libevent.Tpo -c -o test_libevent-test-libevent.o `test -f 'test-libevent.cpp' || echo '$(srcdir)/'`test-libevent.cpp

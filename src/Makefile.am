@@ -14,7 +14,9 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  base64.cpp \
 									  http-client.cpp \
 									  http-request.cpp \
-									  http-connection.cpp
+									  http-connection.cpp \
+									  http-thread.cpp \
+									  http-server-pool.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -35,4 +37,6 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/base64.h \
 								 ch-cpp-utils/http-client.hpp \
 								 ch-cpp-utils/http-request.hpp \
-								 ch-cpp-utils/http-connection.hpp
+								 ch-cpp-utils/http-connection.hpp \
+								 ch-cpp-utils/http-thread.hpp \
+								 ch-cpp-utils/http-server-pool.hpp
