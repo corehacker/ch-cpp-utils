@@ -30,7 +30,8 @@ int main(int argc, char**argv) {
 	} else {
 		pool = new HttpServerPool(1);
 	}
-	pool->onRequest(onRequest, nullptr);
+//	pool->onRequest(onRequest, nullptr);
+	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);
 
 	THREAD_SLEEP_FOREVER;
 }

@@ -47,11 +47,10 @@ namespace ChCppUtils {
 namespace Http {
 namespace Server {
 
-Route::Route(evhttp_cmd_type method, string path, string mime,
+Route::Route(evhttp_cmd_type method, string path,
 		_OnRequest onrequest, void *this_) {
 	this->method = method;
 	this->path = path;
-	this->mime = mime;
 	this->onrequest = onrequest;
 	this->this_ = this_;
 }
@@ -64,30 +63,69 @@ string Route::getPath() {
 	return path;
 }
 
-string Route::getMime() {
-	return mime;
+_OnRequest Route::getOnRequest() {
+	return onrequest;
+}
+
+void *Route::getThis() {
+	return this_;
+}
+
+Router::Router() {
+}
+
+PathMapPtr Router::getPathMap(evhttp_cmd_type method) {
+	PathMapPtr pathMapPtr = nullptr;
+
+	auto methodEntry = routes.find(method);
+	if(methodEntry == routes.end()) {
+		LOG(INFO) << "No route for method: " << method;
+		pathMapPtr = make_shared<PathMap>();
+		routes.insert(make_pair(method, pathMapPtr));
+	} else {
+		LOG(INFO) << "Route exists for method: " << method;
+		pathMapPtr = methodEntry->second;
+	}
+	return pathMapPtr;
+}
+
+void Router::addRoute(PathMapPtr pathMapPtr, string path, Route *route) {
+	auto pathMap = pathMapPtr.get();
+	auto routeEntry = pathMap->find(path);
+	if(routeEntry == pathMap->end()) {
+		LOG(INFO) << "No route for path: " << path;
+		pathMap->insert(make_pair(path, route));
+	} else {
+		LOG(INFO) << "Route exists for path: " << path;
+	}
 }
 
 Router &Router::addRoute(Route *route) {
 	evhttp_cmd_type method = route->getMethod();
 	string path = route->getPath();
-	string mime = route->getMime();
 
-	auto search = routes.find(method);
-	if(search == routes.end()) {
-//		unordered_map<string,unordered_map<string, Route*>> methodMap;
-
-//		make_unique(unordered_map<string,unique_ptr<unordered_map<string, Route*>>>);
-//		routes.insert(make_pair(method, methodMap));
-	} else {
-		search->second;
-	}
+	auto pathMapPtr = getPathMap(method);
+	addRoute(pathMapPtr, path, route);
 
 	return *this;
 }
 
-Route *Router::getRoute(evhttp_cmd_type method, string path, string mime) {
-	return nullptr;
+Route *Router::getRoute(evhttp_cmd_type method, string path) {
+	Route *route = nullptr;
+
+	auto methodEntry = routes.find(method);
+	if(methodEntry == routes.end()) {
+		return route;
+	}
+	PathMapPtr pathMapPtr = methodEntry->second;
+	auto pathMap = pathMapPtr.get();
+	auto routeEntry = pathMap->find(path);
+	if(routeEntry == pathMap->end()) {
+		return route;
+	}
+	LOG(INFO) << "Found route for: " << method << ":" << path;
+	route = routeEntry->second;
+	return route;
 }
 
 HttpServerPool::HttpServerPool(uint32_t uiCount) {
@@ -105,11 +143,43 @@ void *HttpServerPool::workerRoutine (void *arg, struct event_base *base) {
 	return nullptr;
 }
 
+void HttpServerPool::send400BadRequest(evhttp_request *request) {
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer)
+		return;
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>Bad Request</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_BADREQUEST, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
+}
+
+void HttpServerPool::_onRequestEvent(RequestEvent *event, void *this_) {
+	HttpServerPool *this__ = (HttpServerPool *) this_;
+	this__->onRequestEvent(event);
+}
+
+void HttpServerPool::onRequestEvent(RequestEvent *event) {
+	evhttp_request *request = event->getResponse()->getRequest();
+	evhttp_cmd_type method = request->type;
+	string path = evhttp_uri_get_path(request->uri_elems);
+
+	Route *route = router.getRoute(method, path);
+	if(!route) {
+		send400BadRequest(request);
+	} else {
+		route->getOnRequest()(event, route->getThis());
+	}
+}
+
 void HttpServerPool::createThreads() {
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
 		mThreads.push_back(new HttpThread(HttpServerPool::getNextJob, this));
 		ThreadJob *job = new ThreadJob(HttpServerPool::workerRoutine, this);
 		addJob(job);
+	}
+	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
+		mThreads[uiIndex]->onRequest(HttpServerPool::_onRequestEvent).bind(this);
 	}
 }
 
@@ -141,7 +211,7 @@ ThreadJobBase *HttpServerPool::threadGetNextJob_ () {
 
 ThreadJobBase *HttpServerPool::getNextJob (void *this_) {
 	HttpServerPool *this__ = (HttpServerPool *) this_;
-   return this__->threadGetNextJob_ ();
+	return this__->threadGetNextJob_ ();
 }
 
 HttpServerPool &HttpServerPool::onRequest(_OnRequest onrequest, void *this_) {
@@ -153,10 +223,11 @@ HttpServerPool &HttpServerPool::onRequest(_OnRequest onrequest, void *this_) {
 
 HttpServerPool &HttpServerPool::route(
 			const evhttp_cmd_type method,
-			const char *mime,
-			const char *path,
+			const string path,
 			_OnRequest onrequest,
 			void *this_) {
+	LOG(INFO) << "Adding route for " << method << ":" << path;
+	router.addRoute(new Route(method, path, onrequest, this_));
 	return *this;
 }
 

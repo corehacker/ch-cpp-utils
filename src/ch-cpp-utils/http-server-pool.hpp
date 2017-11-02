@@ -50,6 +50,8 @@
 #include <string>
 #include <unordered_map>
 #include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/keyvalq_struct.h>
 
 #include "thread-job.hpp"
 #include "thread-get-job.hpp"
@@ -58,8 +60,8 @@
 using std::string;
 using std::unordered_map;
 using std::make_pair;
-using std::unique_ptr;
-//using std::make_unique;
+using std::shared_ptr;
+using std::make_shared;
 
 #ifndef SRC_HTTP_SERVER_HPP_
 #define SRC_HTTP_SERVER_HPP_
@@ -74,35 +76,31 @@ class Route {
 private:
 	evhttp_cmd_type method;
 	string path;
-	string mime;
 	_OnRequest onrequest;
 	void *this_;
 public:
-	Route(evhttp_cmd_type method, string path, string mime,
+	Route(evhttp_cmd_type method, string path,
 			_OnRequest onrequest, void *this_);
 	evhttp_cmd_type getMethod();
 	string getPath();
-	string getMime();
+	_OnRequest getOnRequest();
+	void *getThis();
 };
+
+using PathMap 	 = unordered_map<string, 		  Route *>;
+using PathMapPtr = std::shared_ptr<PathMap>;
+using MethodMap  = unordered_map<evhttp_cmd_type, PathMapPtr>;
 
 class Router {
 private:
-	unordered_map<
-		evhttp_cmd_type,
-		unordered_map<
-			string,
-			unordered_map<
-				string,
-				Route *>>> routes;
+	MethodMap routes;
 
-	unordered_map<
-		evhttp_cmd_type,
-		unique_ptr<unordered_map<
-			string, unique_ptr<unordered_map<
-			string, Route *>>>>> routes1;
+	PathMapPtr getPathMap(evhttp_cmd_type method);
+	void addRoute(PathMapPtr pathMapPtr, string path, Route *route);
 public:
+	Router();
 	Router &addRoute(Route *route);
-	Route *getRoute(evhttp_cmd_type method, string path, string mime);
+	Route *getRoute(evhttp_cmd_type method, string path);
 };
 
 class HttpServerPool {
@@ -119,6 +117,11 @@ private:
 	static ThreadJobBase *getNextJob(void *this_);
 	static void *workerRoutine(void *arg, struct event_base *base);
 
+	void send400BadRequest(evhttp_request *request);
+
+	static void _onRequestEvent(RequestEvent *event, void *this_);
+	void onRequestEvent(RequestEvent *event);
+
 public:
 	HttpServerPool(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
 	~HttpServerPool();
@@ -126,8 +129,7 @@ public:
 	HttpServerPool &onRequest(_OnRequest onrequest, void *this_);
 	HttpServerPool &route(
 			const evhttp_cmd_type method,
-			const char *mime,
-			const char *path,
+			const string path,
 			_OnRequest onrequest,
 			void *this_);
 };
