@@ -118,6 +118,7 @@ private:
 	static void *workerRoutine(void *arg, struct event_base *base);
 
 	void send400BadRequest(evhttp_request *request);
+	void readBody(RequestEvent *event);
 
 	static void _onRequestEvent(RequestEvent *event, void *this_);
 	void onRequestEvent(RequestEvent *event);

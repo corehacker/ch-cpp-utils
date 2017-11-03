@@ -12,7 +12,10 @@ using ChCppUtils::Http::Server::HttpServerPool;
 using ChCppUtils::Http::Server::RequestEvent;
 
 void onRequest(RequestEvent *event, void *this_) {
-	evhttp_request *request = event->getResponse()->getRequest();
+	evhttp_request *request = event->getRequest()->getRequest();
+
+	struct evbuffer *bodyBuffer = evhttp_request_get_input_buffer(request);
+
 	struct evbuffer *OutBuf = evhttp_request_get_output_buffer(request);
 	if (!OutBuf)
 		return;
@@ -32,6 +35,7 @@ int main(int argc, char**argv) {
 	}
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);
+	pool->route(EVHTTP_REQ_POST, "/test", onRequest, nullptr);
 
 	THREAD_SLEEP_FOREVER;
 }

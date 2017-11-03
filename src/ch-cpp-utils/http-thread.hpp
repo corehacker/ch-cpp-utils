@@ -39,11 +39,20 @@
  * \brief
  *
  ******************************************************************************/
+#include <unordered_map>
+#include <string>
+#include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/keyvalq_struct.h>
+#include <event2/buffer.h>
+
 #include "thread-job.hpp"
 #include "thread-get-job.hpp"
 #include "thread.hpp"
-#include <event2/http.h>
-#include <event2/buffer.h>
+
+using std::unordered_map;
+using std::string;
+using std::make_pair;
 
 #ifndef SRC_HTTP_THREAD_HPP_
 #define SRC_HTTP_THREAD_HPP_
@@ -51,6 +60,8 @@
 namespace ChCppUtils {
 namespace Http {
 namespace Server {
+
+using HttpHeaders = unordered_map<string, string>;
 
 class Request {
 private:
@@ -63,9 +74,13 @@ public:
 class RequestEvent {
 public:
 	RequestEvent(Request *request);
-	Request *getResponse();
+	Request *getRequest();
+	HttpHeaders &getHeaders();
 private:
+	void *body;
+	size_t length;
 	Request *request;
+	HttpHeaders headers;
 };
 
 typedef void (*_OnRequest)(RequestEvent *event, void *this_);

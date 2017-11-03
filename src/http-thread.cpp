@@ -58,11 +58,25 @@ evhttp_request *Request::getRequest() {
 }
 
 RequestEvent::RequestEvent(Request *request) {
+	body = nullptr;
+	length = 0;
+	evhttp_request *req = request->getRequest();
+	struct evkeyvalq *headers = req->input_headers;
+	struct evkeyval *header = headers->tqh_first;
+	while(header) {
+		LOG(INFO) << "Header: " << header->key << ": " << header->value;
+		this->headers.insert(make_pair(header->key, header->value));
+		header = header->next.tqe_next;
+	}
 	this->request= request;
 }
 
-Request *RequestEvent::getResponse() {
+Request *RequestEvent::getRequest() {
 	return request;
+}
+
+HttpHeaders &RequestEvent::getHeaders() {
+	return headers;
 }
 
 OnRequest::OnRequest() {

@@ -40,8 +40,11 @@
  *
  ******************************************************************************/
 
+#include "http-common.hpp"
 #include "http-server-pool.hpp"
 #include <glog/logging.h>
+
+using ChCppUtils::Http::getMethod;
 
 namespace ChCppUtils {
 namespace Http {
@@ -79,11 +82,11 @@ PathMapPtr Router::getPathMap(evhttp_cmd_type method) {
 
 	auto methodEntry = routes.find(method);
 	if(methodEntry == routes.end()) {
-		LOG(INFO) << "No route for method: " << method;
+		LOG(INFO) << "No route for method: " << getMethod(method);
 		pathMapPtr = make_shared<PathMap>();
 		routes.insert(make_pair(method, pathMapPtr));
 	} else {
-		LOG(INFO) << "Route exists for method: " << method;
+		LOG(INFO) << "Route exists for method: " << getMethod(method);
 		pathMapPtr = methodEntry->second;
 	}
 	return pathMapPtr;
@@ -115,6 +118,7 @@ Route *Router::getRoute(evhttp_cmd_type method, string path) {
 
 	auto methodEntry = routes.find(method);
 	if(methodEntry == routes.end()) {
+		LOG(WARNING) << "No route for method: " << getMethod(method);
 		return route;
 	}
 	PathMapPtr pathMapPtr = methodEntry->second;
@@ -123,7 +127,7 @@ Route *Router::getRoute(evhttp_cmd_type method, string path) {
 	if(routeEntry == pathMap->end()) {
 		return route;
 	}
-	LOG(INFO) << "Found route for: " << method << ":" << path;
+	LOG(INFO) << "Found route for: " << getMethod(method) << ":" << path;
 	route = routeEntry->second;
 	return route;
 }
@@ -154,13 +158,40 @@ void HttpServerPool::send400BadRequest(evhttp_request *request) {
 	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
 }
 
+void HttpServerPool::readBody(RequestEvent *event) {
+	Request *request = event->getRequest();
+	evhttp_request *evRequest = request->getRequest();
+	evhttp_cmd_type method = evRequest->type;
+	if(EVHTTP_REQ_POST == method) {
+		HttpHeaders headers = event->getHeaders();
+		auto entry = headers.find("Content-Length");
+		size_t contentLength =
+				(entry != headers.end() && entry->second.length()) ?
+						std::stoul(entry->second) : 0;
+		if(contentLength) {
+			struct evbuffer *buffer = evhttp_request_get_input_buffer(evRequest);
+			size_t length = evbuffer_get_length(buffer);
+			void *body = malloc(length);
+			size_t bodyLength = evbuffer_remove(buffer, body, length);
+			LOG(INFO) << "Body Read so for: " << bodyLength << "bytes";
+			if(bodyLength == contentLength) {
+				LOG(INFO) << "Complete Body Read: " << contentLength << "bytes";
+			} else {
+				LOG(INFO) << "TODO: Complete Body (" << contentLength <<"bytes) Not Read: " << bodyLength << "bytes";
+			}
+		} else {
+			LOG(INFO) << "Body does not exist";
+		}
+	}
+}
+
 void HttpServerPool::_onRequestEvent(RequestEvent *event, void *this_) {
 	HttpServerPool *this__ = (HttpServerPool *) this_;
 	this__->onRequestEvent(event);
 }
 
 void HttpServerPool::onRequestEvent(RequestEvent *event) {
-	evhttp_request *request = event->getResponse()->getRequest();
+	evhttp_request *request = event->getRequest()->getRequest();
 	evhttp_cmd_type method = request->type;
 	string path = evhttp_uri_get_path(request->uri_elems);
 
@@ -168,6 +199,7 @@ void HttpServerPool::onRequestEvent(RequestEvent *event) {
 	if(!route) {
 		send400BadRequest(request);
 	} else {
+		readBody(event);
 		route->getOnRequest()(event, route->getThis());
 	}
 }
@@ -226,7 +258,7 @@ HttpServerPool &HttpServerPool::route(
 			const string path,
 			_OnRequest onrequest,
 			void *this_) {
-	LOG(INFO) << "Adding route for " << method << ":" << path;
+	LOG(INFO) << "Adding route for " << getMethod(method) << ":" << path;
 	router.addRoute(new Route(method, path, onrequest, this_));
 	return *this;
 }
