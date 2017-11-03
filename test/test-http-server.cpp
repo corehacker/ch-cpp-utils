@@ -14,17 +14,16 @@ using ChCppUtils::Http::Server::RequestEvent;
 void onRequest(RequestEvent *event, void *this_) {
 	evhttp_request *request = event->getRequest()->getRequest();
 
-	struct evbuffer *bodyBuffer = evhttp_request_get_input_buffer(request);
-
-	struct evbuffer *OutBuf = evhttp_request_get_output_buffer(request);
-	if (!OutBuf)
+	struct evbuffer *response = evhttp_request_get_output_buffer(request);
+	if (!response)
 		return;
-	evbuffer_add_printf(OutBuf,
+	evbuffer_add_printf(response,
 			"<html><body><center><h1>Hello World!</h1></center></body></html>");
-	evhttp_send_reply(request, HTTP_OK, "", OutBuf);
+	evhttp_send_reply(request, HTTP_OK, "", response);
 
 	if(event->hasBody()) {
-		LOG(INFO) << "Body: " << event->getLength() << "bytes, content: " << (char *) event->getBody();
+		LOG(INFO) << "Body: " << event->getLength() << " bytes, content: " <<
+				(char *) event->getBody();
 	} else {
 		LOG(INFO) << "Empty body";
 	}

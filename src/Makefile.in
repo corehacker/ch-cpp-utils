@@ -137,7 +137,8 @@ am_libch_cpp_utils_la_OBJECTS = fts.lo tcp-client.lo tcp-listener.lo \
 	tcp-server.lo thread.lo thread-job.lo thread-pool.lo \
 	fs-watch.lo events.lo dirtree.lo semaphore.lo base64.lo \
 	http-common.lo http-client.lo http-request.lo \
-	http-connection.lo http-thread.lo http-server.lo
+	http-connection.lo http-thread.lo http-server.lo \
+	http-router.lo
 libch_cpp_utils_la_OBJECTS = $(am_libch_cpp_utils_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -348,7 +349,8 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  http-request.cpp \
 									  http-connection.cpp \
 									  http-thread.cpp \
-									  http-server.cpp
+									  http-server.cpp \
+									  http-router.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -372,7 +374,8 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/http-request.hpp \
 								 ch-cpp-utils/http-connection.hpp \
 								 ch-cpp-utils/http-thread.hpp \
-								 ch-cpp-utils/http-server.hpp
+								 ch-cpp-utils/http-server.hpp \
+								 ch-cpp-utils/http-router.hpp
 
 all: all-am
 
@@ -461,6 +464,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-common.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-connection.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-request.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-router.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/http-thread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semaphore.Plo@am__quote@

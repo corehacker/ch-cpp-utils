@@ -42,95 +42,13 @@
 
 #include "http-common.hpp"
 #include <glog/logging.h>
-#include <http-server.hpp>
+#include "http-server.hpp"
 
 using ChCppUtils::Http::getMethod;
 
 namespace ChCppUtils {
 namespace Http {
 namespace Server {
-
-Route::Route(evhttp_cmd_type method, string path,
-		_OnRequest onrequest, void *this_) {
-	this->method = method;
-	this->path = path;
-	this->onrequest = onrequest;
-	this->this_ = this_;
-}
-
-evhttp_cmd_type Route::getMethod() {
-	return method;
-}
-
-string Route::getPath() {
-	return path;
-}
-
-_OnRequest Route::getOnRequest() {
-	return onrequest;
-}
-
-void *Route::getThis() {
-	return this_;
-}
-
-Router::Router() {
-}
-
-PathMapPtr Router::getPathMap(evhttp_cmd_type method) {
-	PathMapPtr pathMapPtr = nullptr;
-
-	auto methodEntry = routes.find(method);
-	if(methodEntry == routes.end()) {
-		LOG(INFO) << "No route for method: " << getMethod(method);
-		pathMapPtr = make_shared<PathMap>();
-		routes.insert(make_pair(method, pathMapPtr));
-	} else {
-		LOG(INFO) << "Route exists for method: " << getMethod(method);
-		pathMapPtr = methodEntry->second;
-	}
-	return pathMapPtr;
-}
-
-void Router::addRoute(PathMapPtr pathMapPtr, string path, Route *route) {
-	auto pathMap = pathMapPtr.get();
-	auto routeEntry = pathMap->find(path);
-	if(routeEntry == pathMap->end()) {
-		LOG(INFO) << "No route for path: " << path;
-		pathMap->insert(make_pair(path, route));
-	} else {
-		LOG(INFO) << "Route exists for path: " << path;
-	}
-}
-
-Router &Router::addRoute(Route *route) {
-	evhttp_cmd_type method = route->getMethod();
-	string path = route->getPath();
-
-	auto pathMapPtr = getPathMap(method);
-	addRoute(pathMapPtr, path, route);
-
-	return *this;
-}
-
-Route *Router::getRoute(evhttp_cmd_type method, string path) {
-	Route *route = nullptr;
-
-	auto methodEntry = routes.find(method);
-	if(methodEntry == routes.end()) {
-		LOG(WARNING) << "No route for method: " << getMethod(method);
-		return route;
-	}
-	PathMapPtr pathMapPtr = methodEntry->second;
-	auto pathMap = pathMapPtr.get();
-	auto routeEntry = pathMap->find(path);
-	if(routeEntry == pathMap->end()) {
-		return route;
-	}
-	LOG(INFO) << "Found route for: " << getMethod(method) << ":" << path;
-	route = routeEntry->second;
-	return route;
-}
 
 HttpServer::HttpServer(uint32_t uiCount) {
 	this->uiCount = uiCount;
@@ -169,17 +87,19 @@ void HttpServer::readBody(RequestEvent *event) {
 				(entry != headers.end() && entry->second.length()) ?
 						std::stoul(entry->second) : 0;
 		if(contentLength) {
-			struct evbuffer *buffer = evhttp_request_get_input_buffer(evRequest);
-			size_t length = evbuffer_get_length(buffer);
+			struct evbuffer *buf = evhttp_request_get_input_buffer(evRequest);
+			size_t length = evbuffer_get_length(buf);
 			void *body = malloc(length);
-			size_t bodyLength = evbuffer_remove(buffer, body, length);
-			LOG(INFO) << "Body Read so for: " << bodyLength << "bytes";
+			size_t bodyLength = evbuffer_remove(buf, body, length);
+			LOG(INFO) << "Body Read so for: " << bodyLength << " bytes";
 			if(bodyLength == contentLength) {
-				LOG(INFO) << "Complete Body Read: " << contentLength << "bytes";
+				LOG(INFO) << "Complete Body Read: " << contentLength <<
+						" bytes";
 				event->setBody(body);
 				event->setLength(contentLength);
 			} else {
-				LOG(INFO) << "TODO: Complete Body (" << contentLength <<"bytes) Not Read: " << bodyLength << "bytes";
+				LOG(INFO) << "TODO: Complete Body (" << contentLength <<
+						" bytes) Not Read: " << bodyLength << " bytes";
 			}
 		} else {
 			LOG(INFO) << "Body does not exist";
@@ -219,7 +139,7 @@ void HttpServer::createThreads() {
 
 void HttpServer::addJob (ThreadJobBase *job) {
    std::lock_guard < std::mutex > lock (mMutex);
-   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job" << std::endl;
+   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job";
    mJobQueue.push_back (job);
    mCondition.notify_one();
 }
@@ -231,7 +151,7 @@ ThreadJobBase *HttpServer::threadGetNextJob_ () {
       if (!mJobQueue.empty ())
       {
          ThreadJobBase *job = mJobQueue.at (0);
-         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job" << std::endl;
+         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job";
          mJobQueue.pop_front ();
          return job;
 

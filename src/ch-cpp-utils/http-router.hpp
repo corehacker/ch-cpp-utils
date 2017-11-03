@@ -41,22 +41,14 @@
  ******************************************************************************/
 
 #include <iostream>
-#include <vector>
-#include <deque>
-#include <mutex>
-#include <condition_variable>
 #include <stdlib.h>
-#include <thread>
 #include <string>
 #include <unordered_map>
 #include <event2/http.h>
 #include <event2/http_struct.h>
 #include <event2/keyvalq_struct.h>
 
-#include "thread-job.hpp"
-#include "thread-get-job.hpp"
 #include "http-thread.hpp"
-#include "http-router.hpp"
 
 using std::string;
 using std::unordered_map;
@@ -64,8 +56,8 @@ using std::make_pair;
 using std::shared_ptr;
 using std::make_shared;
 
-#ifndef SRC_HTTP_SERVER_HPP_
-#define SRC_HTTP_SERVER_HPP_
+#ifndef SRC_HTTP_ROUTER_HPP_
+#define SRC_HTTP_ROUTER_HPP_
 
 #define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
 
@@ -73,40 +65,39 @@ namespace ChCppUtils {
 namespace Http {
 namespace Server {
 
-class HttpServer {
+class Route {
 private:
-	std::vector<HttpThread *> mThreads;
-	uint32_t uiCount;
-	std::deque<ThreadJobBase *> mJobQueue;
-	std::mutex mMutex;
-	std::condition_variable mCondition;
-	Router router;
-
-	void createThreads();
-	ThreadJobBase *threadGetNextJob_();
-	static ThreadJobBase *getNextJob(void *this_);
-	static void *workerRoutine(void *arg, struct event_base *base);
-
-	void send400BadRequest(evhttp_request *request);
-	void readBody(RequestEvent *event);
-
-	static void _onRequestEvent(RequestEvent *event, void *this_);
-	void onRequestEvent(RequestEvent *event);
-
+	evhttp_cmd_type method;
+	string path;
+	_OnRequest onrequest;
+	void *this_;
 public:
-	HttpServer(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
-	~HttpServer();
-	void addJob (ThreadJobBase *job);
-	HttpServer &onRequest(_OnRequest onrequest, void *this_);
-	HttpServer &route(
-			const evhttp_cmd_type method,
-			const string path,
-			_OnRequest onrequest,
-			void *this_);
+	Route(evhttp_cmd_type method, string path,
+			_OnRequest onrequest, void *this_);
+	evhttp_cmd_type getMethod();
+	string getPath();
+	_OnRequest getOnRequest();
+	void *getThis();
+};
+
+using PathMap 	 = unordered_map<string, 		  Route *>;
+using PathMapPtr = shared_ptr<PathMap>;
+using MethodMap  = unordered_map<int, PathMapPtr>;
+
+class Router {
+private:
+	MethodMap routes;
+
+	PathMapPtr getPathMap(evhttp_cmd_type method);
+	void addRoute(PathMapPtr pathMapPtr, string path, Route *route);
+public:
+	Router();
+	Router &addRoute(Route *route);
+	Route *getRoute(evhttp_cmd_type method, string path);
 };
 
 } // End namespace Server.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_SERVER_HPP_ */
+#endif /* SRC_HTTP_ROUTER_HPP_ */
