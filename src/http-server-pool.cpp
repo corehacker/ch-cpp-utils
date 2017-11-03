@@ -176,6 +176,8 @@ void HttpServerPool::readBody(RequestEvent *event) {
 			LOG(INFO) << "Body Read so for: " << bodyLength << "bytes";
 			if(bodyLength == contentLength) {
 				LOG(INFO) << "Complete Body Read: " << contentLength << "bytes";
+				event->setBody(body);
+				event->setLength(contentLength);
 			} else {
 				LOG(INFO) << "TODO: Complete Body (" << contentLength <<"bytes) Not Read: " << bodyLength << "bytes";
 			}

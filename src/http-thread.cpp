@@ -79,6 +79,26 @@ HttpHeaders &RequestEvent::getHeaders() {
 	return headers;
 }
 
+void RequestEvent::setBody(void *body) {
+	this->body = body;
+}
+
+void RequestEvent::setLength(size_t length) {
+	this->length = length;
+}
+
+bool RequestEvent::hasBody() {
+	return body && length;
+}
+
+void *RequestEvent::getBody(){
+	return body;
+}
+
+size_t RequestEvent::getLength() {
+	return length;
+}
+
 OnRequest::OnRequest() {
 	onrequest = nullptr;
 }

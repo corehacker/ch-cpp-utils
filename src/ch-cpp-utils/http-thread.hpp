@@ -76,6 +76,11 @@ public:
 	RequestEvent(Request *request);
 	Request *getRequest();
 	HttpHeaders &getHeaders();
+	void setBody(void *body);
+	void setLength(size_t length);
+	bool hasBody();
+	void *getBody();
+	size_t getLength();
 private:
 	void *body;
 	size_t length;

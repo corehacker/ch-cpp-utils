@@ -23,6 +23,12 @@ void onRequest(RequestEvent *event, void *this_) {
 			"<html><body><center><h1>Hello World!</h1></center></body></html>");
 	evhttp_send_reply(request, HTTP_OK, "", OutBuf);
 
+	if(event->hasBody()) {
+		LOG(INFO) << "Body: " << event->getLength() << "bytes, content: " << (char *) event->getBody();
+	} else {
+		LOG(INFO) << "Empty body";
+	}
+
 	LOG(INFO) << "Sending " << HTTP_OK;
 }
 
