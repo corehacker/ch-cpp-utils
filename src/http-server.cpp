@@ -30,7 +30,7 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-server-pool.cpp
+ * \file   http-server.cpp
  *
  * \author Sandeep Prakash
  *
@@ -41,8 +41,8 @@
  ******************************************************************************/
 
 #include "http-common.hpp"
-#include "http-server-pool.hpp"
 #include <glog/logging.h>
+#include <http-server.hpp>
 
 using ChCppUtils::Http::getMethod;
 
@@ -132,22 +132,22 @@ Route *Router::getRoute(evhttp_cmd_type method, string path) {
 	return route;
 }
 
-HttpServerPool::HttpServerPool(uint32_t uiCount) {
+HttpServer::HttpServer(uint32_t uiCount) {
 	this->uiCount = uiCount;
 	createThreads();
 }
 
-HttpServerPool::~HttpServerPool() {
+HttpServer::~HttpServer() {
 
 }
 
-void *HttpServerPool::workerRoutine (void *arg, struct event_base *base) {
+void *HttpServer::workerRoutine (void *arg, struct event_base *base) {
 	LOG(INFO) << "Running event loop.";
 	event_base_dispatch(base);
 	return nullptr;
 }
 
-void HttpServerPool::send400BadRequest(evhttp_request *request) {
+void HttpServer::send400BadRequest(evhttp_request *request) {
 	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
 	if (!buffer)
 		return;
@@ -158,7 +158,7 @@ void HttpServerPool::send400BadRequest(evhttp_request *request) {
 	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
 }
 
-void HttpServerPool::readBody(RequestEvent *event) {
+void HttpServer::readBody(RequestEvent *event) {
 	Request *request = event->getRequest();
 	evhttp_request *evRequest = request->getRequest();
 	evhttp_cmd_type method = evRequest->type;
@@ -187,12 +187,12 @@ void HttpServerPool::readBody(RequestEvent *event) {
 	}
 }
 
-void HttpServerPool::_onRequestEvent(RequestEvent *event, void *this_) {
-	HttpServerPool *this__ = (HttpServerPool *) this_;
+void HttpServer::_onRequestEvent(RequestEvent *event, void *this_) {
+	HttpServer *this__ = (HttpServer *) this_;
 	this__->onRequestEvent(event);
 }
 
-void HttpServerPool::onRequestEvent(RequestEvent *event) {
+void HttpServer::onRequestEvent(RequestEvent *event) {
 	evhttp_request *request = event->getRequest()->getRequest();
 	evhttp_cmd_type method = request->type;
 	string path = evhttp_uri_get_path(request->uri_elems);
@@ -206,25 +206,25 @@ void HttpServerPool::onRequestEvent(RequestEvent *event) {
 	}
 }
 
-void HttpServerPool::createThreads() {
+void HttpServer::createThreads() {
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
-		mThreads.push_back(new HttpThread(HttpServerPool::getNextJob, this));
-		ThreadJob *job = new ThreadJob(HttpServerPool::workerRoutine, this);
+		mThreads.push_back(new HttpThread(HttpServer::getNextJob, this));
+		ThreadJob *job = new ThreadJob(HttpServer::workerRoutine, this);
 		addJob(job);
 	}
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
-		mThreads[uiIndex]->onRequest(HttpServerPool::_onRequestEvent).bind(this);
+		mThreads[uiIndex]->onRequest(HttpServer::_onRequestEvent).bind(this);
 	}
 }
 
-void HttpServerPool::addJob (ThreadJobBase *job) {
+void HttpServer::addJob (ThreadJobBase *job) {
    std::lock_guard < std::mutex > lock (mMutex);
    LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job" << std::endl;
    mJobQueue.push_back (job);
    mCondition.notify_one();
 }
 
-ThreadJobBase *HttpServerPool::threadGetNextJob_ () {
+ThreadJobBase *HttpServer::threadGetNextJob_ () {
    while (true)
    {
       std::unique_lock < std::mutex > lk (mMutex);
@@ -243,19 +243,19 @@ ThreadJobBase *HttpServerPool::threadGetNextJob_ () {
    }
 }
 
-ThreadJobBase *HttpServerPool::getNextJob (void *this_) {
-	HttpServerPool *this__ = (HttpServerPool *) this_;
+ThreadJobBase *HttpServer::getNextJob (void *this_) {
+	HttpServer *this__ = (HttpServer *) this_;
 	return this__->threadGetNextJob_ ();
 }
 
-HttpServerPool &HttpServerPool::onRequest(_OnRequest onrequest, void *this_) {
+HttpServer &HttpServer::onRequest(_OnRequest onrequest, void *this_) {
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
 		mThreads[uiIndex]->onRequest(onrequest).bind(this_);
 	}
 	return *this;
 }
 
-HttpServerPool &HttpServerPool::route(
+HttpServer &HttpServer::route(
 			const evhttp_cmd_type method,
 			const string path,
 			_OnRequest onrequest,

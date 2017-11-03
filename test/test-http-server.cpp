@@ -5,10 +5,10 @@
  *      Author: corehacker
  */
 
-#include "ch-cpp-utils/http-server-pool.hpp"
+#include <ch-cpp-utils/http-server.hpp>
 #include <glog/logging.h>
 
-using ChCppUtils::Http::Server::HttpServerPool;
+using ChCppUtils::Http::Server::HttpServer;
 using ChCppUtils::Http::Server::RequestEvent;
 
 void onRequest(RequestEvent *event, void *this_) {
@@ -33,11 +33,11 @@ void onRequest(RequestEvent *event, void *this_) {
 }
 
 int main(int argc, char**argv) {
-	HttpServerPool *pool = nullptr;
+	HttpServer *pool = nullptr;
 	if(2 == argc) {
-		pool = new HttpServerPool(atoi(argv[1]));
+		pool = new HttpServer(atoi(argv[1]));
 	} else {
-		pool = new HttpServerPool(1);
+		pool = new HttpServer(1);
 	}
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);

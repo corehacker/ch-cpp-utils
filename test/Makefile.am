@@ -6,7 +6,7 @@ bin_PROGRAMS = \
 					test-dirtree \
 					test-http-client \
 					test-http-thread \
-					test-http-server-pool
+					test-http-server
 
 test_linked_hash_map_SOURCES = test-linked-hash-map.cpp
 
@@ -82,11 +82,11 @@ test_http_thread_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 
-test_http_server_pool_SOURCES = test-http-server-pool.cpp
+test_http_server_SOURCES = test-http-server.cpp
 
-test_http_server_pool_CPPFLAGS = -I../src
+test_http_server_CPPFLAGS = -I../src
 
-test_http_server_pool_LDADD = ../src/.libs/libch-cpp-utils.a
+test_http_server_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 

@@ -30,7 +30,7 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-server-pool.hpp
+ * \file   http-server.hpp
  *
  * \author Sandeep Prakash
  *
@@ -103,7 +103,7 @@ public:
 	Route *getRoute(evhttp_cmd_type method, string path);
 };
 
-class HttpServerPool {
+class HttpServer {
 private:
 	std::vector<HttpThread *> mThreads;
 	uint32_t uiCount;
@@ -124,11 +124,11 @@ private:
 	void onRequestEvent(RequestEvent *event);
 
 public:
-	HttpServerPool(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
-	~HttpServerPool();
+	HttpServer(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
+	~HttpServer();
 	void addJob (ThreadJobBase *job);
-	HttpServerPool &onRequest(_OnRequest onrequest, void *this_);
-	HttpServerPool &route(
+	HttpServer &onRequest(_OnRequest onrequest, void *this_);
+	HttpServer &route(
 			const evhttp_cmd_type method,
 			const string path,
 			_OnRequest onrequest,

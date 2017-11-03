@@ -20,7 +20,7 @@ test/Makefile
 test/test-dirtree
 test/test-fs-watch
 test/test-http-client
-test/test-http-server-pool
+test/test-http-server
 test/test-http-thread
 
 # Prerequisites
