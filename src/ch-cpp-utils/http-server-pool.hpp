@@ -88,8 +88,8 @@ public:
 };
 
 using PathMap 	 = unordered_map<string, 		  Route *>;
-using PathMapPtr = std::shared_ptr<PathMap>;
-using MethodMap  = unordered_map<evhttp_cmd_type, PathMapPtr>;
+using PathMapPtr = shared_ptr<PathMap>;
+using MethodMap  = unordered_map<int, PathMapPtr>;
 
 class Router {
 private:
