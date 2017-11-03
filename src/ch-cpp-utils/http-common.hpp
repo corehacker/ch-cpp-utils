@@ -30,83 +30,32 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-client.hpp
+ * \file   http-common.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 17, 2017
+ * \date   Nov 02, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <memory>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <ch-cpp-utils/thread-pool.hpp>
-#include <ch-cpp-utils/thread-job.hpp>
+#include <event2/event.h>
+#include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/buffer.h>
+#include <glog/logging.h>
 
-#ifndef SRC_HTTP_CLIENT_HPP_
-#define SRC_HTTP_CLIENT_HPP_
+#ifndef SRC_HTTP_COMMON_HPP_
+#define SRC_HTTP_COMMON_HPP_
 
-using std::shared_ptr;
-using std::make_shared;
 using std::string;
-using std::unordered_map;
-using std::unordered_set;
-using std::mutex;
-using std::lock_guard;
-using std::to_string;
-using std::make_pair;
-
-using ChCppUtils::ThreadPool;
-using ChCppUtils::ThreadJob;
 
 namespace ChCppUtils {
 namespace Http {
-namespace Client {
-
-class HttpClientImpl;
-class HttpConnection;
-
-using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class HttpClientImpl {
-private:
-   string mHostname;
-   uint16_t mPort;
-   ThreadPool *mPool;
-   struct event_base *mBase;
-
-   mutex mMutex;
-   unordered_map<string, HttpConnection *> mConnections;
-   unordered_set<string> mFree;
-
-   HttpClientImpl();
-   HttpClientImpl(string &hostname, uint16_t port);
-
-   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-	void evConnectionClosed(struct evhttp_connection *conn,
-			HttpConnection *connection);
-public:
-   ~HttpClientImpl();
-   static HttpClient GetInstance(string hostname, uint16_t port);
-
-   struct event_base *getBase();
-
-   static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch();
-
-   HttpConnection *open(evhttp_cmd_type method, string url);
-   void close(HttpConnection *connection);
-
-   void send();
-};
-
+string getMethod(evhttp_cmd_type method);
 } // End namespace Client.
 } // End namespace Http.
-} // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CLIENT_HPP_ */
+#endif /* SRC_HTTP_COMMON_HPP_ */

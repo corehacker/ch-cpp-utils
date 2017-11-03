@@ -48,12 +48,12 @@
 
 using std::string;
 
-using ChCppUtils::Http::HttpClient;
-using ChCppUtils::Http::HttpClientImpl;
 using ChCppUtils::base64_encode;
-using ChCppUtils::Http::HttpRequest;
-using ChCppUtils::Http::HttpResponse;
-using ChCppUtils::Http::HttpRequestLoadEvent;
+using ChCppUtils::Http::Client::HttpClient;
+using ChCppUtils::Http::Client::HttpClientImpl;
+using ChCppUtils::Http::Client::HttpRequest;
+using ChCppUtils::Http::Client::HttpResponse;
+using ChCppUtils::Http::Client::HttpRequestLoadEvent;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_);
 void makeRequest();

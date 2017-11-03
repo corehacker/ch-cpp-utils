@@ -30,7 +30,7 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-client.hpp
+ * \file   http-request.cpp
  *
  * \author Sandeep Prakash
  *
@@ -40,73 +40,28 @@
  *
  ******************************************************************************/
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <ch-cpp-utils/thread-pool.hpp>
-#include <ch-cpp-utils/thread-job.hpp>
-
-#ifndef SRC_HTTP_CLIENT_HPP_
-#define SRC_HTTP_CLIENT_HPP_
-
-using std::shared_ptr;
-using std::make_shared;
-using std::string;
-using std::unordered_map;
-using std::unordered_set;
-using std::mutex;
-using std::lock_guard;
-using std::to_string;
-using std::make_pair;
-
-using ChCppUtils::ThreadPool;
-using ChCppUtils::ThreadJob;
+#include "http-common.hpp"
 
 namespace ChCppUtils {
 namespace Http {
-namespace Client {
 
-class HttpClientImpl;
-class HttpConnection;
-
-using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class HttpClientImpl {
-private:
-   string mHostname;
-   uint16_t mPort;
-   ThreadPool *mPool;
-   struct event_base *mBase;
-
-   mutex mMutex;
-   unordered_map<string, HttpConnection *> mConnections;
-   unordered_set<string> mFree;
-
-   HttpClientImpl();
-   HttpClientImpl(string &hostname, uint16_t port);
-
-   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-	void evConnectionClosed(struct evhttp_connection *conn,
-			HttpConnection *connection);
-public:
-   ~HttpClientImpl();
-   static HttpClient GetInstance(string hostname, uint16_t port);
-
-   struct event_base *getBase();
-
-   static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch();
-
-   HttpConnection *open(evhttp_cmd_type method, string url);
-   void close(HttpConnection *connection);
-
-   void send();
-};
+string getMethod(evhttp_cmd_type method) {
+	string cmdtype;
+	switch (method) {
+		case EVHTTP_REQ_GET: cmdtype = "GET"; break;
+		case EVHTTP_REQ_POST: cmdtype = "POST"; break;
+		case EVHTTP_REQ_HEAD: cmdtype = "HEAD"; break;
+		case EVHTTP_REQ_PUT: cmdtype = "PUT"; break;
+		case EVHTTP_REQ_DELETE: cmdtype = "DELETE"; break;
+		case EVHTTP_REQ_OPTIONS: cmdtype = "OPTIONS"; break;
+		case EVHTTP_REQ_TRACE: cmdtype = "TRACE"; break;
+		case EVHTTP_REQ_CONNECT: cmdtype = "CONNECT"; break;
+		case EVHTTP_REQ_PATCH: cmdtype = "PATCH"; break;
+		default: cmdtype = "unknown"; break;
+	}
+	return cmdtype;
+}
 
 } // End namespace Client.
 } // End namespace Http.
-} // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CLIENT_HPP_ */

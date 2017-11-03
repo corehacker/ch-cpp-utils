@@ -44,8 +44,8 @@
 #define SRC_HTTP_REQUEST_HPP_
 
 namespace ChCppUtils {
-
 namespace Http {
+namespace Client {
 
 class HttpRequest;
 
@@ -186,6 +186,7 @@ public:
 	string& getResponseText();
 };
 
+} // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 

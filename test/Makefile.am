@@ -4,7 +4,9 @@ bin_PROGRAMS = \
 					test-libevent \
 					test-fs-watch \
 					test-dirtree \
-					test-http-client
+					test-http-client \
+					test-http-thread \
+					test-http-server
 
 test_linked_hash_map_SOURCES = test-linked-hash-map.cpp
 
@@ -69,6 +71,22 @@ test_http_client_SOURCES = test-http-client.cpp
 test_http_client_CPPFLAGS = -I../src
 
 test_http_client_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_http_thread_SOURCES = test-http-thread.cpp
+
+test_http_thread_CPPFLAGS = -I../src
+
+test_http_thread_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_http_server_SOURCES = test-http-server.cpp
+
+test_http_server_CPPFLAGS = -I../src
+
+test_http_server_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 

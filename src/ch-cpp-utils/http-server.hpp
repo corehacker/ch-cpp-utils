@@ -30,83 +30,83 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-client.hpp
+ * \file   http-server.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 17, 2017
+ * \date   Oct 30, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <memory>
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <mutex>
+#include <condition_variable>
+#include <stdlib.h>
+#include <thread>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <ch-cpp-utils/thread-pool.hpp>
-#include <ch-cpp-utils/thread-job.hpp>
+#include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/keyvalq_struct.h>
 
-#ifndef SRC_HTTP_CLIENT_HPP_
-#define SRC_HTTP_CLIENT_HPP_
+#include "thread-job.hpp"
+#include "thread-get-job.hpp"
+#include "http-thread.hpp"
+#include "http-router.hpp"
 
-using std::shared_ptr;
-using std::make_shared;
 using std::string;
 using std::unordered_map;
-using std::unordered_set;
-using std::mutex;
-using std::lock_guard;
-using std::to_string;
 using std::make_pair;
+using std::shared_ptr;
+using std::make_shared;
 
-using ChCppUtils::ThreadPool;
-using ChCppUtils::ThreadJob;
+#ifndef SRC_HTTP_SERVER_HPP_
+#define SRC_HTTP_SERVER_HPP_
+
+#define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
 
 namespace ChCppUtils {
 namespace Http {
-namespace Client {
+namespace Server {
 
-class HttpClientImpl;
-class HttpConnection;
-
-using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class HttpClientImpl {
+class HttpServer {
 private:
-   string mHostname;
-   uint16_t mPort;
-   ThreadPool *mPool;
-   struct event_base *mBase;
+	std::vector<HttpThread *> mThreads;
+	uint32_t uiCount;
+	std::deque<ThreadJobBase *> mJobQueue;
+	std::mutex mMutex;
+	std::condition_variable mCondition;
+	Router router;
 
-   mutex mMutex;
-   unordered_map<string, HttpConnection *> mConnections;
-   unordered_set<string> mFree;
+	void createThreads();
+	ThreadJobBase *threadGetNextJob_();
+	static ThreadJobBase *getNextJob(void *this_);
+	static void *workerRoutine(void *arg, struct event_base *base);
 
-   HttpClientImpl();
-   HttpClientImpl(string &hostname, uint16_t port);
+	void send400BadRequest(evhttp_request *request);
+	void readBody(RequestEvent *event);
 
-   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-	void evConnectionClosed(struct evhttp_connection *conn,
-			HttpConnection *connection);
+	static void _onRequestEvent(RequestEvent *event, void *this_);
+	void onRequestEvent(RequestEvent *event);
+
 public:
-   ~HttpClientImpl();
-   static HttpClient GetInstance(string hostname, uint16_t port);
-
-   struct event_base *getBase();
-
-   static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch();
-
-   HttpConnection *open(evhttp_cmd_type method, string url);
-   void close(HttpConnection *connection);
-
-   void send();
+	HttpServer(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
+	~HttpServer();
+	void addJob (ThreadJobBase *job);
+	HttpServer &onRequest(_OnRequest onrequest, void *this_);
+	HttpServer &route(
+			const evhttp_cmd_type method,
+			const string path,
+			_OnRequest onrequest,
+			void *this_);
 };
 
-} // End namespace Client.
+} // End namespace Server.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CLIENT_HPP_ */
+#endif /* SRC_HTTP_SERVER_HPP_ */

@@ -30,83 +30,103 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-client.hpp
+ * \file   http-thread.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 17, 2017
+ * \date   Oct 26, 2017
  *
  * \brief
  *
  ******************************************************************************/
-
-#include <memory>
-#include <string>
 #include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <ch-cpp-utils/thread-pool.hpp>
-#include <ch-cpp-utils/thread-job.hpp>
+#include <string>
+#include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/keyvalq_struct.h>
+#include <event2/buffer.h>
 
-#ifndef SRC_HTTP_CLIENT_HPP_
-#define SRC_HTTP_CLIENT_HPP_
+#include "thread-job.hpp"
+#include "thread-get-job.hpp"
+#include "thread.hpp"
 
-using std::shared_ptr;
-using std::make_shared;
-using std::string;
 using std::unordered_map;
-using std::unordered_set;
-using std::mutex;
-using std::lock_guard;
-using std::to_string;
+using std::string;
 using std::make_pair;
 
-using ChCppUtils::ThreadPool;
-using ChCppUtils::ThreadJob;
+#ifndef SRC_HTTP_THREAD_HPP_
+#define SRC_HTTP_THREAD_HPP_
 
 namespace ChCppUtils {
 namespace Http {
-namespace Client {
+namespace Server {
 
-class HttpClientImpl;
-class HttpConnection;
+using HttpHeaders = unordered_map<string, string>;
 
-using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class HttpClientImpl {
+class Request {
 private:
-   string mHostname;
-   uint16_t mPort;
-   ThreadPool *mPool;
-   struct event_base *mBase;
-
-   mutex mMutex;
-   unordered_map<string, HttpConnection *> mConnections;
-   unordered_set<string> mFree;
-
-   HttpClientImpl();
-   HttpClientImpl(string &hostname, uint16_t port);
-
-   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-	void evConnectionClosed(struct evhttp_connection *conn,
-			HttpConnection *connection);
+	evhttp_request *request;
 public:
-   ~HttpClientImpl();
-   static HttpClient GetInstance(string hostname, uint16_t port);
-
-   struct event_base *getBase();
-
-   static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch();
-
-   HttpConnection *open(evhttp_cmd_type method, string url);
-   void close(HttpConnection *connection);
-
-   void send();
+	Request(evhttp_request *request);
+	evhttp_request *getRequest();
 };
 
-} // End namespace Client.
+class RequestEvent {
+public:
+	RequestEvent(Request *request);
+	Request *getRequest();
+	HttpHeaders &getHeaders();
+	void setBody(void *body);
+	void setLength(size_t length);
+	bool hasBody();
+	void *getBody();
+	size_t getLength();
+private:
+	void *body;
+	size_t length;
+	Request *request;
+	HttpHeaders headers;
+};
+
+typedef void (*_OnRequest)(RequestEvent *event, void *this_);
+
+class On {
+
+protected:
+	void *this_;
+};
+
+class OnRequest : public On {
+public:
+	OnRequest();
+	OnRequest &set(_OnRequest onrequest);
+	void bind(void *this_);
+	void fire(Request *request);
+private:
+	_OnRequest onrequest;
+};
+
+class HttpThread : public Thread {
+private:
+	struct evhttp *evHttp;
+	static struct evhttp_bound_socket *evListenSocket;
+	struct evhttp_bound_socket *evBoundSocket;
+	OnRequest onrequest;
+
+	static void _onEvRequest(evhttp_request *request, void *arg);
+	void onEvRequest(evhttp_request *request);
+
+	static void _init(void *this_);
+	void init();
+public:
+	HttpThread(ThreadGetJob getJob, void *this_);
+	~HttpThread();
+	void start();
+	OnRequest &onRequest(_OnRequest onrequest);
+};
+
+} // End namespace Server.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CLIENT_HPP_ */
+#endif /* SRC_HTTP_THREAD_HPP_ */
