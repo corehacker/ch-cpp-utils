@@ -63,8 +63,8 @@ using std::make_pair;
 using std::shared_ptr;
 using std::make_shared;
 
-#ifndef SRC_HTTP_SERVER_HPP_
-#define SRC_HTTP_SERVER_HPP_
+#ifndef SRC_HTTP_SERVER_POOL_HPP_
+#define SRC_HTTP_SERVER_POOL_HPP_
 
 #define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
 
@@ -139,4 +139,4 @@ public:
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_SERVER_HPP_ */
+#endif /* SRC_HTTP_SERVER_POOL_HPP_ */
