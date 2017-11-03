@@ -12,6 +12,7 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  dirtree.cpp \
 									  semaphore.cpp \
 									  base64.cpp \
+									  http-common.cpp \
 									  http-client.cpp \
 									  http-request.cpp \
 									  http-connection.cpp \
@@ -35,6 +36,7 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/semaphore.hpp \
 								 ch-cpp-utils/defines.hpp \
 								 ch-cpp-utils/base64.h \
+								 ch-cpp-utils/http-common.hpp \
 								 ch-cpp-utils/http-client.hpp \
 								 ch-cpp-utils/http-request.hpp \
 								 ch-cpp-utils/http-connection.hpp \
