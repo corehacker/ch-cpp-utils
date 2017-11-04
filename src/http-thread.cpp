@@ -114,7 +114,9 @@ void OnRequest::bind(void *this_) {
 
 void OnRequest::fire(Request *request) {
 	if(this->onrequest) {
-		this->onrequest(new RequestEvent(request), this->this_);
+		RequestEvent *event = new RequestEvent(request);
+		this->onrequest(event, this->this_);
+		delete event;
 	}
 }
 
@@ -142,7 +144,9 @@ void HttpThread::_onEvRequest(evhttp_request *request, void *arg) {
 
 void HttpThread::onEvRequest(evhttp_request *request) {
 	LOG(INFO) << "New request from ";
-	onrequest.fire(new Request(request));
+	Request *req = new Request(request);
+	onrequest.fire(req);
+	delete req;
 }
 
 void HttpThread::_init(void *this_) {
