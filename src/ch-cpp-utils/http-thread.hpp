@@ -108,6 +108,7 @@ private:
 
 class HttpThread : public Thread {
 private:
+	uint16_t mPort;
 	struct evhttp *evHttp;
 	static struct evhttp_bound_socket *evListenSocket;
 	struct evhttp_bound_socket *evBoundSocket;
@@ -118,7 +119,11 @@ private:
 
 	static void _init(void *this_);
 	void init();
+
+	static void _deinit(void *this_);
+	void deinit();
 public:
+	HttpThread(uint16_t port, ThreadGetJob getJob, void *this_);
 	HttpThread(ThreadGetJob getJob, void *this_);
 	~HttpThread();
 	void start();

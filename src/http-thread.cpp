@@ -114,15 +114,22 @@ void OnRequest::bind(void *this_) {
 
 void OnRequest::fire(Request *request) {
 	if(this->onrequest) {
-		this->onrequest(new RequestEvent(request), this->this_);
+		RequestEvent *event = new RequestEvent(request);
+		this->onrequest(event, this->this_);
+		delete event;
 	}
 }
 
-HttpThread::HttpThread(ThreadGetJob getJob, void *this_) :
-		Thread(getJob, this_, true, HttpThread::_init, this) {
-	evHttp = nullptr;
-	evBoundSocket = nullptr;
+HttpThread::HttpThread(uint16_t port, ThreadGetJob getJob, void *this_) :
+				Thread(getJob, this_, true, HttpThread::_init, this,
+						HttpThread::_deinit, this),
+				mPort(port), evHttp(nullptr), evBoundSocket(nullptr) {
+}
 
+HttpThread::HttpThread(ThreadGetJob getJob, void *this_) :
+		Thread(getJob, this_, true, HttpThread::_init, this,
+				HttpThread::_deinit, this),
+		mPort(8888), evHttp(nullptr), evBoundSocket(nullptr) {
 	LOG(INFO) << "*****->HttpThread";
 }
 
@@ -137,7 +144,9 @@ void HttpThread::_onEvRequest(evhttp_request *request, void *arg) {
 
 void HttpThread::onEvRequest(evhttp_request *request) {
 	LOG(INFO) << "New request from ";
-	onrequest.fire(new Request(request));
+	Request *req = new Request(request);
+	onrequest.fire(req);
+	delete req;
 }
 
 void HttpThread::_init(void *this_) {
@@ -146,12 +155,13 @@ void HttpThread::_init(void *this_) {
 }
 
 void HttpThread::init() {
-	LOG(INFO) << "Http thread init";
+	LOG(INFO) << "Http thread init port: " << mPort;
 
 	evHttp = evhttp_new(mEventBase);
 	evhttp_set_gencb(evHttp, HttpThread::_onEvRequest, this);
 	if(!HttpThread::evListenSocket) {
-		evListenSocket = evhttp_bind_socket_with_handle(evHttp, "0.0.0.0", 8888);
+		LOG(INFO) << "Listening on 0.0.0.0:" << mPort;
+		evListenSocket = evhttp_bind_socket_with_handle(evHttp, "0.0.0.0", mPort);
 		evBoundSocket = evListenSocket;
 		LOG(INFO) << "Created a new bound socket: " << evListenSocket;
 	} else {
@@ -162,8 +172,19 @@ void HttpThread::init() {
 	}
 }
 
-void HttpThread::start() {
+void HttpThread::_deinit(void *this_) {
+	HttpThread *thread = (HttpThread *) this_;
+	thread->deinit();
+}
 
+void HttpThread::deinit() {
+	LOG(INFO) << "Http thread deinit port: " << mPort;
+	evhttp_del_accept_socket(evHttp, evBoundSocket);
+	evhttp_free(evHttp);
+}
+
+void HttpThread::start() {
+	Thread::start();
 }
 
 OnRequest &HttpThread::onRequest(_OnRequest onrequest) {

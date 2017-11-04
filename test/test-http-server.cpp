@@ -22,8 +22,10 @@ void onRequest(RequestEvent *event, void *this_) {
 	evhttp_send_reply(request, HTTP_OK, "", response);
 
 	if(event->hasBody()) {
+		void *body = event->getBody();
 		LOG(INFO) << "Body: " << event->getLength() << " bytes, content: " <<
-				(char *) event->getBody();
+				(char *) body;
+		free(body);
 	} else {
 		LOG(INFO) << "Empty body";
 	}
@@ -34,15 +36,17 @@ void onRequest(RequestEvent *event, void *this_) {
 int main(int argc, char**argv) {
 	HttpServer *pool = nullptr;
 	if(2 == argc) {
-		pool = new HttpServer(atoi(argv[1]));
+		pool = new HttpServer(8888, atoi(argv[1]));
 	} else {
-		pool = new HttpServer(1);
+		pool = new HttpServer(8888, 1);
 	}
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);
 	pool->route(EVHTTP_REQ_POST, "/test", onRequest, nullptr);
 
-	THREAD_SLEEP_FOREVER;
+	THREAD_SLEEP_30S;
+
+	delete pool;
 }
 
 

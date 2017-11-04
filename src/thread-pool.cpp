@@ -89,8 +89,9 @@ void ThreadPool::createThreads ()
 {
    for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++)
    {
-      mThreads.push_back (new Thread (ThreadPool::threadGetNextJob, this,
-                                      mBase));
+	   Thread *thread = new Thread (ThreadPool::threadGetNextJob, this, mBase);
+	   thread->start();
+      mThreads.push_back (thread);
    }
 }
 

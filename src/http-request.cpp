@@ -139,7 +139,7 @@ HttpRequest::HttpRequest() {
 }
 
 HttpRequest::~HttpRequest() {
-
+	delete context;
 }
 
 HttpRequest::OnLoad &HttpRequest::onLoad(_OnLoad onload) {

@@ -77,6 +77,16 @@ void *Route::getThis() {
 Router::Router() {
 }
 
+Router::~Router() {
+	for(auto entry : routes) {
+		PathMapPtr pathMap = entry.second;
+		for(auto entry2 : *pathMap) {
+			Route *route = entry2.second;
+			delete route;
+		}
+	}
+}
+
 PathMapPtr Router::getPathMap(evhttp_cmd_type method) {
 	PathMapPtr pathMapPtr = nullptr;
 

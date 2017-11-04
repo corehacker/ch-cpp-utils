@@ -81,11 +81,12 @@ private:
 	std::mutex mMutex;
 	std::condition_variable mCondition;
 	Router router;
+	uint16_t mPort;
 
 	void createThreads();
 	ThreadJobBase *threadGetNextJob_();
 	static ThreadJobBase *getNextJob(void *this_);
-	static void *workerRoutine(void *arg, struct event_base *base);
+	static void *_workerRoutine(void *arg, struct event_base *base);
 
 	void send400BadRequest(evhttp_request *request);
 	void readBody(RequestEvent *event);
@@ -94,7 +95,7 @@ private:
 	void onRequestEvent(RequestEvent *event);
 
 public:
-	HttpServer(uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
+	HttpServer(uint16_t port, uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
 	~HttpServer();
 	void addJob (ThreadJobBase *job);
 	HttpServer &onRequest(_OnRequest onrequest, void *this_);
