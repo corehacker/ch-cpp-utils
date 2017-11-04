@@ -10,7 +10,7 @@
 using ChCppUtils::Http::Server::HttpThread;
 
 int main() {
-	HttpThread *thread = new HttpThread(nullptr, nullptr);
+	new HttpThread(nullptr, nullptr);
 
 	THREAD_SLEEP_FOREVER;
 }
