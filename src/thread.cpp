@@ -86,6 +86,10 @@ Thread::run ()
       runJob (job);
    }
 
+   if(mDeInitCbk) {
+		mDeInitCbk(mDeInitCbkThis);
+	}
+
    if(mEventBase) {
       event_base_free(mEventBase);
       mEventBase = NULL;
@@ -120,6 +124,10 @@ void Thread::join() {
    }
 }
 
+struct event_base *Thread::getEventBase() {
+	return mEventBase;
+}
+
 Thread::Thread (ThreadGetJob getJob, void *this_)
 {
    LOG(INFO) << "Creating thread" << std::endl;
@@ -129,38 +137,41 @@ Thread::Thread (ThreadGetJob getJob, void *this_)
    mEventBase = NULL;
    mInitCbk = nullptr;
    mInitCbkThis = nullptr;
-   mThread = new std::thread(Thread::threadFunc, this);
-
-
-   LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
-   mSemaphore.wait();
-   LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
+   mThread = nullptr;
+   mDeInitCbk = nullptr;
+   mDeInitCbkThis = nullptr;
 }
 
 Thread::Thread (ThreadGetJob getJob, void *this_, bool base)
 {
+   LOG(INFO) << "*****Thread";
    mGetJob = getJob;
    mGetJobThis = this_;
    mBase = base;
    mEventBase = NULL;
    mInitCbk = nullptr;
    mInitCbkThis = nullptr;
-   mThread = new std::thread(Thread::threadFunc, this);
-
-   LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
-   mSemaphore.wait();
-   LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
+   mThread = nullptr;
+   mDeInitCbk = nullptr;
+   mDeInitCbkThis = nullptr;
 }
 
 Thread::Thread (ThreadGetJob getJob, void *this_, bool base,
-    		  ThreadInitCbk initCbk, void *initCbkThis) {
-	LOG(INFO) << "*****->Thread";
+    		  ThreadInitCbk initCbk, void *initCbkThis,
+			  ThreadDeInitCbk deinitCbk, void *deinitCbkThis) {
+	LOG(INFO) << "*****Thread";
 	mGetJob = getJob;
 	mGetJobThis = this_;
 	mBase = base;
 	mEventBase = NULL;
 	mInitCbk = initCbk;
 	mInitCbkThis = initCbkThis;
+	mDeInitCbk = deinitCbk;
+	mDeInitCbkThis = deinitCbkThis;
+	mThread = nullptr;
+}
+
+void Thread::start() {
 	mThread = new std::thread(Thread::threadFunc, this);
 
 	LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;

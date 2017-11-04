@@ -92,6 +92,7 @@ private:
 	void addRoute(PathMapPtr pathMapPtr, string path, Route *route);
 public:
 	Router();
+	~Router();
 	Router &addRoute(Route *route);
 	Route *getRoute(evhttp_cmd_type method, string path);
 };

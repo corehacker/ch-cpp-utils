@@ -40,6 +40,9 @@
  *
  ******************************************************************************/
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "http-common.hpp"
 #include <glog/logging.h>
 #include "http-server.hpp"
@@ -50,18 +53,49 @@ namespace ChCppUtils {
 namespace Http {
 namespace Server {
 
-HttpServer::HttpServer(uint32_t uiCount) {
+HttpServer::HttpServer(uint16_t port, uint32_t uiCount) {
+	LOG(INFO)<< "*****************HttpServer: " << port << ", " << uiCount;
+	mPort = port;
 	this->uiCount = uiCount;
 	createThreads();
 }
 
 HttpServer::~HttpServer() {
+	LOG(INFO)<< "*****************~HttpServer";
+	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
+		auto thread = mThreads[uiIndex];
+		LOG(INFO) << "Sending exit loop...";
+		if(0 != event_base_loopexit(thread->getEventBase(), nullptr)) {
+			LOG(INFO) << "Sending exit loop...failed";
+		} else {
+			LOG(INFO) << "Sending exit loop...success";
+		}
 
+		int mFd = socket(AF_INET, SOCK_STREAM, 0);
+		struct sockaddr_in addr;
+		addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+		addr.sin_port =  htons(mPort);
+		addr.sin_family = AF_INET;
+		if(0 != connect(mFd, (const sockaddr *) &addr, sizeof(addr))) {
+			perror("connect");
+			LOG(ERROR) << "Connect...failed";
+		}
+
+		ThreadExitJob *job = new ThreadExitJob();
+		addJob(job);
+	}
+
+	for (auto thread : mThreads) {
+		LOG(INFO) << "Deleting thread 0x" << std::hex << thread->getId() << std::dec << std::endl;
+		SAFE_DELETE(thread);
+	}
 }
 
-void *HttpServer::workerRoutine (void *arg, struct event_base *base) {
+void *HttpServer::_workerRoutine (void *arg, struct event_base *base) {
 	LOG(INFO) << "Running event loop.";
 	event_base_dispatch(base);
+//	event_base_loop(base, EVLOOP_NO_EXIT_ON_EMPTY);
+	LOG(INFO) << "Exiting event loop.";
 	return nullptr;
 }
 
@@ -128,8 +162,10 @@ void HttpServer::onRequestEvent(RequestEvent *event) {
 
 void HttpServer::createThreads() {
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
-		mThreads.push_back(new HttpThread(HttpServer::getNextJob, this));
-		ThreadJob *job = new ThreadJob(HttpServer::workerRoutine, this);
+		HttpThread *thread = new HttpThread(mPort, HttpServer::getNextJob, this);
+		thread->start();
+		mThreads.push_back(thread);
+		ThreadJob *job = new ThreadJob(HttpServer::_workerRoutine, this);
 		addJob(job);
 	}
 	for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++) {
@@ -145,19 +181,14 @@ void HttpServer::addJob (ThreadJobBase *job) {
 }
 
 ThreadJobBase *HttpServer::threadGetNextJob_ () {
-   while (true)
-   {
+   while (true) {
       std::unique_lock < std::mutex > lk (mMutex);
-      if (!mJobQueue.empty ())
-      {
+      if (!mJobQueue.empty ()) {
          ThreadJobBase *job = mJobQueue.at (0);
          LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job";
          mJobQueue.pop_front ();
          return job;
-
-      }
-      else
-      {
+      } else {
          mCondition.wait (lk);
       }
    }
