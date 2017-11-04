@@ -61,5 +61,6 @@ autom4te.cache
 build-aux
 config.h.in~
 m4
+aclocal.m4
 
 Makefile.in
