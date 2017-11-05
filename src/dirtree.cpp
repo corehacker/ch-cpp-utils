@@ -28,7 +28,7 @@ DirTree::DirTree() {
 DirTree::~DirTree() {
    NULL_ROOT;
 
-   LOG(INFO) << "Deleting root... " << std::endl;
+   LOG(INFO) << "Deleting root... ";
 
    SAFE_DELETE(root);
 }
@@ -42,8 +42,10 @@ string DirTree::getNextToken(string path, size_t from) {
 void DirTree::insert(string key, void *data) {
    if (key[0] != '/' && key[0] != '.') {
       key.insert(0, "./", 0, 2);
+   } else if (key[0] == '/') {
+	   key.insert(0, ".", 0, 1);
    }
-   LOG(INFO) << "Actual Path: " + key << std::endl;
+   LOG(INFO) << "Actual Path: " + key;
 
    if (key[0] == '/') {
       key.erase(0, 1);
@@ -62,12 +64,62 @@ void DirTree::insert(string key, void *data) {
       node = node->getChild(token);
 
       from += token.size() + 1;
-      LOG(INFO) << "Token: " + token << " From: " << from << std::endl;
+      LOG(INFO) << "Token: " + token << " From: " << from;
       token = getNextToken(key, from);
    }
    if(node) {
       node->setData(data);
    }
+}
+
+void *DirTree::search(string key, SearchCbk cbk, void *this_) {
+	if (key[0] != '/' && key[0] != '.') {
+		key.insert(0, "./", 0, 2);
+	} else if (key[0] == '/') {
+		   key.insert(0, ".", 0, 1);
+	   }
+	LOG(INFO)<< "Actual Path: " + key;
+
+	size_t from = 0;
+	bool found = false;
+	Node *node = root;
+	string token;
+	while (true) {
+		token = getNextToken(key, from);
+		if (0 == token.size()) {
+			LOG(INFO)<< "End of tokens";
+			break;
+		}
+
+		LOG(INFO)<< "Token: " + token << " From: " << from;
+		node = node->getChild(token);
+		if (NULL == node) {
+			LOG(INFO)<< "Break in chain. Not found. Checking for wildcard *";
+			node = node->getChild("*");
+			if (NULL == node) {
+				LOG(INFO)<< "Break in chain. Not found. No wildcard *";
+				break;
+			} else {
+				if(cbk(node->getKey(), token, this_)) {
+					LOG(INFO)<< "Break in chain. Not found. Wildcard * accepted";
+				} else {
+					LOG(INFO)<< "Break in chain. Not found. Wildcard * not accepted";
+				}
+			}
+			break;
+		}
+		found = true;
+		from += token.size() + 1;
+		LOG(INFO)<< "Next Token From: " << from;
+	} // End of while.
+
+	if (found) {
+		LOG(INFO)<< "Found directory tree, key: \"" << key << "\", Node: \"" <<
+		node->getKey() << "\"";
+		return node->getData();
+	} else {
+		return nullptr;
+	}
 }
 
 void DirTree::_dropChildCbk(Node *node, string suffix, void *this_) {
@@ -77,7 +129,8 @@ void DirTree::_dropChildCbk(Node *node, string suffix, void *this_) {
    tree->dropChildCbk(data, node, suffix, this_);
 }
 
-void DirTree::dropChildCbk(DropChildCbkData *data, Node *node, string suffix, void *this_) {
+void DirTree::dropChildCbk(DropChildCbkData *data, Node *node, string suffix,
+		void *this_) {
    size_t last = data->prefix.rfind("/");
    string path = data->prefix.substr(0, last);
    path += suffix;
@@ -96,7 +149,8 @@ void DirTree::dropChildCbk(DropChildCbkData *data, Node *node, string suffix, vo
  *
  */
 
-void DirTree::dropTree(string key, Node *parent, Node *child, DropCbk dropCbk, void *this_) {
+void DirTree::dropTree(string key, Node *parent, Node *child, DropCbk dropCbk,
+		void *this_) {
    DropChildCbkData *data = new DropChildCbkData();
    data->tree = this;
    data->dropCbk = dropCbk;
@@ -117,8 +171,10 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
 
    if (key[0] != '/' && key[0] != '.') {
       key.insert(0, "./", 0, 2);
+   } else if (key[0] == '/') {
+	   key.insert(0, ".", 0, 1);
    }
-   LOG(INFO) << "Actual Path: " + key << std::endl;
+   LOG(INFO) << "Actual Path: " + key;
 
    size_t from = 0;
    bool found = false;
@@ -128,25 +184,26 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    while(true) {
       token = getNextToken(key, from);
       if (0 == token.size()) {
-         LOG(INFO) << "End of tokens" << std::endl;
+         LOG(INFO) << "End of tokens";
          break;
       }
 
-      LOG(INFO) << "Token: " + token << " From: " << from << std::endl;
+      LOG(INFO) << "Token: " + token << " From: " << from;
       parent = node;
       node = node->getChild(token);
       if (NULL == node) {
-         LOG(INFO) << "Break in chain. Not found." << std::endl;
+         LOG(INFO) << "Break in chain. Not found.";
          found = false;
          break;
       }
       found = true;
       from += token.size() + 1;
-      LOG(INFO) << "Next Token From: " << from << std::endl;
+      LOG(INFO) << "Next Token From: " << from;
    } // End of while.
 
    if (found) {
-      LOG(INFO) << "Found directory tree, key: \"" << key << "\", Node: \"" << node->getKey() << "\"" << std::endl;
+      LOG(INFO) << "Found directory tree, key: \"" << key << "\", Node: \"" <<
+    		  node->getKey() << "\"";
       dropTree(key, parent, node, dropCbk, this_);
    }
 }

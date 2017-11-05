@@ -61,7 +61,7 @@ static void onNewFile (std::string path, void *this_) {
 
 int main (int argc, char* argv[]) {
    // Initialize Google's logging library.
-   google::InitGoogleLogging(argv[0]);
+   // google::InitGoogleLogging(argv[0]);
 
    vector<string> filters;
    filters.emplace_back("jpg");

@@ -95,6 +95,7 @@ private:
 };
 
 typedef void (*DropCbk) (string path, void *data, void *this_);
+typedef bool (*SearchCbk) (string treeToken, string searchToken, void *this_);
 
 class DirTree;
 
@@ -113,13 +114,16 @@ private:
    void print(Node *root, uint32_t depth);
 
    static void _dropChildCbk(Node *node, string suffix, void *this_);
-   void dropChildCbk(DropChildCbkData *data, Node *node, string suffix, void *this_);
+   void dropChildCbk(DropChildCbkData *data, Node *node, string suffix,
+		   void *this_);
 
-   void dropTree(string key, Node *parent, Node *child, DropCbk dropCbk, void *this_);
+   void dropTree(string key, Node *parent, Node *child, DropCbk dropCbk,
+		   void *this_);
 public:
    DirTree();
    ~DirTree();
    void insert(string key, void *data);
+   void *search(string key, SearchCbk cbk, void *this_);
    void drop(string key, DropCbk dropCbk, void *this_);
    void print();
 };
