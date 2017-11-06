@@ -58,6 +58,18 @@ using std::thread;
 
 namespace ChCppUtils {
 
+#define THREAD_SLEEP_10S \
+   do { \
+      std::chrono::milliseconds ms(10000); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
+#define THREAD_SLEEP_5S \
+   do { \
+      std::chrono::milliseconds ms(5000); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
 #define THREAD_SLEEP_1000MS \
    do { \
       std::chrono::milliseconds ms(1000); \

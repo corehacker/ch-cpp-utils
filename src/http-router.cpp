@@ -78,49 +78,46 @@ Router::Router() {
 }
 
 Router::~Router() {
-	for(auto entry : routes) {
-		PathMapPtr pathMap = entry.second;
-		for(auto entry2 : *pathMap) {
-			Route *route = entry2.second;
-			delete route;
-		}
-	}
+	// TODO
 }
 
-PathMapPtr Router::getPathMap(evhttp_cmd_type method) {
-	PathMapPtr pathMapPtr = nullptr;
+DirTree *Router::getDirTree(evhttp_cmd_type method) {
+	DirTree *dirTree = nullptr;
 
 	auto methodEntry = routes.find(method);
 	if(methodEntry == routes.end()) {
 		LOG(INFO) << "No route for method: " << getMethod(method);
-		pathMapPtr = make_shared<PathMap>();
-		routes.insert(make_pair(method, pathMapPtr));
+		dirTree = new DirTree();
+		routes.insert(make_pair(method, dirTree));
 	} else {
 		LOG(INFO) << "Route exists for method: " << getMethod(method);
-		pathMapPtr = methodEntry->second;
+		dirTree = methodEntry->second;
 	}
-	return pathMapPtr;
+	return dirTree;
 }
 
-void Router::addRoute(PathMapPtr pathMapPtr, string path, Route *route) {
-	auto pathMap = pathMapPtr.get();
-	auto routeEntry = pathMap->find(path);
-	if(routeEntry == pathMap->end()) {
-		LOG(INFO) << "No route for path: " << path;
-		pathMap->insert(make_pair(path, route));
-	} else {
-		LOG(INFO) << "Route exists for path: " << path;
-	}
+void Router::addRoute(DirTree *dirTree, string path, Route *route) {
+	dirTree->insert(path, route);
+	dirTree->print();
 }
 
 Router &Router::addRoute(Route *route) {
 	evhttp_cmd_type method = route->getMethod();
 	string path = route->getPath();
 
-	auto pathMapPtr = getPathMap(method);
-	addRoute(pathMapPtr, path, route);
+	DirTree *dirTree = getDirTree(method);
+	addRoute(dirTree, path, route);
 
 	return *this;
+}
+
+bool Router::_searchCbk (string treeToken, string searchToken, void *this_) {
+	Router *router = (Router *) this_;
+	return router->searchCbk(treeToken, searchToken);
+}
+
+bool Router::searchCbk (string treeToken, string searchToken) {
+	return treeToken == "*" ? true : false;
 }
 
 Route *Router::getRoute(evhttp_cmd_type method, string path) {
@@ -131,15 +128,8 @@ Route *Router::getRoute(evhttp_cmd_type method, string path) {
 		LOG(WARNING) << "No route for method: " << getMethod(method);
 		return route;
 	}
-	PathMapPtr pathMapPtr = methodEntry->second;
-	auto pathMap = pathMapPtr.get();
-	auto routeEntry = pathMap->find(path);
-	if(routeEntry == pathMap->end()) {
-		return route;
-	}
-	LOG(INFO) << "Found route for: " << getMethod(method) << ":" << path;
-	route = routeEntry->second;
-	return route;
+	DirTree *dirTree = methodEntry->second;
+	return (Route *) dirTree->search(path, Router::_searchCbk, this);
 }
 
 } // End namespace Server.

@@ -43,8 +43,9 @@ int main(int argc, char**argv) {
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);
 	pool->route(EVHTTP_REQ_POST, "/test", onRequest, nullptr);
+	pool->route(EVHTTP_REQ_POST, "/test/*", onRequest, nullptr);
 
-	THREAD_SLEEP_30S;
+	THREAD_SLEEP_FOREVER;
 
 	delete pool;
 }

@@ -48,6 +48,7 @@
 #include <event2/http_struct.h>
 #include <event2/keyvalq_struct.h>
 
+#include "dirtree.hpp"
 #include "http-thread.hpp"
 
 using std::string;
@@ -55,6 +56,8 @@ using std::unordered_map;
 using std::make_pair;
 using std::shared_ptr;
 using std::make_shared;
+
+using ChCppUtils::DirTree;
 
 #ifndef SRC_HTTP_ROUTER_HPP_
 #define SRC_HTTP_ROUTER_HPP_
@@ -80,16 +83,17 @@ public:
 	void *getThis();
 };
 
-using PathMap 	 = unordered_map<string, 		  Route *>;
-using PathMapPtr = shared_ptr<PathMap>;
-using MethodMap  = unordered_map<int, PathMapPtr>;
+using MethodMap  = unordered_map<int, DirTree *>;
 
 class Router {
 private:
 	MethodMap routes;
 
-	PathMapPtr getPathMap(evhttp_cmd_type method);
-	void addRoute(PathMapPtr pathMapPtr, string path, Route *route);
+	DirTree *getDirTree(evhttp_cmd_type method);
+	void addRoute(DirTree *dirTree, string path, Route *route);
+
+	static bool _searchCbk (string treeToken, string searchToken, void *this_);
+	bool searchCbk (string treeToken, string searchToken);
 public:
 	Router();
 	~Router();
