@@ -111,6 +111,7 @@ private:
    Node *root;
 
    string getNextToken(string path, size_t from);
+   bool isLastToken(string path, size_t from);
    void print(Node *root, uint32_t depth);
 
    static void _dropChildCbk(Node *node, string suffix, void *this_);

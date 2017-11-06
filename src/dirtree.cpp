@@ -39,6 +39,16 @@ string DirTree::getNextToken(string path, size_t from) {
    return path.substr(from, (pos - from));
 }
 
+bool DirTree::isLastToken(string path, size_t from) {
+	string token = getNextToken(path, from);
+	if (0 == token.size()) {
+		LOG(INFO)<< "End of tokens";
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void DirTree::insert(string key, void *data) {
    if (key[0] != '/' && key[0] != '.') {
       key.insert(0, "./", 0, 2);
@@ -90,26 +100,36 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 			LOG(INFO)<< "End of tokens";
 			break;
 		}
-
 		LOG(INFO)<< "Token: " + token << " From: " << from;
+		from += token.size() + 1;
+
+		Node *prev = node;
 		node = node->getChild(token);
 		if (NULL == node) {
+			if(!isLastToken(key, from)) {
+				LOG(INFO)<< "Break in chain. Not found. Not Checking for "
+						"wildcard * as this is not the last token";
+				found = false;
+				break;
+			}
 			LOG(INFO)<< "Break in chain. Not found. Checking for wildcard *";
-			node = node->getChild("*");
+			node = prev->getChild("*");
 			if (NULL == node) {
 				LOG(INFO)<< "Break in chain. Not found. No wildcard *";
+				found = false;
 				break;
 			} else {
 				if(cbk(node->getKey(), token, this_)) {
 					LOG(INFO)<< "Break in chain. Not found. Wildcard * accepted";
 				} else {
 					LOG(INFO)<< "Break in chain. Not found. Wildcard * not accepted";
+					found = false;
 				}
 			}
 			break;
 		}
 		found = true;
-		from += token.size() + 1;
+
 		LOG(INFO)<< "Next Token From: " << from;
 	} // End of while.
 
