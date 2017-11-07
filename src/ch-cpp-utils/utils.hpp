@@ -30,82 +30,34 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-server.hpp
+ * \file   utils.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 30, 2017
+ * \date   Nov 06, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <iostream>
 #include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <string>
-#include <unordered_map>
-#include <event2/http.h>
-#include <event2/http_struct.h>
-#include <event2/keyvalq_struct.h>
 
-#include "dirtree.hpp"
-#include "http-thread.hpp"
+#ifndef SRC_CH_CPP_UTILS_UTILS_HPP_
+#define SRC_CH_CPP_UTILS_UTILS_HPP_
 
 using std::string;
-using std::unordered_map;
-using std::make_pair;
-using std::shared_ptr;
-using std::make_shared;
-
-using ChCppUtils::DirTree;
-
-#ifndef SRC_HTTP_ROUTER_HPP_
-#define SRC_HTTP_ROUTER_HPP_
-
-#define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
 
 namespace ChCppUtils {
-namespace Http {
-namespace Server {
 
-class Route {
-private:
-	evhttp_cmd_type method;
-	string path;
-	_OnRequest onrequest;
-	void *this_;
-public:
-	Route(evhttp_cmd_type method, string path,
-			_OnRequest onrequest, void *this_);
-	evhttp_cmd_type getMethod();
-	string getPath();
-	_OnRequest getOnRequest();
-	void *getThis();
-};
+int mkpath(const char *path, mode_t mode);
+bool mkPath(string &path, mode_t mode);
 
-using MethodMap  = unordered_map<int, DirTree *>;
-
-class Router {
-private:
-	MethodMap routes;
-
-	DirTree *getDirTree(evhttp_cmd_type method);
-	void addRoute(DirTree *dirTree, string path, Route *route);
-
-	static bool _searchCbk (string treeToken, string searchToken, void *this_);
-	bool searchCbk (string treeToken, string searchToken);
-
-	static void _dropCbk (string path, void *data, void *this_);
-	void dropCbk (string path, void *data);
-public:
-	Router();
-	~Router();
-	Router &addRoute(Route *route);
-	Route *getRoute(evhttp_cmd_type method, string path);
-};
-
-} // End namespace Server.
-} // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_ROUTER_HPP_ */
+#endif /* SRC_CH_CPP_UTILS_UTILS_HPP_ */

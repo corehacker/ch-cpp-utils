@@ -30,82 +30,72 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-server.hpp
+ * \file   timer.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 30, 2017
+ * \date   Nov 05, 2017
  *
  * \brief
  *
  ******************************************************************************/
-
-#include <iostream>
-#include <stdlib.h>
 #include <string>
-#include <unordered_map>
-#include <event2/http.h>
-#include <event2/http_struct.h>
-#include <event2/keyvalq_struct.h>
 
-#include "dirtree.hpp"
-#include "http-thread.hpp"
+#include "thread-pool.hpp"
 
-using std::string;
-using std::unordered_map;
-using std::make_pair;
-using std::shared_ptr;
-using std::make_shared;
+#ifndef SRC_TIMER_HPP_
+#define SRC_TIMER_HPP_
 
-using ChCppUtils::DirTree;
-
-#ifndef SRC_HTTP_ROUTER_HPP_
-#define SRC_HTTP_ROUTER_HPP_
-
-#define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
+#define TIMER_DEFAULT_THREAD_COUNT 1
 
 namespace ChCppUtils {
-namespace Http {
-namespace Server {
 
-class Route {
-private:
-	evhttp_cmd_type method;
-	string path;
-	_OnRequest onrequest;
-	void *this_;
+class Timer;
+class TimerEvent;
+
+typedef void (*OnTimerEvent) (TimerEvent *event, void *this_);
+
+class Timer;
+
+class TimerEvent {
 public:
-	Route(evhttp_cmd_type method, string path,
-			_OnRequest onrequest, void *this_);
-	evhttp_cmd_type getMethod();
-	string getPath();
-	_OnRequest getOnRequest();
-	void *getThis();
+	TimerEvent(Timer *timer, struct timeval *tv,
+			OnTimerEvent onTimerEvent, void *this_);
+	~TimerEvent();
+
+	OnTimerEvent getOnTimerEvent();
+	void *getThis_();
+	struct timeval *getTv();
+	Timer *getTimer();
+	struct event *getEvent();
+
+	void setEvent(struct event *event);
+private:
+	Timer *mTimer;
+	OnTimerEvent mOnTimerEvent;
+	void *mThis_;
+	struct event *mEvent;
+	struct timeval *mTv;
 };
 
-using MethodMap  = unordered_map<int, DirTree *>;
-
-class Router {
+class Timer {
 private:
-	MethodMap routes;
+	ThreadPool *mPool;
 
-	DirTree *getDirTree(evhttp_cmd_type method);
-	void addRoute(DirTree *dirTree, string path, Route *route);
+	static void _onEvTimer(evutil_socket_t fd, short what, void *this_);
+	static void *_timerRoutine (void *this_, struct event_base *base);
 
-	static bool _searchCbk (string treeToken, string searchToken, void *this_);
-	bool searchCbk (string treeToken, string searchToken);
-
-	static void _dropCbk (string path, void *data, void *this_);
-	void dropCbk (string path, void *data);
 public:
-	Router();
-	~Router();
-	Router &addRoute(Route *route);
-	Route *getRoute(evhttp_cmd_type method, string path);
+	Timer(uint32_t count = TIMER_DEFAULT_THREAD_COUNT);
+	~Timer();
+	TimerEvent *create(struct timeval *tv, OnTimerEvent onTimerEvent,
+			void *this_);
+	void restart(TimerEvent *event);
+	void destroy(TimerEvent *event);
+
 };
 
-} // End namespace Server.
-} // End namespace Http.
+
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_ROUTER_HPP_ */
+#endif /* SRC_TIMER_HPP_ */

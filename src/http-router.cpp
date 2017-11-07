@@ -77,8 +77,22 @@ void *Route::getThis() {
 Router::Router() {
 }
 
+void Router::_dropCbk (string path, void *data, void *this_) {
+	Router *router = (Router *) this_;
+	return router->dropCbk(path, data);
+}
+
+void Router::dropCbk (string path, void *data) {
+	Route *route = (Route *) data;
+	SAFE_DELETE(route);
+}
+
 Router::~Router() {
-	// TODO
+	for(auto route : routes) {
+		DirTree *tree = route.second;
+		tree->drop("/", Router::_dropCbk, this);
+		delete tree;
+	}
 }
 
 DirTree *Router::getDirTree(evhttp_cmd_type method) {
