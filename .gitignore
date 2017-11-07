@@ -23,6 +23,8 @@ test/test-http-client
 test/test-http-server
 test/test-http-thread
 test/test-timer
+test/test-utils
+data
 
 # Prerequisites
 *.d

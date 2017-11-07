@@ -19,7 +19,8 @@ libch_cpp_utils_la_SOURCES = fts.cpp  \
 									  http-thread.cpp \
 									  http-server.cpp \
 									  http-router.cpp \
-									  timer.cpp
+									  timer.cpp \
+									  utils.cpp
 
 libch_cpp_utils_adir = $(includedir)/ch-cpp-utils
 nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
@@ -45,4 +46,5 @@ nobase_include_HEADERS = ch-cpp-utils/fts.hpp  \
 								 ch-cpp-utils/http-thread.hpp \
 								 ch-cpp-utils/http-server.hpp \
 								 ch-cpp-utils/http-router.hpp \
-								 ch-cpp-utils/timer.hpp
+								 ch-cpp-utils/timer.hpp \
+								 ch-cpp-utils/utils.hpp

@@ -39,14 +39,61 @@
  * \brief
  *
  ******************************************************************************/
-#include <unordered_map>
 #include <string>
 
+#include "thread-pool.hpp"
 
 #ifndef SRC_TIMER_HPP_
 #define SRC_TIMER_HPP_
 
+#define TIMER_DEFAULT_THREAD_COUNT 1
+
 namespace ChCppUtils {
+
+class Timer;
+class TimerEvent;
+
+typedef void (*OnTimerEvent) (TimerEvent *event, void *this_);
+
+class Timer;
+
+class TimerEvent {
+public:
+	TimerEvent(Timer *timer, struct timeval *tv,
+			OnTimerEvent onTimerEvent, void *this_);
+	~TimerEvent();
+
+	OnTimerEvent getOnTimerEvent();
+	void *getThis_();
+	struct timeval *getTv();
+	Timer *getTimer();
+	struct event *getEvent();
+
+	void setEvent(struct event *event);
+private:
+	Timer *mTimer;
+	OnTimerEvent mOnTimerEvent;
+	void *mThis_;
+	struct event *mEvent;
+	struct timeval *mTv;
+};
+
+class Timer {
+private:
+	ThreadPool *mPool;
+
+	static void _onEvTimer(evutil_socket_t fd, short what, void *this_);
+	static void *_timerRoutine (void *this_, struct event_base *base);
+
+public:
+	Timer(uint32_t count = TIMER_DEFAULT_THREAD_COUNT);
+	~Timer();
+	TimerEvent *create(struct timeval *tv, OnTimerEvent onTimerEvent,
+			void *this_);
+	void restart(TimerEvent *event);
+	void destroy(TimerEvent *event);
+
+};
 
 
 } // End namespace ChCppUtils.

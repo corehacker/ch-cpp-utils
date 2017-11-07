@@ -7,7 +7,8 @@ bin_PROGRAMS = \
 					test-http-client \
 					test-http-thread \
 					test-http-server \
-					test-timer
+					test-timer \
+					test-utils
 
 test_linked_hash_map_SOURCES = test-linked-hash-map.cpp
 
@@ -96,6 +97,14 @@ test_timer_SOURCES = test-timer.cpp
 test_timer_CPPFLAGS = -I../src
 
 test_timer_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_utils_SOURCES = test-utils.cpp
+
+test_utils_CPPFLAGS = -I../src
+
+test_utils_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 

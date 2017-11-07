@@ -70,6 +70,12 @@ namespace ChCppUtils {
       std::this_thread::sleep_for(ms); \
    } while(0)
 
+#define THREAD_SLEEP_2S \
+   do { \
+      std::chrono::milliseconds ms(2000); \
+      std::this_thread::sleep_for(ms); \
+   } while(0)
+
 #define THREAD_SLEEP_1000MS \
    do { \
       std::chrono::milliseconds ms(1000); \

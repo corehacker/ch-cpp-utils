@@ -45,4 +45,95 @@
 
 namespace ChCppUtils {
 
+TimerEvent::TimerEvent(Timer *timer, struct timeval *tv,
+		OnTimerEvent onTimerEvent, void *this_) {
+	mTimer = timer;
+	mOnTimerEvent = onTimerEvent;
+	mThis_ = this_;
+	mEvent = nullptr;
+	mTv = new struct timeval();
+	mTv->tv_sec = tv->tv_sec;
+	mTv->tv_usec = tv->tv_usec;
+}
+
+TimerEvent::~TimerEvent() {
+	delete mTv;
+}
+
+OnTimerEvent TimerEvent::getOnTimerEvent() {
+	return mOnTimerEvent;
+}
+
+void *TimerEvent::getThis_() {
+	return mThis_;
+}
+
+struct timeval *TimerEvent::getTv() {
+	return mTv;
+}
+
+Timer *TimerEvent::getTimer() {
+	return mTimer;
+}
+
+struct event *TimerEvent::getEvent() {
+	return mEvent;
+}
+
+void TimerEvent::setEvent(struct event *event) {
+	mEvent = event;
+}
+
+Timer::Timer(uint32_t count) {
+	LOG(INFO) << "*****Timer";
+	mPool = new ThreadPool(count, true);
+}
+
+Timer::~Timer() {
+	LOG(INFO) << "~*****Timer";
+	delete mPool;
+}
+
+void Timer::_onEvTimer (evutil_socket_t fd, short what, void *this_) {
+   LOG(INFO) << "Timer expired";
+   TimerEvent *event = (TimerEvent *) this_;
+   if(event->getOnTimerEvent()) {
+	   event->getOnTimerEvent()(event, event->getThis_());
+   }
+}
+
+void *Timer::_timerRoutine (void *this_, struct event_base *base) {
+   LOG(INFO) << "Running timer Event Job, Base: " << base;
+   TimerEvent *event = (TimerEvent *) this_;
+   struct event *ev = event->getEvent();
+   if(!ev) {
+	   LOG(INFO) << "Creating ev event.";
+	   ev =  evtimer_new(base, Timer::_onEvTimer, event);
+	   event->setEvent(ev);
+   }
+   evtimer_add(ev, event->getTv());
+   event_base_dispatch(base);
+   return NULL;
+}
+
+TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
+		void *this_) {
+	LOG(INFO) << "Creating timer: " << tv;
+	TimerEvent *event = new TimerEvent(this, tv, onTimerEvent, this_);
+	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
+	mPool->addJob(job);
+	return event;
+}
+
+void Timer::restart(TimerEvent *event) {
+	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
+	mPool->addJob(job);
+}
+
+void Timer::destroy(TimerEvent *event) {
+	evtimer_del(event->getEvent());
+	event_free(event->getEvent());
+	delete event;
+}
+
 } // End namespace ChCppUtils.
