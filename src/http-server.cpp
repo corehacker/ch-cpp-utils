@@ -45,6 +45,7 @@
 #include <arpa/inet.h>
 #include "http-common.hpp"
 #include <glog/logging.h>
+#include "utils.hpp"
 #include "http-server.hpp"
 
 using ChCppUtils::Http::getMethod;
@@ -100,14 +101,7 @@ void *HttpServer::_workerRoutine (void *arg, struct event_base *base) {
 }
 
 void HttpServer::send400BadRequest(evhttp_request *request) {
-	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
-	if (!buffer)
-		return;
-	evbuffer_add_printf(buffer,
-			"<html><body><center><h1>Bad Request</h1></center></body></html>");
-	evhttp_send_reply(request, HTTP_BADREQUEST, "", buffer);
-
-	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
+	send400BadRequest(request);
 }
 
 void HttpServer::readBody(RequestEvent *event) {

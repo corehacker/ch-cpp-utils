@@ -68,6 +68,7 @@ RequestEvent::RequestEvent(Request *request) {
 		this->headers.insert(make_pair(header->key, header->value));
 		header = header->next.tqe_next;
 	}
+	path = evhttp_uri_get_path(req->uri_elems);
 	this->request= request;
 }
 
@@ -97,6 +98,14 @@ void *RequestEvent::getBody(){
 
 size_t RequestEvent::getLength() {
 	return length;
+}
+
+HttpQuery &RequestEvent::getQuery() {
+	return query;
+}
+
+string &RequestEvent::getPath() {
+	return path;
 }
 
 OnRequest::OnRequest() {

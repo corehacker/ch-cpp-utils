@@ -62,6 +62,7 @@ namespace Http {
 namespace Server {
 
 using HttpHeaders = unordered_map<string, string>;
+using HttpQuery = unordered_map<string, string>;
 
 class Request {
 private:
@@ -76,16 +77,20 @@ public:
 	RequestEvent(Request *request);
 	Request *getRequest();
 	HttpHeaders &getHeaders();
+	HttpQuery &getQuery();
 	void setBody(void *body);
 	void setLength(size_t length);
 	bool hasBody();
 	void *getBody();
 	size_t getLength();
+	string &getPath();
 private:
 	void *body;
 	size_t length;
 	Request *request;
 	HttpHeaders headers;
+	HttpQuery query;
+	string path;
 };
 
 typedef void (*_OnRequest)(RequestEvent *event, void *this_);

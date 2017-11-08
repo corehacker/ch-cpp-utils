@@ -47,16 +47,43 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string>
+#include <algorithm>
+#include <cctype>
+#include <locale>
+#include <vector>
+#include <chrono>
+
+#include <event2/http.h>
+#include <event2/http_struct.h>
+#include <event2/keyvalq_struct.h>
+#include <event2/buffer.h>
 
 #ifndef SRC_CH_CPP_UTILS_UTILS_HPP_
 #define SRC_CH_CPP_UTILS_UTILS_HPP_
 
 using std::string;
+using std::vector;
+using namespace std::chrono;
 
 namespace ChCppUtils {
 
 int mkpath(const char *path, mode_t mode);
+
 bool mkPath(string &path, mode_t mode);
+
+void send400BadRequest(evhttp_request *request);
+
+void send404NotFound(evhttp_request *request);
+
+void send500InternalServerError(evhttp_request *request);
+
+void send200OK(evhttp_request *request);
+
+bool fileExists (const std::string& name);
+
+vector<string> directoryListing(string &directory);
+
+bool fileExpired(string &path, uint32_t expiresInSec);
 
 } // End namespace ChCppUtils.
 

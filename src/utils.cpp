@@ -39,6 +39,9 @@
  * \brief
  *
  ******************************************************************************/
+#include <glog/logging.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include "utils.hpp"
 
@@ -180,5 +183,91 @@ int main(int argc, char **argv)
 }
 
 #endif /* TEST */
+
+void send400BadRequest(evhttp_request *request) {
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer)
+		return;
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>Bad Request</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_BADREQUEST, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
+}
+
+void send404NotFound(evhttp_request *request) {
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer)
+		return;
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>Not Found</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_NOTFOUND, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_NOTFOUND;
+}
+
+void send500InternalServerError(evhttp_request *request) {
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer)
+		return;
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>Internal Server Error</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_INTERNAL, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_INTERNAL;
+}
+
+void send200OK(evhttp_request *request) {
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer)
+		return;
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>OK</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_OK, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_OK;
+}
+
+bool fileExists (const std::string& name) {
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
+}
+
+vector<string> directoryListing(string &directory) {
+	vector<string> files;
+
+	DIR *dir = nullptr;
+	struct dirent *ent = nullptr;
+	if ((dir = opendir(directory.data())) != NULL) {
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != NULL) {
+			if (ent->d_name && 0 != strncmp(ent->d_name, ".", sizeof(ent->d_name))
+					&& 0 != strncmp(ent->d_name, "..", sizeof(ent->d_name))) {
+				files.emplace_back(ent->d_name);
+			}
+		}
+		closedir(dir);
+	} else {
+		/* could not open directory */
+		perror("opendir");
+		LOG(ERROR) << "Could not open directory: " << directory;
+	}
+
+	return files;
+}
+
+bool fileExpired(string &path, uint32_t expiresInSec) {
+	struct stat result;
+	if (stat(path.data(), &result) == 0) {
+		system_clock::time_point start { (seconds { result.st_mtim.tv_sec }
+				+ nanoseconds { result.st_mtim.tv_nsec }) };
+		system_clock::time_point finish = high_resolution_clock::now();
+
+		auto elapsed = duration_cast < seconds > (finish - start).count();
+		return ((elapsed - expiresInSec) > 0);
+	} else {
+		return false;
+	}
+}
 
 } // End namespace ChCppUtils.
