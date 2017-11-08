@@ -118,7 +118,7 @@ void *Timer::_timerRoutine (void *this_, struct event_base *base) {
 
 TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
 		void *this_) {
-	LOG(INFO) << "Creating timer: " << tv;
+	LOG(INFO) << "Creating timer: " << tv->tv_sec << "s, " << tv->tv_usec << "us";
 	TimerEvent *event = new TimerEvent(this, tv, onTimerEvent, this_);
 	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
 	mPool->addJob(job);
@@ -126,6 +126,8 @@ TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
 }
 
 void Timer::restart(TimerEvent *event) {
+	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
+			event->getTv()->tv_usec << "us";
 	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
 	mPool->addJob(job);
 }
