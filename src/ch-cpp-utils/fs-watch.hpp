@@ -69,8 +69,6 @@ namespace ChCppUtils {
 
 #define MAX_EVENTS 10
 
-typedef void (*OnNewFile) (std::string path, void *this_);
-
 class FsWatch {
    private:
       std::string root;
@@ -80,7 +78,7 @@ class FsWatch {
       ThreadPool *epollThread;
       Fts *fts;
       FtsOptions options;
-      OnNewFile onNewFile;
+      OnFile onNewFile;
       void *onNewFileThis;
       std::unordered_set <string> filters;
       DirTree *tree;
@@ -109,7 +107,7 @@ class FsWatch {
       int init();
       void start();
       void start(vector<string> filters);
-      void OnNewFileCbk(OnNewFile onNewFile, void *this_);
+      void OnNewFileCbk(OnFile onNewFile, void *this_);
 };
 
 typedef struct _TreeNode {

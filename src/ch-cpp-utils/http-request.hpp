@@ -40,6 +40,8 @@
  *
  ******************************************************************************/
 
+#include "ch-cpp-utils/http-client.hpp"
+
 #ifndef SRC_HTTP_REQUEST_HPP_
 #define SRC_HTTP_REQUEST_HPP_
 
