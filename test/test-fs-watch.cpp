@@ -52,9 +52,9 @@
 
 using ChCppUtils::FsWatch;
 
-static void onNewFile (std::string path, void *this_);
+static void onNewFile (std::string name, std::string ext, std::string path, void *this_);
 
-static void onNewFile (std::string path, void *this_) {
+static void onNewFile (std::string name, std::string ext, std::string path, void *this_) {
    LOG(INFO) << "onNewFile: " << path << std::endl;
 }
 

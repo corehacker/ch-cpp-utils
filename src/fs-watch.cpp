@@ -171,13 +171,13 @@ void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
    if (NULL != onNewFile) {
       std::string path = getFullPath(fd, event);
       std::string name = event->name;
-      if (filters.empty ()) {
-         onNewFile(path, onNewFileThis);
+      int32_t pos = name.find_last_of('.');
+      std::string ext = name.substr (pos + 1);
+      if (filters.empty()) {
+         onNewFile(name, ext, path, onNewFileThis);
       } else {
-         int32_t pos = name.find_last_of('.');
-         std::string ext = name.substr (pos + 1);
-         if (filters.count (ext) > 0) {
-            onNewFile(path, onNewFileThis);
+         if (filters.count(ext) > 0) {
+            onNewFile(name, ext, path, onNewFileThis);
          }
       }
    }
@@ -325,12 +325,13 @@ void FsWatch::start() {
 
 void FsWatch::start(vector<string> filters) {
    for (uint32_t i = 0; i < filters.size(); i++) {
+	   LOG(INFO) << "Watching file with extension: " << filters.at(i);
       this->filters.insert (filters.at (i));
    }
    start();
 }
 
-void FsWatch::OnNewFileCbk(OnNewFile onNewFile, void *this_) {
+void FsWatch::OnNewFileCbk(OnFile onNewFile, void *this_) {
    this->onNewFile = onNewFile;
    this->onNewFileThis = this_;
 }
