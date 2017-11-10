@@ -85,6 +85,8 @@ vector<string> directoryListing(string &directory);
 
 bool fileExpired(string &path, uint32_t expiresInSec);
 
+int daemonizeProcess();
+
 } // End namespace ChCppUtils.
 
 #endif /* SRC_CH_CPP_UTILS_UTILS_HPP_ */
