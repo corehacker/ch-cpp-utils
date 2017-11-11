@@ -87,6 +87,12 @@ bool fileExpired(string &path, uint32_t expiresInSec);
 
 int daemonizeProcess();
 
+uint64_t getEpochNano();
+
+string getDateTime();
+
+string replace(string &s, const string &find, const string &replace);
+
 } // End namespace ChCppUtils.
 
 #endif /* SRC_CH_CPP_UTILS_UTILS_HPP_ */

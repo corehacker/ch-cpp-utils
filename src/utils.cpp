@@ -321,4 +321,28 @@ int daemonizeProcess() {
 	LBL_CLEANUP: return e_error;
 }
 
+uint64_t getEpochNano() {
+	auto epoch = std::chrono::system_clock::now().time_since_epoch();
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(epoch).count();
+}
+
+string getDateTime() {
+	time_t     now = 0;
+	struct tm  ts = {0};
+	char       buf[80] = {'\0'};
+
+	// Get current time
+	time(&now);
+
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
+	string time(buf);
+	return time;
+}
+
+string replace(string &s, const string &find, const string &replace) {
+    return(s.replace(s.find(find), find.length(), replace));
+}
+
 } // End namespace ChCppUtils.
