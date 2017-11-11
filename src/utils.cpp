@@ -270,4 +270,79 @@ bool fileExpired(string &path, uint32_t expiresInSec) {
 	}
 }
 
+int daemonizeProcess() {
+	int e_error = -1;
+	int32_t i_retval = -1;
+	pid_t i_new_pid = -1;
+	pid_t i_sessionid = -1;
+
+	i_new_pid = fork();
+	if (i_new_pid < 0) {
+		LOG(ERROR)<< "fork failed: " << i_retval << ", Errno: " << errno;
+		goto LBL_CLEANUP;
+	}
+
+	if (i_new_pid > 0) {
+		exit(0);
+	}
+
+	(void) umask(0);
+
+	i_sessionid = setsid();
+	if (i_sessionid < 0) {
+		LOG(ERROR)<< "setsid failed: " << i_sessionid << ", Errno: " << errno;
+		goto LBL_CLEANUP;
+	}
+
+	i_retval = chdir("/");
+	if (0 != i_retval) {
+		LOG(ERROR)<< "chdir failed: " << i_retval << ", Errno: " << errno;
+		goto LBL_CLEANUP;
+	}
+
+	i_retval = close(STDIN_FILENO);
+	if (0 != i_retval) {
+		LOG(ERROR)<< "close failed: " << i_retval << ", Errno: " << errno;
+		goto LBL_CLEANUP;
+	}
+
+	i_retval = close(STDOUT_FILENO);
+	if (0 != i_retval) {
+		LOG(ERROR)<< "close failed: " << i_retval << ", Errno: " << errno;
+		goto LBL_CLEANUP;
+	}
+
+	i_retval = close(STDERR_FILENO);
+	if (0 != i_retval) {
+		LOG(ERROR)<< "close failed: " << i_retval << ", Errno: " << errno;
+	} else 	{
+		e_error = 0;
+	}
+	LBL_CLEANUP: return e_error;
+}
+
+uint64_t getEpochNano() {
+	auto epoch = std::chrono::system_clock::now().time_since_epoch();
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(epoch).count();
+}
+
+string getDateTime() {
+	time_t     now = 0;
+	struct tm  ts = {0};
+	char       buf[80] = {'\0'};
+
+	// Get current time
+	time(&now);
+
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
+	string time(buf);
+	return time;
+}
+
+string replace(string &s, const string &find, const string &replace) {
+    return(s.replace(s.find(find), find.length(), replace));
+}
+
 } // End namespace ChCppUtils.
