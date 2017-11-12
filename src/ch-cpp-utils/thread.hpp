@@ -108,6 +108,12 @@ namespace ChCppUtils {
       } \
    } while(0)
 
+#define THREAD_SLEEP(val) \
+   do { \
+	  std::chrono::milliseconds ms(val); \
+	  std::this_thread::sleep_for(ms); \
+   } while(0)
+
 typedef void (*ThreadInitCbk) (void *this_);
 typedef void (*ThreadDeInitCbk) (void *this_);
 
