@@ -163,7 +163,6 @@ std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
       path.insert(path.length(), "/");
    }
    path.insert(path.length(), name);
-   addWatch(path, true);
    return path;
 }
 
