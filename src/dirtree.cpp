@@ -30,6 +30,8 @@ DirTree::~DirTree() {
 
    LOG(INFO) << "Deleting root... ";
 
+   drop(".", nullptr, nullptr);
+
    SAFE_DELETE(root);
 }
 

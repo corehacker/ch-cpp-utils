@@ -23,18 +23,18 @@ int main(int argc, char **argv) {
 
 	struct timeval tv = {0};
 	LOG(INFO) << "Creating timer";
-	tv.tv_sec = 0;
-	tv.tv_usec = 1000000;
+	tv.tv_sec = 10;
+	tv.tv_usec = 0;
 
 	TimerEvent *event = timer->create(&tv, onTimerEvent, nullptr);
 	THREAD_SLEEP_5S;
 	timer->destroy(event);
 
-	THREAD_SLEEP_2S;
-
-	event = timer->create(&tv, onTimerEvent, nullptr);
-	THREAD_SLEEP_5S;
-	timer->destroy(event);
+//	THREAD_SLEEP_2S;
+//
+//	event = timer->create(&tv, onTimerEvent, nullptr);
+//	THREAD_SLEEP_5S;
+//	timer->destroy(event);
 
 	delete timer;
 	return 0;

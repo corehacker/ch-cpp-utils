@@ -128,6 +128,7 @@ void HttpRequest::OnLoad::fire(HttpResponse *response) {
 	if(this->onload) {
 		HttpRequestLoadEvent *event = new HttpRequestLoadEvent(response);
 		this->onload(event, this->this_);
+		delete event;
 	}
 }
 
@@ -139,6 +140,7 @@ HttpRequest::HttpRequest() {
 }
 
 HttpRequest::~HttpRequest() {
+	if(uri) evhttp_uri_free(uri);
 	delete context;
 }
 
@@ -169,8 +171,8 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 		   .setResponseCode(req->response_code)
 		   .setResponseText((char *)
 				   (req->response_code_line ? req->response_code_line : ""));
-
    onload.fire(response);
+   delete response;
 
    event_base_loopbreak(context->getBase());
 }
