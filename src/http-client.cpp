@@ -91,7 +91,6 @@ void HttpClientImpl::closeConnctions() {
 		HttpConnection *connection = conn.second;
 		delete connection;
 	}
-//	lock_guard<mutex> lock(mMutex);
 	mConnections.clear();
 }
 
