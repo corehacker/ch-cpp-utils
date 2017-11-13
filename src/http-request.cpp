@@ -161,19 +161,18 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
    } else {
       LOG(INFO) << "Request success";
       LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
+
+      HttpConnection *connection = context->getConnection();
+      connection->release();
+
+      HttpResponse *response = new HttpResponse();
+      response->setRequest(this)
+   		   .setResponseCode(req->response_code)
+   		   .setResponseText((char *)
+   				   (req->response_code_line ? req->response_code_line : ""));
+      onload.fire(response);
+      delete response;
    }
-
-   HttpConnection *connection = context->getConnection();
-   connection->release();
-
-   HttpResponse *response = new HttpResponse();
-   response->setRequest(this)
-		   .setResponseCode(req->response_code)
-		   .setResponseText((char *)
-				   (req->response_code_line ? req->response_code_line : ""));
-   onload.fire(response);
-   delete response;
-
    event_base_loopbreak(context->getBase());
 }
 
@@ -185,7 +184,7 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 	evhttp_uri_get_host(uri);
 	evhttp_uri_get_port(uri);
 	string hostname = (char *) evhttp_uri_get_host(uri);
-	HttpClient client = HttpClientImpl::GetInstance(hostname,
+	HttpClient client = HttpClientImpl::NewInstance(hostname,
 			(uint16_t) evhttp_uri_get_port(uri));
 
 

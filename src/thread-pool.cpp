@@ -71,7 +71,7 @@ ThreadPool::ThreadPool (uint32_t uiCount,
 
 ThreadPool::~ThreadPool ()
 {
-   LOG(INFO) << "*****************~ThreadPool" << std::endl;
+   LOG(INFO) << "*****************~ThreadPool";
    for (uint32_t uiIndex = 0; uiIndex < uiCount; uiIndex++)
    {
       ThreadExitJob *job = new ThreadExitJob();
@@ -80,7 +80,7 @@ ThreadPool::~ThreadPool ()
 
    for (auto thread : mThreads)
    {
-      LOG(INFO) << "Deleting thread 0x" << std::hex << thread->getId() << std::dec << std::endl;
+      LOG(INFO) << "Deleting thread 0x" << std::hex << thread->getId() << std::dec;
       SAFE_DELETE(thread);
    }
 }
@@ -99,7 +99,7 @@ void
 ThreadPool::addJob (ThreadJobBase *job)
 {
    std::lock_guard < std::mutex > lock (mMutex);
-   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job" << std::endl;
+   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job";
    mJobQueue.push_back (job);
    mCondition.notify_one();
 }
@@ -113,7 +113,7 @@ ThreadPool::threadGetNextJob_ ()
       if (!mJobQueue.empty ())
       {
          ThreadJobBase *job = mJobQueue.at (0);
-         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job" << std::endl;
+         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job";
          mJobQueue.pop_front ();
          return job;
 

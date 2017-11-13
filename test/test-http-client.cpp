@@ -41,8 +41,10 @@
  ******************************************************************************/
 #include <string>
 #include <glog/logging.h>
+#include <event2/event.h>
 #include <event2/http.h>
 #include "ch-cpp-utils/base64.h"
+#include "ch-cpp-utils/semaphore.hpp"
 #include "ch-cpp-utils/http-client.hpp"
 #include "ch-cpp-utils/http-request.hpp"
 
@@ -54,10 +56,13 @@ using ChCppUtils::Http::Client::HttpClientImpl;
 using ChCppUtils::Http::Client::HttpRequest;
 using ChCppUtils::Http::Client::HttpResponse;
 using ChCppUtils::Http::Client::HttpRequestLoadEvent;
+using ChCppUtils::Semaphore;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_);
 void makeRequest();
 bool request = true;
+Semaphore mSignal;
+HttpRequest *httpRequest = nullptr;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 	HttpResponse *response = event->getResponse();
@@ -67,6 +72,7 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 //		makeRequest();
 //		request = false;
 //	}
+	mSignal.notify();
 }
 
 void makeRequest() {
@@ -89,22 +95,40 @@ void makeRequest() {
    LOG(INFO) << "";
    LOG(INFO) << "";
 
-   string url = "http://localhost:9200/movies/movie/1";
-   HttpRequest *request = new HttpRequest();
-   request->onLoad(onLoad).bind(nullptr);
-   request->open(EVHTTP_REQ_PUT, url)
+   string url = "http://localhost:8888/security/camera/media/living-1/1.ts";
+   httpRequest = new HttpRequest();
+   httpRequest->onLoad(onLoad).bind(nullptr);
+   httpRequest->open(EVHTTP_REQ_POST, url)
 		   .setHeader("Authorization", authorization)
 		   .setHeader("Content-Type", "application/json; charset=UTF-8")
 		   .send((void *) body.data(), body.length());
 
 }
 
+static void write_to_file_cb(int severity, const char *msg)
+{
+    const char *s;
+    switch (severity) {
+        case _EVENT_LOG_DEBUG: s = "debug"; break;
+        case _EVENT_LOG_MSG:   s = "msg";   break;
+        case _EVENT_LOG_WARN:  s = "warn";  break;
+        case _EVENT_LOG_ERR:   s = "error"; break;
+        default:               s = "?";     break; /* never reached */
+    }
+    LOG(INFO) << msg;
+}
+
 int main(int argc, char* argv[]) {
+	event_set_log_callback(write_to_file_cb);
+	event_enable_debug_logging(EVENT_DBG_ALL);
+
    // Initialize Google's logging library.
 //   google::InitGoogleLogging(argv[0]);
 
 //	makeRequest();
 	makeRequest();
 
-   THREAD_SLEEP_FOREVER;
+	mSignal.wait();
+	LOG(INFO) << "Request complete notification received.";
+	delete httpRequest;
 }

@@ -63,7 +63,8 @@ HttpConnection::HttpConnection(HttpClientImpl *client, string hostname,
 }
 
 HttpConnection::~HttpConnection() {
-
+	LOG(INFO) << "*****************~HttpConnection";
+	destroy();
 }
 
 void HttpConnection::connect() {
@@ -75,7 +76,8 @@ void HttpConnection::connect() {
 }
 
 void HttpConnection::destroy() {
-	if(!connection) {
+	if(connection) {
+		LOG(INFO) << "Freeing ev http connection.";
 		evhttp_connection_free(connection);
 		connection = nullptr;
 	}

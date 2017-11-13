@@ -69,7 +69,7 @@ FsWatch::FsWatch(std::string root) {
 }
 
 FsWatch::~FsWatch() {
-   printf("\n*****************~FsWatch\n");
+	LOG(INFO) << "*****************~FsWatch";
    stopWatching = true;
 
    SAFE_DELETE(epollThread);

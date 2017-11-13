@@ -90,9 +90,12 @@ private:
    static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
 	void evConnectionClosed(struct evhttp_connection *conn,
 			HttpConnection *connection);
+
+	void closeConnctions();
 public:
    ~HttpClientImpl();
-   static HttpClient GetInstance(string hostname, uint16_t port);
+   static HttpClient NewInstance(string hostname, uint16_t port);
+   static void DeleteInstances();
 
    struct event_base *getBase();
 
