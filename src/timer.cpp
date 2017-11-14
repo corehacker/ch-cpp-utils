@@ -95,7 +95,6 @@ Timer::~Timer() {
 }
 
 void Timer::_onEvTimer (evutil_socket_t fd, short what, void *this_) {
-   LOG(INFO) << "Timer expired";
    TimerEvent *event = (TimerEvent *) this_;
    if(event->getOnTimerEvent()) {
 	   event->getOnTimerEvent()(event, event->getThis_());
@@ -103,7 +102,7 @@ void Timer::_onEvTimer (evutil_socket_t fd, short what, void *this_) {
 }
 
 void *Timer::_timerRoutine (void *this_, struct event_base *base) {
-   LOG(INFO) << "Running timer Event Job, Base: " << base;
+//   LOG(INFO) << "Running timer Event Job, Base: " << base;
    TimerEvent *event = (TimerEvent *) this_;
    struct event *ev = event->getEvent();
    if(!ev) {
@@ -126,8 +125,8 @@ TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
 }
 
 void Timer::restart(TimerEvent *event) {
-	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
-			event->getTv()->tv_usec << "us";
+//	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
+//			event->getTv()->tv_usec << "us";
 	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
 	mPool->addJob(job);
 }

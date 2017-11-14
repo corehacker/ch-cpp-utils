@@ -63,23 +63,23 @@ Thread::run ()
    if (true == mBase)
    {
       mEventBase = event_base_new();
-      LOG(INFO) << "Creating event base: " << mEventBase << std::endl;
+      LOG(INFO) << "Creating event base: " << mEventBase;
    }
    else
    {
       mEventBase = NULL;
-      LOG(INFO) << "Not creating event base: " << mEventBase << std::endl;
+      LOG(INFO) << "Not creating event base: " << mEventBase;
    }
    if(mInitCbk) {
 	   mInitCbk(mInitCbkThis);
    }
 
    mSemaphore.notify();
-   LOG(INFO) << "Notified start." << std::endl;
+   LOG(INFO) << "Notified start.";
    while (true) {
       ThreadJobBase *job = mGetJob (mGetJobThis);
       if(job->isExit()) {
-         LOG(INFO) << "Exit Job Command" << std::endl;
+         LOG(INFO) << "Exit Job Command";
          SAFE_DELETE(job);
          break;
       }
@@ -95,13 +95,13 @@ Thread::run ()
       mEventBase = NULL;
    }
 
-   LOG(INFO) << "Exited thread." << std::endl;
+   LOG(INFO) << "Exited thread.";
    mThread->detach();
-   LOG(INFO) << "Detached thread." << std::endl;
+   LOG(INFO) << "Detached thread.";
 
    mSemaphore.notify();
 
-   LOG(INFO) << "Notified exit." << std::endl;
+   LOG(INFO) << "Notified exit.";
 }
 
 void
@@ -119,7 +119,7 @@ thread::id Thread::getId() {
 
 void Thread::join() {
    if (mThread->joinable()) {
-      LOG(INFO) << "Joining thread: 0x" << std::hex << getId() << std::dec  << std::endl;
+      LOG(INFO) << "Joining thread: 0x" << std::hex << getId() << std::dec ;
       mThread->join();
    }
 }
@@ -130,7 +130,7 @@ struct event_base *Thread::getEventBase() {
 
 Thread::Thread (ThreadGetJob getJob, void *this_)
 {
-   LOG(INFO) << "Creating thread" << std::endl;
+   LOG(INFO) << "Creating thread";
    mGetJob = getJob;
    mGetJobThis = this_;
    mBase = false;
@@ -174,18 +174,18 @@ Thread::Thread (ThreadGetJob getJob, void *this_, bool base,
 void Thread::start() {
 	mThread = new std::thread(Thread::threadFunc, this);
 
-	LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec  << std::endl;
+	LOG(INFO) << "Waiting for thread to start: 0x" << std::hex << getId() << std::dec ;
 	mSemaphore.wait();
-	LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec  << std::endl;
+	LOG(INFO) << "Thread start complete: 0x" << std::hex << getId() << std::dec ;
 }
 
 Thread::~Thread ()
 {
 	LOG(INFO) << "*****~Thread";
    thread::id id = getId();
-   LOG(INFO) << "Waiting for thread to exit: 0x" << std::hex << id << std::dec  << std::endl;
+   LOG(INFO) << "Waiting for thread to exit: 0x" << std::hex << id << std::dec ;
    mSemaphore.wait();
-   LOG(INFO) << "Thread exited: 0x" << std::hex << id << std::dec  << std::endl;
+   LOG(INFO) << "Thread exited: 0x" << std::hex << id << std::dec;
    SAFE_DELETE(mThread);
 }
 

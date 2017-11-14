@@ -53,7 +53,7 @@ FsWatch::FsWatch() {
    onNewFileThis = NULL;
    tree = NULL;
    stopWatching = false;
-   LOG(INFO) << "Watching directory: " << root << std::endl;
+   LOG(INFO) << "Watching directory: " << root;
 }
 
 FsWatch::FsWatch(std::string root) {
@@ -65,7 +65,7 @@ FsWatch::FsWatch(std::string root) {
    this->root = root;
    tree = NULL;
    stopWatching = false;
-   LOG(INFO) << "Watching directory: " << root << std::endl;
+   LOG(INFO) << "Watching directory: " << root;
 }
 
 FsWatch::~FsWatch() {
@@ -83,7 +83,7 @@ FsWatch::~FsWatch() {
 void FsWatch::addWatch(std::string dir, bool add) {
    auto find = set.find(dir);
    if (find != set.end()) {
-      LOG(INFO) << "Already watching dir " << dir << std::endl;
+      LOG(INFO) << "Already watching dir " << dir;
       return;
    }
 
@@ -116,9 +116,9 @@ void FsWatch::addWatch(std::string dir, bool add) {
    node->wd = watchFd;
    node->path = dir;
    tree->insert(dir, node);
-   tree->print();
+//   tree->print();
 
-   LOG(INFO) << "Added watch for " << dir << ", Fd: " << inotifyFd << ", Watch Fd: " << watchFd << std::endl;
+   LOG(INFO) << "Added watch for " << dir << ", Fd: " << inotifyFd << ", Watch Fd: " << watchFd;
 }
 
 void FsWatch::_dropCbk (string path, void *data, void *this_) {
@@ -127,9 +127,9 @@ void FsWatch::_dropCbk (string path, void *data, void *this_) {
 }
 
 void FsWatch::dropCbk (string path, void *data) {
-   LOG(INFO) << "Dropping path: " << path << std::endl;
+   LOG(INFO) << "Dropping path: " << path;
    TreeNode *node = (TreeNode *) data;
-   LOG(INFO) << "Dropping Fd: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+   LOG(INFO) << "Dropping Fd: " << node->fd << ", Watch Fd: " << node->wd;
 
    set.erase(path);
 
@@ -139,9 +139,9 @@ void FsWatch::dropCbk (string path, void *data) {
    if (epoll_ctl(epollFd, EPOLL_CTL_DEL, node->fd, &ev) == -1) {
       perror("epoll_ctl: inotifyFd");
    }
-   LOG(INFO) << "Removed epoll watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+   LOG(INFO) << "Removed epoll watch: " << node->fd << ", Watch Fd: " << node->wd;
    inotify_rm_watch(node->fd, node->wd);
-   LOG(INFO) << "Removed inotify watch: " << node->fd << ", Watch Fd: " << node->wd << std::endl;
+   LOG(INFO) << "Removed inotify watch: " << node->fd << ", Watch Fd: " << node->wd;
    close(node->fd);
 
    SAFE_DELETE(node);
@@ -149,7 +149,7 @@ void FsWatch::dropCbk (string path, void *data) {
 
 void FsWatch::removeWatch(std::string dir) {
    tree->drop(dir, FsWatch::_dropCbk, this);
-   tree->print();
+//   tree->print();
 }
 
 std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
@@ -183,7 +183,7 @@ void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
 }
 
 void FsWatch::handleFileDelete(int fd, const struct inotify_event *event) {
-   LOG(INFO) << "File DELETE: " << event->name << std::endl;
+//   LOG(INFO) << "File DELETE: " << event->name;
 }
 
 void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
@@ -195,7 +195,7 @@ void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
 }
 
 void FsWatch::handleDirectoryDelete(int fd, const struct inotify_event *event) {
-   LOG(INFO) << "Directory DELETE: " << event->name << std::endl;
+   LOG(INFO) << "Directory DELETE: " << event->name;
 
    std::string deleteDir = getFullPath(fd, event);
    removeWatch(deleteDir);
@@ -262,7 +262,7 @@ void *FsWatch::_epollThreadRoutine (void *arg, struct event_base *base) {
 void *FsWatch::epollThreadRoutine () {
    int nfds;
    struct epoll_event events[MAX_EVENTS];
-   LOG(INFO) << "Listening for directory tree changes." << std::endl;
+   LOG(INFO) << "Listening for directory tree changes.";
    while (!stopWatching) {
       nfds = epoll_wait(epollFd, events, MAX_EVENTS, 1000);
       if (nfds == -1) {
@@ -277,7 +277,7 @@ void *FsWatch::epollThreadRoutine () {
       }
    }
 
-   LOG(INFO) << "Listening for events stopped." << std::endl;
+   LOG(INFO) << "Listening for events stopped.";
    return NULL;
 }
 
@@ -312,7 +312,7 @@ int FsWatch::init() {
 
     epollThread = new ThreadPool (1, false);
 
-    LOG(INFO) << "Init done" << std::endl;
+    LOG(INFO) << "Init done";
     return 0;
 }
 

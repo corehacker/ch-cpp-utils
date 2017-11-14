@@ -159,7 +159,6 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 	if (NULL == req) {
 		LOG(ERROR) << "Request failed";
 	} else {
-		LOG(INFO) << "Request success";
 		LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
 
 		HttpConnection *connection = context->getConnection();

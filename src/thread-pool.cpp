@@ -99,7 +99,9 @@ void
 ThreadPool::addJob (ThreadJobBase *job)
 {
    std::lock_guard < std::mutex > lock (mMutex);
-   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job";
+   if(job->isExit()) {
+	   LOG(INFO) << "Adding Exit Job";
+   }
    mJobQueue.push_back (job);
    mCondition.notify_one();
 }
@@ -113,7 +115,9 @@ ThreadPool::threadGetNextJob_ ()
       if (!mJobQueue.empty ())
       {
          ThreadJobBase *job = mJobQueue.at (0);
-         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job";
+         if(job->isExit()) {
+        	 LOG(INFO) << "New Exit Job";
+         }
          mJobQueue.pop_front ();
          return job;
 
