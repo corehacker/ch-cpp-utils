@@ -120,7 +120,7 @@ static void write_to_file_cb(int severity, const char *msg)
 
 int main(int argc, char* argv[]) {
 	event_set_log_callback(write_to_file_cb);
-	event_enable_debug_logging(EVENT_DBG_ALL);
+//	event_enable_debug_logging(EVENT_DBG_ALL);
 
    // Initialize Google's logging library.
 //   google::InitGoogleLogging(argv[0]);
