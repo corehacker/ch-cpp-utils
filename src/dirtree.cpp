@@ -43,12 +43,7 @@ string DirTree::getNextToken(string path, size_t from) {
 
 bool DirTree::isLastToken(string path, size_t from) {
 	string token = getNextToken(path, from);
-	if (0 == token.size()) {
-		LOG(INFO)<< "End of tokens";
-		return true;
-	} else {
-		return false;
-	}
+	return 0 == token.size() ? true : false;
 }
 
 void DirTree::insert(string key, void *data) {
@@ -76,7 +71,7 @@ void DirTree::insert(string key, void *data) {
       node = node->getChild(token);
 
       from += token.size() + 1;
-      LOG(INFO) << "Token: " + token << " From: " << from;
+//      LOG(INFO) << "Token: " + token << " From: " << from;
       token = getNextToken(key, from);
    }
    if(node) {
@@ -102,7 +97,7 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 			LOG(INFO)<< "End of tokens";
 			break;
 		}
-		LOG(INFO)<< "Token: " + token << " From: " << from;
+//		LOG(INFO)<< "Token: " + token << " From: " << from;
 		from += token.size() + 1;
 
 		Node *prev = node;
@@ -132,7 +127,7 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 		}
 		found = true;
 
-		LOG(INFO)<< "Next Token From: " << from;
+//		LOG(INFO)<< "Next Token From: " << from;
 	} // End of while.
 
 	if (found) {
@@ -210,7 +205,7 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
          break;
       }
 
-      LOG(INFO) << "Token: " + token << " From: " << from;
+//      LOG(INFO) << "Token: " + token << " From: " << from;
       parent = node;
       node = node->getChild(token);
       if (NULL == node) {
@@ -220,7 +215,7 @@ void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
       }
       found = true;
       from += token.size() + 1;
-      LOG(INFO) << "Next Token From: " << from;
+//      LOG(INFO) << "Next Token From: " << from;
    } // End of while.
 
    if (found) {

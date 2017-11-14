@@ -67,11 +67,31 @@ HttpClientImpl::HttpClientImpl(string &hostname, uint16_t port) {
    this->mHostname = hostname;
    this->mPort = port;
    mBase = event_base_new();
-   mPool = new ThreadPool(1, true);
+   mPool = new ThreadPool(1, false);
 }
 
 HttpClientImpl::~HttpClientImpl() {
-   delete mPool;
+	LOG(INFO)<< "*****************~HttpClientImpl";
+	closeConnctions();
+
+	LOG(INFO) << "*****************~HttpClientImpl exiting loop";
+	struct timeval tv = {0};
+	tv.tv_sec = 1;
+	event_base_loopexit(mBase, &tv);
+
+	LOG(INFO) << "*****************~HttpClientImpl deleting pool";
+	delete mPool;
+
+	LOG(INFO) << "*****************~HttpClientImpl freeing base";
+	event_base_free(mBase);
+}
+
+void HttpClientImpl::closeConnctions() {
+	for(auto conn : mConnections) {
+		HttpConnection *connection = conn.second;
+		delete connection;
+	}
+	mConnections.clear();
 }
 
 void *HttpClientImpl::_dispatch(void *arg, struct event_base *base) {
@@ -100,7 +120,6 @@ void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
 	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort;
 	LOG(INFO) << "Setting connection context for reuse.";
 	lock_guard<mutex> lock(mMutex);
-	connection->destroy();
 	connection->setBusy(false);
 	mFree.insert(connection->getId());
 }
@@ -140,7 +159,7 @@ void HttpClientImpl::send() {
 	mPool->addJob(dispatch);
 }
 
-HttpClient HttpClientImpl::GetInstance(string hostname, uint16_t port) {
+HttpClient HttpClientImpl::NewInstance(string hostname, uint16_t port) {
 	HttpClient client;
 	string key = hostname + ":" + to_string(port);
 	lock_guard<mutex> lock(gMutex);
@@ -154,6 +173,11 @@ HttpClient HttpClientImpl::GetInstance(string hostname, uint16_t port) {
 		client = search->second;
 	}
     return client;
+}
+
+void HttpClientImpl::DeleteInstances() {
+	lock_guard<mutex> lock(gMutex);
+	gClients.clear();
 }
 
 struct event_base *HttpClientImpl::getBase() {

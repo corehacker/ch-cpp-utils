@@ -33,7 +33,7 @@ typedef void (*DropChildCbk) (Node *node, string suffix, void *this_);
 class Node {
 public:
    void addChild(string key, Node *node) {
-	   LOG(INFO) << "Adding child, key: " << key;
+//	   LOG(INFO) << "Adding child, key: " << key;
       children.insert(std::make_pair(key, node));
    }
 
@@ -48,7 +48,7 @@ public:
    }
 
    void deleteChild(string key) {
-	   LOG(INFO) << "Deleting child, key: " << key;
+//	   LOG(INFO) << "Deleting child, key: " << key;
       children.erase(key);
    }
 

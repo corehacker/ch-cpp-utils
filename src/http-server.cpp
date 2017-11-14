@@ -93,9 +93,7 @@ HttpServer::~HttpServer() {
 }
 
 void *HttpServer::_workerRoutine (void *arg, struct event_base *base) {
-	LOG(INFO) << "Running event loop.";
 	event_base_dispatch(base);
-//	event_base_loop(base, EVLOOP_NO_EXIT_ON_EMPTY);
 	LOG(INFO) << "Exiting event loop.";
 	return nullptr;
 }
@@ -169,7 +167,6 @@ void HttpServer::createThreads() {
 
 void HttpServer::addJob (ThreadJobBase *job) {
    std::lock_guard < std::mutex > lock (mMutex);
-   LOG(INFO) << "Adding" << (job->isExit() ? " Exit " : " ") << "Job";
    mJobQueue.push_back (job);
    mCondition.notify_one();
 }
@@ -179,7 +176,6 @@ ThreadJobBase *HttpServer::threadGetNextJob_ () {
       std::unique_lock < std::mutex > lk (mMutex);
       if (!mJobQueue.empty ()) {
          ThreadJobBase *job = mJobQueue.at (0);
-         LOG(INFO) << "New" << (job->isExit() ? " Exit " : " ") << "Job";
          mJobQueue.pop_front ();
          return job;
       } else {

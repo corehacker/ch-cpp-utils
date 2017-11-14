@@ -112,7 +112,7 @@ DirTree *Router::getDirTree(evhttp_cmd_type method) {
 
 void Router::addRoute(DirTree *dirTree, string path, Route *route) {
 	dirTree->insert(path, route);
-	dirTree->print();
+//	dirTree->print();
 }
 
 Router &Router::addRoute(Route *route) {
