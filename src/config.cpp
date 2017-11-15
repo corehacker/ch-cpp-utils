@@ -30,87 +30,98 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   events.cpp
+ * \file   config.cpp
  *
  * \author Sandeep Prakash
  *
- * \date   Sep 12, 2017
+ * \date   Nov 14, 2017
  *
  * \brief
  *
  ******************************************************************************/
-
+#include <fstream>
 #include <glog/logging.h>
-#include "ch-cpp-utils/events.hpp"
+#include "utils.hpp"
+#include "config.hpp"
+
+using std::ifstream;
 
 namespace ChCppUtils {
-Target::Target() {
-	this->target = NULL;
-	this->this_ = NULL;
+
+Config::Config(string etcConfig, string localConfig) {
+	etcConfigPath = etcConfig;
+	localConfigPath = localConfig;
+
+	mDaemon = false;
+	mLogToConsole = false;
+	mRunFor = 30000;
 }
 
-Target::~Target() {
-
+Config::~Config() {
+	LOG(INFO) << "*****************~Config";
 }
 
-Target *Target::add(EventTarget target) {
-   this->target = target;
-   return this;
+bool Config::selectConfigFile() {
+	string selected = "";
+	if(!fileExists(etcConfigPath)) {
+		if(!fileExists(localConfigPath)) {
+			LOG(ERROR) << "No config file found in /etc/ch-storage-client or " <<
+					"./config. I am looking for ch-storage-client.json";
+			return false;
+		} else {
+			LOG(INFO) << "Found config file "
+					"./config/ch-storage-client.json";
+			selectedConfigPath = localConfigPath;
+			return true;
+		}
+	} else {
+		LOG(INFO) << "Found config file "
+				"/etc/ch-storage-client/ch-storage-client.json";
+		selectedConfigPath = etcConfigPath;
+		return true;
+	}
 }
 
-void Target::bind(void *this_) {
-   this->this_ = this_;
+bool Config::populateConfigValues() {
+	LOG(INFO) << "<-----------------------Config";
+
+	mDaemon = mJson["daemon"];
+	LOG(INFO) << "daemon: " << mDaemon;
+
+	mLogToConsole = mJson["console"];
+	LOG(INFO) << "console: " << mLogToConsole;
+
+	mRunFor = mJson["run-for"];
+	LOG(INFO) << "run-for: " << mRunFor;
+
+	LOG(INFO) << "----------------------->Config";
+	return true;
 }
 
-void Target::fire(string name) {
-   target(name, this_, NULL);
+void Config::init() {
+	if(!selectConfigFile()) {
+		LOG(ERROR) << "Invalid config file.";
+		std::terminate();
+	}
+	ifstream config(selectedConfigPath);
+	config >> mJson;
+	if(!populateConfigValues()) {
+		LOG(ERROR) << "Invalid config file.";
+		std::terminate();
+	}
+	LOG(INFO) << "Config: " << mJson;
 }
 
-Event::Event(string name) {
-   this->name = name;
+bool Config::isDaemon() {
+	return mDaemon;
 }
 
-Event::~Event() {
-
+uint32_t Config::getRunFor() {
+	return mRunFor;
 }
 
-Target *Event::addTarget(EventTarget target) {
-   Target *t = new Target();
-   targets.emplace_back(t);
-   return t->add(target);
+bool Config::shouldLogToConsole() {
+	return mLogToConsole;
 }
 
-
-
-void Event::fire() {
-   for(Target *t : targets) {
-      t->fire(name);
-   }
-}
-
-
-Events::Events() {
-}
-
-Events::~Events() {
-}
-
-Target *Events::on(string name, EventTarget target) {
-   Event *event = NULL;
-   auto entry = events.find(name);
-   if (entry == events.end()) {
-      event = new Event(name);
-      events.insert (std::make_pair (name, event));
-   } else {
-      event = entry->second;
-   }
-   return event->addTarget(target);
-}
-
-void Events::fire(string name) {
-	auto entry = events.find(name);
-	Event *event = entry->second;
-	event->fire();
-}
-
-}
+} // End namespace ChCppUtils.

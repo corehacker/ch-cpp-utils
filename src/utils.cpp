@@ -256,6 +256,35 @@ vector<string> directoryListing(string &directory) {
 	return files;
 }
 
+vector<string> directoryListing(string &directory, bool filesOnly, bool dirsOnly) {
+	vector<string> files;
+
+	DIR *dir = nullptr;
+	struct dirent *ent = nullptr;
+	if ((dir = opendir(directory.data())) != NULL) {
+		/* print all the files and directories within directory */
+		while ((ent = readdir(dir)) != NULL) {
+			if (ent->d_name
+					&& 0 != strncmp(ent->d_name, ".", sizeof(ent->d_name))
+					&& 0 != strncmp(ent->d_name, "..", sizeof(ent->d_name))) {
+				if(filesOnly && ent->d_type == DT_REG) {
+					files.emplace_back(ent->d_name);
+				}
+				if(dirsOnly && ent->d_type == DT_DIR) {
+					files.emplace_back(ent->d_name);
+				}
+			}
+		}
+		closedir(dir);
+	} else {
+		/* could not open directory */
+		perror("opendir");
+		LOG(ERROR) << "Could not open directory: " << directory;
+	}
+
+	return files;
+}
+
 bool fileExpired(string &path, uint32_t expiresInSec) {
 	struct stat result;
 	if (stat(path.data(), &result) == 0) {
@@ -339,6 +368,51 @@ string getDateTime() {
 	strftime(buf, sizeof(buf), "%a %Y-%m-%d %H:%M:%S %Z", &ts);
 	string time(buf);
 	return time;
+}
+
+string getDate() {
+	time_t     now = 0;
+	struct tm  ts = {0};
+	char       buf[80] = {'\0'};
+
+	// Get current time
+	time(&now);
+
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%m-%d-%Y-%a", &ts);
+	string date(buf);
+	return date;
+}
+
+string getTime() {
+	time_t     now = 0;
+	struct tm  ts = {0};
+	char       buf[80] = {'\0'};
+
+	// Get current time
+	time(&now);
+
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%H-%M-%S-%Z", &ts);
+	string time(buf);
+	return time;
+}
+
+string getHour() {
+	time_t     now = 0;
+	struct tm  ts = {0};
+	char       buf[80] = {'\0'};
+
+	// Get current time
+	time(&now);
+
+	// Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
+	ts = *localtime(&now);
+	strftime(buf, sizeof(buf), "%H-%Z", &ts);
+	string hour(buf);
+	return hour;
 }
 
 string replace(string &s, const string &find, const string &replace) {

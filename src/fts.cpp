@@ -12,6 +12,7 @@ Fts::Fts() {
     bIgnoreHiddenDirs = true;
     bIgnoreRegularFiles = false;
     bIgnoreRegularDirs = false;
+    bEmptyDirsOnly = false;
 }
 
 Fts::Fts(string root) {
@@ -20,6 +21,7 @@ Fts::Fts(string root) {
    bIgnoreHiddenDirs = true;
    bIgnoreRegularFiles = false;
    bIgnoreRegularDirs = false;
+   bEmptyDirsOnly = false;
     this->root = ((0 == root.length()) ? "." : root);
 }
 
@@ -37,6 +39,7 @@ Fts::Fts(string root, FtsOptions *options) {
         bIgnoreHiddenDirs = options->bIgnoreHiddenDirs;
         bIgnoreRegularFiles = options->bIgnoreRegularFiles;
         bIgnoreRegularDirs = options->bIgnoreRegularDirs;
+        bEmptyDirsOnly = options->bEmptyDirsOnly;
     }
 }
 
