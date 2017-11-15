@@ -30,67 +30,60 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   events.hpp
+ * \file   config.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Sep 12, 2017
+ * \date   Nov 14, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fts.h>
 #include <string>
-#include <memory>
 #include <vector>
-#include <unordered_map>
+#include <set>
 
-using std::vector;
-using std::unordered_map;
+#include "ch-cpp-utils/third-party/json/json.hpp"
+
 using std::string;
-using std::shared_ptr;
-using std::make_shared;
+using std::vector;
+using std::set;
 
-#ifndef __CH_CPP_UTILS_EVENTS_HPP__
-#define __CH_CPP_UTILS_EVENTS_HPP__
+using json = nlohmann::json;
+
+#ifndef __CH_CPP_UTILS_CONFIG_HPP__
+#define __CH_CPP_UTILS_CONFIG_HPP__
 
 namespace ChCppUtils {
 
-typedef void (*EventTarget)(string name, void *this_, void *data);
+class Config {
+private:
+	string etcConfigPath;
+	string localConfigPath;
+	string selectedConfigPath;
 
-class Target {
-	private:
-		EventTarget target;
-		void *this_;
-	public:
-		Target();
-		~Target();
-		Target *add(EventTarget target);
-		void bind(void *this_);
-		void fire(string name);
+	bool mDaemon;
+	bool mLogToConsole;
+	uint32_t mRunFor;
+
+	bool selectConfigFile();
+	bool populateConfigValues();
+public:
+	json mJson;
+
+	Config(string etcConfig, string localConfig);
+	~Config();
+	void init();
+	bool isDaemon();
+	uint32_t getRunFor();
+	bool shouldLogToConsole();
 };
 
-class Event {
-   private:
-      string name;
-      vector <Target *> targets;
-   public:
-      Event(string name);
-      ~Event();
-      Target *addTarget(EventTarget target);
-      void fire();
-};
+} // End namespace ChCppUtils.
 
-class Events {
-   private:
-      unordered_map<string, Event *> events;
-   public:
-      Events();
-      ~Events();
-      Target *on(string name, EventTarget target);
-      void fire(string name);
-};
-
-}
-#endif /* __CH_CPP_UTILS_EVENTS_HPP__ */
+#endif /* __CH_CPP_UTILS_CONFIG_HPP__ */
 

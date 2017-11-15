@@ -83,6 +83,8 @@ bool fileExists (const std::string& name);
 
 vector<string> directoryListing(string &directory);
 
+vector<string> directoryListing(string &directory, bool filesOnly, bool dirsOnly);
+
 bool fileExpired(string &path, uint32_t expiresInSec);
 
 int daemonizeProcess();
@@ -90,6 +92,12 @@ int daemonizeProcess();
 uint64_t getEpochNano();
 
 string getDateTime();
+
+string getDate();
+
+string getTime();
+
+string getHour();
 
 string replace(string &s, const string &find, const string &replace);
 
