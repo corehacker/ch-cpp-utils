@@ -63,7 +63,7 @@ typedef struct _FtsOptions {
     bool bIgnoreHiddenDirs;
     bool bIgnoreRegularFiles;
     bool bIgnoreRegularDirs;
-    bool bEmptyDirsOnly
+    bool bEmptyDirsOnly;
     vector <string> filters;
 
 } FtsOptions;
