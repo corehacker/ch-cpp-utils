@@ -62,6 +62,8 @@
 #include "fts.hpp"
 #include "dirtree.hpp"
 
+using std::string;
+
 #ifndef __CH_CPP_UTILS_FS_WATCH_HPP__
 #define __CH_CPP_UTILS_FS_WATCH_HPP__
 
@@ -70,44 +72,56 @@ namespace ChCppUtils {
 #define MAX_EVENTS 10
 
 class FsWatch {
-   private:
-      std::string root;
-      int epollFd;
-      std::unordered_map<int, std::string> map;
-      std::unordered_set<std::string> set;
-      ThreadPool *epollThread;
-      Fts *fts;
-      FtsOptions options;
-      OnFile onNewFile;
-      void *onNewFileThis;
-      std::unordered_set <string> filters;
-      DirTree *tree;
-      bool stopWatching;
+private:
+	std::string root;
+	int epollFd;
+	std::unordered_map<int, std::string> map;
+	std::unordered_set<std::string> set;
+	ThreadPool *epollThread;
+	Fts *fts;
+	FtsOptions options;
+	OnFile onNewFile;
+	void *onNewFileThis;
 
-      void addWatch(std::string dir, bool add);
-      void removeWatch(std::string dir);
-      void handleActivity(int fd);
-      std::string getFullPath(int fd, const struct inotify_event *event);
-      void handleFileModify(int fd, const struct inotify_event *event);
-      void handleFileDelete(int fd, const struct inotify_event *event);
-      void handleDirectoryCreate(int fd, const struct inotify_event *event);
-      void handleDirectoryDelete(int fd, const struct inotify_event *event);
+	OnEmptyDir onEmptyDir;
+	void *onEmptyDirThis;
 
-      static void *_epollThreadRoutine (void *arg, struct event_base *base);
-      void *epollThreadRoutine ();
-      static void _onFile (std::string name, std::string ext, std::string path, void *this_);
-      void onFile (std::string name, std::string ext, std::string path);
+	std::unordered_set<string> filters;
+	DirTree *tree;
+	bool stopWatching;
 
-      static void _dropCbk (string path, void *data, void *this_);
-      void dropCbk (string path, void *data);
-   public:
-      FsWatch();
-      FsWatch(std::string root);
-      ~FsWatch();
-      int init();
-      void start();
-      void start(vector<string> filters);
-      void OnNewFileCbk(OnFile onNewFile, void *this_);
+	void addToTree(string dir, int fd, int wd);
+	void removeFromTree(string dir);
+	void addWatch(std::string dir, bool add);
+	void removeWatch(std::string dir);
+	void handleActivity(int fd);
+	std::string getFullPath(int fd, const struct inotify_event *event);
+	void handleFileModify(int fd, const struct inotify_event *event);
+	void handleFileDelete(int fd, const struct inotify_event *event);
+	void handleDirectoryCreate(int fd, const struct inotify_event *event);
+	void handleDirectoryDelete(int fd, const struct inotify_event *event);
+
+	static void *_epollThreadRoutine(void *arg, struct event_base *base);
+	void *epollThreadRoutine();
+	static void _onFile(OnFileData &data, void *this_);
+	void onFile(OnFileData &data);
+
+	static void _dropCbk(string path, void *data, void *this_);
+	void dropCbk(string path, void *data);
+
+	void fireFileCbk(string name, string ext, string path, OnFile onFile,
+			void *this_);
+	void fireDirCbk(string name, string ext, string path, OnFile onFile,
+			void *this_);
+public:
+	FsWatch();
+	FsWatch(std::string root);
+	~FsWatch();
+	int init();
+	void start();
+	void start(vector<string> filters);
+	void OnNewFileCbk(OnFile onNewFile, void *this_);
+	void OnEmptyDirCbk(OnEmptyDir onEmptyDir, void *this_);
 };
 
 typedef struct _TreeNode {

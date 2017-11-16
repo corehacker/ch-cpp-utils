@@ -51,11 +51,17 @@
 #include "ch-cpp-utils/fs-watch.hpp"
 
 using ChCppUtils::FsWatch;
+using ChCppUtils::OnFileData;
 
-static void onNewFile (std::string name, std::string ext, std::string path, void *this_);
+static void onNewFile (OnFileData &data, void *this_);
+static void onEmptyDir (OnFileData &data, void *this_);
 
-static void onNewFile (std::string name, std::string ext, std::string path, void *this_) {
-   LOG(INFO) << "onNewFile: " << path << std::endl;
+static void onNewFile (OnFileData &data, void *this_) {
+   LOG(INFO) << "onNewFile: " << data.path;
+}
+
+static void onEmptyDir (OnFileData &data, void *this_) {
+
 }
 
 
@@ -64,14 +70,19 @@ int main (int argc, char* argv[]) {
    // google::InitGoogleLogging(argv[0]);
 
    vector<string> filters;
-   filters.emplace_back("jpg");
-   filters.emplace_back("png");
-   FsWatch *watch = new FsWatch();
+   filters.emplace_back("ts");
+   FsWatch *watch = nullptr;
+   if(argc > 1 && argv[1]) {
+	   watch = new FsWatch(argv[1]);
+   } else {
+	   watch = new FsWatch();
+   }
    watch->init();
-   watch->OnNewFileCbk(onNewFile, NULL);
+   watch->OnNewFileCbk(onNewFile, nullptr);
+   watch->OnEmptyDirCbk(onEmptyDir, nullptr);
    watch->start(filters);
 
-   THREAD_SLEEP_30S;
+   THREAD_SLEEP(60000);
 
    SAFE_DELETE(watch);
 }
