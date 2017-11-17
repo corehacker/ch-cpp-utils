@@ -96,6 +96,7 @@ private:
 	void removeWatch(std::string dir);
 	void handleActivity(int fd);
 	std::string getFullPath(int fd, const struct inotify_event *event);
+	void checkEmptyDir(string &deletedChild);
 	void handleFileModify(int fd, const struct inotify_event *event);
 	void handleFileDelete(int fd, const struct inotify_event *event);
 	void handleDirectoryCreate(int fd, const struct inotify_event *event);
@@ -111,7 +112,7 @@ private:
 
 	void fireFileCbk(string name, string ext, string path, OnFile onFile,
 			void *this_);
-	void fireDirCbk(string name, string ext, string path, OnFile onFile,
+	void fireDirCbk(string name, string ext, string path, OnEmptyDir onEmptyDir,
 			void *this_);
 public:
 	FsWatch();

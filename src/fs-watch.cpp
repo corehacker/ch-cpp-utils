@@ -180,14 +180,14 @@ void FsWatch::fireFileCbk(string name, string ext, string path, OnFile onFile,
 	onFile (data, this_);
 }
 
-void FsWatch::fireDirCbk(string name, string ext, string path, OnFile onFile,
+void FsWatch::fireDirCbk(string name, string ext, string path, OnEmptyDir onEmptyDir,
 		void *this_) {
 	OnFileData data;
 	data.name = name;
 	data.ext = ext;
 	data.path = path;
 	data.flags |= IS_DIR;
-	onFile (data, this_);
+	onEmptyDir (data, this_);
 }
 
 std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
@@ -202,6 +202,23 @@ std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
    }
    path.insert(path.length(), name);
    return path;
+}
+
+void FsWatch::checkEmptyDir(string &deletedChild) {
+	// If empty dir callback set, track all children.
+	if (NULL != onEmptyDir) {
+		string parent = deletedChild.substr(0, deletedChild.find_last_of('/'));
+		if (!tree->hasChildren(parent)) {
+			LOG(INFO)<< "Directory empty: " << parent;
+			if(parent != root) {
+				LOG(INFO) << "Directory empty, will delete: " << parent;
+				fireDirCbk(parent, "", parent, onEmptyDir, onEmptyDirThis);
+			} else {
+				LOG(INFO) << "Directory empty, will not delete."
+				" This is the root: " << parent;
+			}
+		}
+	}
 }
 
 void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
@@ -227,11 +244,12 @@ void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
 }
 
 void FsWatch::handleFileDelete(int fd, const struct inotify_event *event) {
-   LOG(INFO) << "File DELETE: " << event->name;
-   // If empty dir callback set, track all children.
-	if(NULL != onEmptyDir) {
+	// If empty dir callback set, track all children.
+	if (NULL != onEmptyDir) {
 		string path = getFullPath(fd, event);
+		LOG(INFO)<< "File DELETE: " << path;
 		removeFromTree(path);
+		checkEmptyDir(path);
 	}
 }
 
@@ -245,9 +263,9 @@ void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
 
 void FsWatch::handleDirectoryDelete(int fd, const struct inotify_event *event) {
    LOG(INFO) << "Directory DELETE: " << event->name;
-
    std::string deleteDir = getFullPath(fd, event);
    removeWatch(deleteDir);
+   checkEmptyDir(deleteDir);
 }
 
 void FsWatch::handleActivity(int fd) {
@@ -336,11 +354,18 @@ void FsWatch::_onFile (OnFileData &data, void *this_) {
 }
 
 void FsWatch::onFile (OnFileData &data) {
-   addWatch(data.path, true);
+	LOG(INFO) << "Fts::onFile: " << data.path;
+	if(data.flags & IS_DIR) {
+		addWatch(data.path, true);
+	} else if(data.flags & IS_REGULAR) {
+		// If empty dir callback set, track all children.
+		if(NULL != onEmptyDir) {
+			addToTree(data.path, -1, -1);
+		}
+	}
 }
 
 int FsWatch::init() {
-
    tree = new DirTree();
 
    epollFd = epoll_create1(0);
@@ -352,7 +377,7 @@ int FsWatch::init() {
 	 addWatch(root, true);
 
      memset(&options, 0x00, sizeof(FtsOptions));
-     options.bIgnoreRegularFiles = true;
+     options.bIgnoreRegularFiles = false;
      options.bIgnoreHiddenFiles = true;
      options.bIgnoreHiddenDirs = true;
      options.bIgnoreRegularDirs = false;
@@ -388,5 +413,6 @@ void FsWatch::OnEmptyDirCbk(OnEmptyDir onEmptyDir, void *this_) {
 	this->onEmptyDir = onEmptyDir;
 	this->onEmptyDirThis = this_;
 }
+
 }
 

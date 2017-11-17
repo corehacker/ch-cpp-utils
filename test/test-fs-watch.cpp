@@ -61,7 +61,8 @@ static void onNewFile (OnFileData &data, void *this_) {
 }
 
 static void onEmptyDir (OnFileData &data, void *this_) {
-
+	LOG(INFO) << "onEmptyDir: " << data.path;
+	remove(data.path.data());
 }
 
 
@@ -82,7 +83,7 @@ int main (int argc, char* argv[]) {
    watch->OnEmptyDirCbk(onEmptyDir, nullptr);
    watch->start(filters);
 
-   THREAD_SLEEP(60000);
+   THREAD_SLEEP(600000);
 
    SAFE_DELETE(watch);
 }
