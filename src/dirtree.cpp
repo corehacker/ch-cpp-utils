@@ -184,19 +184,19 @@ bool DirTree::hasChildren(string key) {
 	string token;
 	while (true) {
 		token = getNextToken(key, from);
-		LOG(INFO)<< "Token: " + token << " From: " << from;
+//		LOG(INFO)<< "Token: " + token << " From: " << from;
 		from += token.size() + 1;
 
 		if(isLastToken(key, from)) {
 			node = node->getChild(token);
-			LOG(INFO) << "Last Token: " + token << " From: " << from;
+//			LOG(INFO) << "Last Token: " + token << " From: " << from;
 			if(node) {
-				LOG(INFO) << "Parent: " << node->getKey();
+//				LOG(INFO) << "Parent: " << node->getKey();
 				hasChildren = node->hasChildren();
 				break;
 			}
 		} else {
-			LOG(INFO)<< "Not Last Token: " + token << " From: " << from;
+//			LOG(INFO)<< "Not Last Token: " + token << " From: " << from;
 			node = node->getChild(token);
 		}
 	}

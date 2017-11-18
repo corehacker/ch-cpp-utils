@@ -96,12 +96,12 @@ void FsWatch::addToTree(string dir, int fd, int wd) {
 	}
 
 	tree->insert(dir, node);
-	tree->print();
+//	tree->print();
 }
 
 void FsWatch::removeFromTree(string dir) {
 	tree->drop(dir, nullptr, nullptr);
-	tree->print();
+//	tree->print();
 }
 
 void FsWatch::addWatch(std::string dir, bool add) {
