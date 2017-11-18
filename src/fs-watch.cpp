@@ -239,7 +239,7 @@ void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
 
    // If empty dir callback set, track all children.
    if(NULL != onEmptyDir) {
-	   addToTree(path, -1, -1);
+	   addToTree("", -1, -1);
    }
 }
 

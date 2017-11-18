@@ -83,7 +83,7 @@ int main (int argc, char* argv[]) {
    watch->OnEmptyDirCbk(onEmptyDir, nullptr);
    watch->start(filters);
 
-   THREAD_SLEEP(600000);
+   THREAD_SLEEP(60000);
 
    SAFE_DELETE(watch);
 }
