@@ -101,6 +101,8 @@ string getHour();
 
 string replace(string &s, const string &find, const string &replace);
 
+bool isDirectoryEmpty(string dir);
+
 } // End namespace ChCppUtils.
 
 #endif /* SRC_CH_CPP_UTILS_UTILS_HPP_ */

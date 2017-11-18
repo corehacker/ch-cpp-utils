@@ -419,4 +419,8 @@ string replace(string &s, const string &find, const string &replace) {
     return(s.replace(s.find(find), find.length(), replace));
 }
 
+bool isDirectoryEmpty(string dir) {
+
+}
+
 } // End namespace ChCppUtils.

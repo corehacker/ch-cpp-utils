@@ -69,6 +69,7 @@ private:
 	bool mDaemon;
 	bool mLogToConsole;
 	uint32_t mRunFor;
+	bool mRunForever;
 
 	bool selectConfigFile();
 	bool populateConfigValues();
@@ -81,6 +82,7 @@ public:
 	bool isDaemon();
 	uint32_t getRunFor();
 	bool shouldLogToConsole();
+	bool shouldRunForever();
 };
 
 } // End namespace ChCppUtils.

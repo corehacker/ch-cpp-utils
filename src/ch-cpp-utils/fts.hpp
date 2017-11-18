@@ -56,14 +56,27 @@ using std::set;
 
 namespace ChCppUtils {
 
-typedef void (*OnFile) (std::string name, std::string ext, std::string path, void *this_);
+enum OnFileFlag {
+	IS_REGULAR = 0x01,
+	IS_DIR = 0x02
+};
+
+struct OnFileData {
+	string name;
+	string ext;
+	string path;
+	uint32_t flags;
+};
+
+//typedef void (*OnFile) (std::string name, std::string ext, std::string path, void *this_);
+typedef void (*OnFile) (OnFileData &data, void *this_);
+typedef void (*OnEmptyDir) (OnFileData &data, void *this_);
 
 typedef struct _FtsOptions {
     bool bIgnoreHiddenFiles;
     bool bIgnoreHiddenDirs;
     bool bIgnoreRegularFiles;
     bool bIgnoreRegularDirs;
-    bool bEmptyDirsOnly;
     vector <string> filters;
 
 } FtsOptions;
@@ -85,7 +98,11 @@ private:
     bool bIgnoreHiddenDirs;
     bool bIgnoreRegularFiles;
     bool bIgnoreRegularDirs;
-    bool bEmptyDirsOnly;
+
+	void fireFileCbk(string name, string ext, string path, OnFile onFile,
+			void *this_);
+	void fireDirCbk(string name, string ext, string path, OnFile onFile,
+			void *this_);
 };
 
 }

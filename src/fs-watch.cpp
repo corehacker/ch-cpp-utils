@@ -45,25 +45,29 @@
 
 namespace ChCppUtils {
 FsWatch::FsWatch() {
-   epollThread = NULL;
+   epollThread = nullptr;
    epollFd = -1;
-   fts = NULL;
+   fts = nullptr;
    root = ".";
-   onNewFile = NULL;
-   onNewFileThis = NULL;
-   tree = NULL;
+   onNewFile = nullptr;
+   onNewFileThis = nullptr;
+   onEmptyDir = nullptr;
+   onEmptyDirThis = nullptr;
+   tree = nullptr;
    stopWatching = false;
    LOG(INFO) << "Watching directory: " << root;
 }
 
 FsWatch::FsWatch(std::string root) {
-   epollThread = NULL;
+   epollThread = nullptr;
    epollFd = -1;
-   fts = NULL;
-   onNewFile = NULL;
-   onNewFileThis = NULL;
+   fts = nullptr;
+   onNewFile = nullptr;
+   onNewFileThis = nullptr;
+   onEmptyDir = nullptr;
+   onEmptyDirThis = nullptr;
    this->root = root;
-   tree = NULL;
+   tree = nullptr;
    stopWatching = false;
    LOG(INFO) << "Watching directory: " << root;
 }
@@ -78,6 +82,26 @@ FsWatch::~FsWatch() {
    removeWatch(root);
 
    SAFE_DELETE(tree);
+}
+
+void FsWatch::addToTree(string dir, int fd, int wd) {
+	TreeNode *node = nullptr;
+	if(0 == dir.size() && -1 == fd && -1 == wd) {
+
+	} else {
+		node = new TreeNode();
+		node->fd = fd;
+		node->wd = wd;
+		node->path = dir;
+	}
+
+	tree->insert(dir, node);
+//	tree->print();
+}
+
+void FsWatch::removeFromTree(string dir) {
+	tree->drop(dir, nullptr, nullptr);
+//	tree->print();
 }
 
 void FsWatch::addWatch(std::string dir, bool add) {
@@ -111,13 +135,7 @@ void FsWatch::addWatch(std::string dir, bool add) {
    map.insert (std::make_pair (inotifyFd, dir));
    set.insert(dir);
 
-   TreeNode *node = new TreeNode();
-   node->fd = inotifyFd;
-   node->wd = watchFd;
-   node->path = dir;
-   tree->insert(dir, node);
-//   tree->print();
-
+   addToTree(dir, inotifyFd, watchFd);
    LOG(INFO) << "Added watch for " << dir << ", Fd: " << inotifyFd << ", Watch Fd: " << watchFd;
 }
 
@@ -152,6 +170,26 @@ void FsWatch::removeWatch(std::string dir) {
 //   tree->print();
 }
 
+void FsWatch::fireFileCbk(string name, string ext, string path, OnFile onFile,
+		void *this_) {
+	OnFileData data;
+	data.name = name;
+	data.ext = ext;
+	data.path = path;
+	data.flags |= IS_REGULAR;
+	onFile (data, this_);
+}
+
+void FsWatch::fireDirCbk(string name, string ext, string path, OnEmptyDir onEmptyDir,
+		void *this_) {
+	OnFileData data;
+	data.name = name;
+	data.ext = ext;
+	data.path = path;
+	data.flags |= IS_DIR;
+	onEmptyDir (data, this_);
+}
+
 std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
    std::string name = event->name;
    auto search = map.find(fd);
@@ -166,24 +204,53 @@ std::string FsWatch::getFullPath(int fd, const struct inotify_event *event) {
    return path;
 }
 
+void FsWatch::checkEmptyDir(string &deletedChild) {
+	// If empty dir callback set, track all children.
+	if (NULL != onEmptyDir) {
+		string parent = deletedChild.substr(0, deletedChild.find_last_of('/'));
+		if (!tree->hasChildren(parent)) {
+			LOG(INFO)<< "Directory empty: " << parent;
+			if(parent != root) {
+				LOG(INFO) << "Directory empty, will delete: " << parent;
+				fireDirCbk(parent, "", parent, onEmptyDir, onEmptyDirThis);
+			} else {
+				LOG(INFO) << "Directory empty, will not delete."
+				" This is the root: " << parent;
+			}
+		}
+	}
+}
+
 void FsWatch::handleFileModify(int fd, const struct inotify_event *event) {
+	LOG(INFO) << "File MODIFY: " << event->name;
+	string path = getFullPath(fd, event);
    if (NULL != onNewFile) {
-      std::string path = getFullPath(fd, event);
       std::string name = event->name;
       int32_t pos = name.find_last_of('.');
       std::string ext = name.substr (pos + 1);
       if (filters.empty()) {
-         onNewFile(name, ext, path, onNewFileThis);
+    	  fireFileCbk(name, ext, path, onNewFile, onNewFileThis);
       } else {
          if (filters.count(ext) > 0) {
-            onNewFile(name, ext, path, onNewFileThis);
+            fireFileCbk(name, ext, path, onNewFile, onNewFileThis);
          }
       }
+   }
+
+   // If empty dir callback set, track all children.
+   if(NULL != onEmptyDir) {
+	   addToTree(path, -1, -1);
    }
 }
 
 void FsWatch::handleFileDelete(int fd, const struct inotify_event *event) {
-//   LOG(INFO) << "File DELETE: " << event->name;
+	// If empty dir callback set, track all children.
+	if (NULL != onEmptyDir) {
+		string path = getFullPath(fd, event);
+		LOG(INFO)<< "File DELETE: " << path;
+		removeFromTree(path);
+		checkEmptyDir(path);
+	}
 }
 
 void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
@@ -196,9 +263,9 @@ void FsWatch::handleDirectoryCreate(int fd, const struct inotify_event *event) {
 
 void FsWatch::handleDirectoryDelete(int fd, const struct inotify_event *event) {
    LOG(INFO) << "Directory DELETE: " << event->name;
-
    std::string deleteDir = getFullPath(fd, event);
    removeWatch(deleteDir);
+   checkEmptyDir(deleteDir);
 }
 
 void FsWatch::handleActivity(int fd) {
@@ -281,17 +348,24 @@ void *FsWatch::epollThreadRoutine () {
    return NULL;
 }
 
-void FsWatch::_onFile (std::string name, std::string ext, std::string path, void *this_) {
+void FsWatch::_onFile (OnFileData &data, void *this_) {
    FsWatch *watch = (FsWatch *) this_;
-   watch->onFile(name, ext, path);
+   watch->onFile(data);
 }
 
-void FsWatch::onFile (std::string name, std::string ext, std::string path) {
-   addWatch(path, true);
+void FsWatch::onFile (OnFileData &data) {
+	LOG(INFO) << "Fts::onFile: " << data.path;
+	if(data.flags & IS_DIR) {
+		addWatch(data.path, true);
+	} else if(data.flags & IS_REGULAR) {
+		// If empty dir callback set, track all children.
+		if(NULL != onEmptyDir) {
+			addToTree(data.path, -1, -1);
+		}
+	}
 }
 
 int FsWatch::init() {
-
    tree = new DirTree();
 
    epollFd = epoll_create1(0);
@@ -303,7 +377,7 @@ int FsWatch::init() {
 	 addWatch(root, true);
 
      memset(&options, 0x00, sizeof(FtsOptions));
-     options.bIgnoreRegularFiles = true;
+     options.bIgnoreRegularFiles = false;
      options.bIgnoreHiddenFiles = true;
      options.bIgnoreHiddenDirs = true;
      options.bIgnoreRegularDirs = false;
@@ -334,5 +408,11 @@ void FsWatch::OnNewFileCbk(OnFile onNewFile, void *this_) {
    this->onNewFile = onNewFile;
    this->onNewFileThis = this_;
 }
+
+void FsWatch::OnEmptyDirCbk(OnEmptyDir onEmptyDir, void *this_) {
+	this->onEmptyDir = onEmptyDir;
+	this->onEmptyDirThis = this_;
+}
+
 }
 

@@ -12,7 +12,6 @@ Fts::Fts() {
     bIgnoreHiddenDirs = true;
     bIgnoreRegularFiles = false;
     bIgnoreRegularDirs = false;
-    bEmptyDirsOnly = false;
 }
 
 Fts::Fts(string root) {
@@ -21,7 +20,6 @@ Fts::Fts(string root) {
    bIgnoreHiddenDirs = true;
    bIgnoreRegularFiles = false;
    bIgnoreRegularDirs = false;
-   bEmptyDirsOnly = false;
     this->root = ((0 == root.length()) ? "." : root);
 }
 
@@ -39,7 +37,6 @@ Fts::Fts(string root, FtsOptions *options) {
         bIgnoreHiddenDirs = options->bIgnoreHiddenDirs;
         bIgnoreRegularFiles = options->bIgnoreRegularFiles;
         bIgnoreRegularDirs = options->bIgnoreRegularDirs;
-        bEmptyDirsOnly = options->bEmptyDirsOnly;
     }
 }
 
@@ -47,6 +44,25 @@ Fts::~Fts() {
 
 }
 
+void Fts::fireFileCbk(string name, string ext, string path, OnFile onFile,
+		void *this_) {
+	OnFileData data;
+	data.name = name;
+	data.ext = ext;
+	data.path = path;
+	data.flags |= IS_REGULAR;
+	onFile (data, this_);
+}
+
+void Fts::fireDirCbk(string name, string ext, string path, OnFile onFile,
+		void *this_) {
+	OnFileData data;
+	data.name = name;
+	data.ext = ext;
+	data.path = path;
+	data.flags |= IS_DIR;
+	onFile (data, this_);
+}
 
 /*
 FTS *fts_open(char * const *path_argv, int options,
@@ -89,20 +105,20 @@ bool Fts::walk (OnFile onFile, void *this_) {
                 if (!bIgnoreHiddenFiles) {
                     string ext = name.substr (pos + 1);
                     if (filters.empty ()) {
-                        onFile (node->fts_name, ext, node->fts_path, this_);
+                    	fireFileCbk(node->fts_name, ext, node->fts_path, onFile, this_);
                     } else {
                         if (filters.count (ext) > 0) {
-                            onFile (node->fts_name, ext, node->fts_path, this_);
+                        	fireFileCbk(node->fts_name, ext, node->fts_path, onFile, this_);
                         }
                     }
                 }
             } else {
                 string ext = name.substr (pos + 1);
                 if (filters.empty ()) {
-                    onFile (node->fts_name, ext, node->fts_path, this_);
+                    fireFileCbk(node->fts_name, ext, node->fts_path, onFile, this_);
                 } else {
                     if (filters.count (ext) > 0) {
-                        onFile (node->fts_name, ext, node->fts_path, this_);
+                        fireFileCbk(node->fts_name, ext, node->fts_path, onFile, this_);
                     }
                 }
             }
@@ -111,19 +127,20 @@ bool Fts::walk (OnFile onFile, void *this_) {
            string name = node->fts_name;
            int32_t pos = name.find_last_of('.');
 //           printf ("Directory found: %s %s %lu\n", node->fts_name, node->fts_path, name.length());
-           if (0 == pos) {
-               if (!bIgnoreHiddenDirs) {
-                  if (1 == name.length() && 0 == name.compare(".")) {
+			if (0 == pos) {
+				if (!bIgnoreHiddenDirs) {
+					if (1 == name.length() && 0 == name.compare(".")) {
 
-                  } else {
-                     string ext = name.substr (pos + 1);
-                     onFile (node->fts_name, ext, node->fts_path, this_);
-                  }
-               }
-           } else {
-              string ext = name.substr (pos + 1);
-             onFile (node->fts_name, ext, node->fts_path, this_);
-           }
+					} else {
+						string ext = name.substr(pos + 1);
+						fireDirCbk(node->fts_name, ext, node->fts_path, onFile,
+								this_);
+					}
+				}
+			} else {
+				string ext = name.substr(pos + 1);
+				fireDirCbk(node->fts_name, ext, node->fts_path, onFile, this_);
+			}
         }
     }
 

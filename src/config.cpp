@@ -55,6 +55,7 @@ Config::Config(string etcConfig, string localConfig) {
 	mDaemon = false;
 	mLogToConsole = false;
 	mRunFor = 30000;
+	mRunForever = false;
 }
 
 Config::~Config() {
@@ -94,6 +95,9 @@ bool Config::populateConfigValues() {
 	mRunFor = mJson["run-for"];
 	LOG(INFO) << "run-for: " << mRunFor;
 
+	mRunForever = mJson["run-forever"];
+	LOG(INFO) << "run-forever: " << mRunForever;
+
 	LOG(INFO) << "----------------------->Config";
 	return true;
 }
@@ -122,6 +126,10 @@ uint32_t Config::getRunFor() {
 
 bool Config::shouldLogToConsole() {
 	return mLogToConsole;
+}
+
+bool Config::shouldRunForever() {
+	return mRunForever;
 }
 
 } // End namespace ChCppUtils.

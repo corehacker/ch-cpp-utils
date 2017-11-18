@@ -71,6 +71,16 @@ DirTree::~DirTree() {
    SAFE_DELETE(root);
 }
 
+string &DirTree::normalize(string &key) {
+	if (key[0] != '/' && key[0] != '.') {
+		key.insert(0, "./", 0, 2);
+	} else if (key[0] == '/') {
+		key.insert(0, ".", 0, 1);
+	}
+	LOG(INFO)<< "Actual Path: " + key;
+	return key;
+}
+
 string DirTree::getNextToken(string path, size_t from) {
    if (from >= path.size()) return "";
    size_t pos = path.find("/", from);
@@ -83,12 +93,7 @@ bool DirTree::isLastToken(string path, size_t from) {
 }
 
 void DirTree::insert(string key, void *data) {
-   if (key[0] != '/' && key[0] != '.') {
-      key.insert(0, "./", 0, 2);
-   } else if (key[0] == '/') {
-	   key.insert(0, ".", 0, 1);
-   }
-   LOG(INFO) << "Actual Path: " + key;
+   key = normalize(key);
 
    if (key[0] == '/') {
       key.erase(0, 1);
@@ -116,12 +121,7 @@ void DirTree::insert(string key, void *data) {
 }
 
 void *DirTree::search(string key, SearchCbk cbk, void *this_) {
-	if (key[0] != '/' && key[0] != '.') {
-		key.insert(0, "./", 0, 2);
-	} else if (key[0] == '/') {
-		   key.insert(0, ".", 0, 1);
-	   }
-	LOG(INFO)<< "Actual Path: " + key;
+	key = normalize(key);
 
 	size_t from = 0;
 	bool found = false;
@@ -175,6 +175,36 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 	}
 }
 
+bool DirTree::hasChildren(string key) {
+	bool hasChildren = false;
+	key = normalize(key);
+
+	size_t from = 0;
+	Node *node = root;
+	string token;
+	while (true) {
+		token = getNextToken(key, from);
+//		LOG(INFO)<< "Token: " + token << " From: " << from;
+		from += token.size() + 1;
+
+		if(isLastToken(key, from)) {
+			node = node->getChild(token);
+//			LOG(INFO) << "Last Token: " + token << " From: " << from;
+			if(node) {
+//				LOG(INFO) << "Parent: " << node->getKey();
+				hasChildren = node->hasChildren();
+				break;
+			}
+		} else {
+//			LOG(INFO)<< "Not Last Token: " + token << " From: " << from;
+			node = node->getChild(token);
+		}
+	}
+
+	return hasChildren;
+}
+
+
 void DirTree::_dropChildCbk(Node *node, string suffix, void *this_) {
 
    DropChildCbkData *data = (DropChildCbkData *) this_;
@@ -222,12 +252,7 @@ void DirTree::dropTree(string key, Node *parent, Node *child, DropCbk dropCbk,
 void DirTree::drop(string key, DropCbk dropCbk, void *this_) {
    NULL_ROOT;
 
-   if (key[0] != '/' && key[0] != '.') {
-      key.insert(0, "./", 0, 2);
-   } else if (key[0] == '/') {
-	   key.insert(0, ".", 0, 1);
-   }
-   LOG(INFO) << "Actual Path: " + key;
+   key = normalize(key);
 
    size_t from = 0;
    bool found = false;

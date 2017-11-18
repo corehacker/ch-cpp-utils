@@ -72,6 +72,10 @@ public:
       children.insert(std::make_pair(key, node));
    }
 
+   bool hasChildren() {
+	   return (0 == children.size() ? false : true);
+   }
+
    bool hasChild(string key) {
       auto search = children.find(key);
       return ((search != children.end()) ? true : false);
@@ -149,6 +153,7 @@ class DirTree {
 private:
    Node *root;
 
+   string &normalize(string &key);
    string getNextToken(string path, size_t from);
    bool isLastToken(string path, size_t from);
    void print(Node *root, uint32_t depth);
@@ -159,11 +164,13 @@ private:
 
    void dropTree(string key, Node *parent, Node *child, DropCbk dropCbk,
 		   void *this_);
+
 public:
    DirTree();
    ~DirTree();
    void insert(string key, void *data);
    void *search(string key, SearchCbk cbk, void *this_);
+   bool hasChildren(string key);
    void drop(string key, DropCbk dropCbk, void *this_);
    void print();
 };
