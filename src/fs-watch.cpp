@@ -173,6 +173,7 @@ void FsWatch::removeWatch(std::string dir) {
 void FsWatch::fireFileCbk(string name, string ext, string path, OnFile onFile,
 		void *this_) {
 	OnFileData data;
+	data.flags = 0;
 	data.name = name;
 	data.ext = ext;
 	data.path = path;
@@ -183,6 +184,7 @@ void FsWatch::fireFileCbk(string name, string ext, string path, OnFile onFile,
 void FsWatch::fireDirCbk(string name, string ext, string path, OnEmptyDir onEmptyDir,
 		void *this_) {
 	OnFileData data;
+	data.flags = 0;
 	data.name = name;
 	data.ext = ext;
 	data.path = path;

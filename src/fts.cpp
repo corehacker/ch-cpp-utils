@@ -47,6 +47,7 @@ Fts::~Fts() {
 void Fts::fireFileCbk(string name, string ext, string path, OnFile onFile,
 		void *this_) {
 	OnFileData data;
+	data.flags = 0;
 	data.name = name;
 	data.ext = ext;
 	data.path = path;
@@ -57,6 +58,7 @@ void Fts::fireFileCbk(string name, string ext, string path, OnFile onFile,
 void Fts::fireDirCbk(string name, string ext, string path, OnFile onFile,
 		void *this_) {
 	OnFileData data;
+	data.flags = 0;
 	data.name = name;
 	data.ext = ext;
 	data.path = path;
