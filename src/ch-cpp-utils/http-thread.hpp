@@ -91,6 +91,10 @@ private:
 	HttpHeaders headers;
 	HttpQuery query;
 	string path;
+
+	string getNextQuery(string path, size_t from);
+	void buildHeaderMap(evhttp_request *req);
+	void buildQueryMap(evhttp_request *req);
 };
 
 typedef void (*_OnRequest)(RequestEvent *event, void *this_);
