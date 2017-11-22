@@ -308,7 +308,9 @@ void FsWatch::handleActivity(int fd) {
             handleDirectoryCreate(fd, event);
          }
 
-         if (!(event->mask & IN_ISDIR) && (event->mask & IN_CLOSE_WRITE)) {
+         if (!(event->mask & IN_ISDIR) &&
+        		 ((event->mask & IN_CLOSE_WRITE) ||
+        				 (event->mask & IN_MOVED_TO))) {
             handleFileModify(fd, event);
          }
 
