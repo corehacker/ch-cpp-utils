@@ -163,6 +163,7 @@ public:
 
 private:
 	OnLoad onload;
+	string url;
 	struct evhttp_uri *uri;
 	evhttp_cmd_type method;
 	RequestContext *context;

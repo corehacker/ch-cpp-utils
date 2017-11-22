@@ -179,6 +179,7 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 	LOG(INFO) << "Opening new request.";
 
 	this->method = method;
+	this->url = url;
 	uri = evhttp_uri_parse(url.data());
 	evhttp_uri_get_host(uri);
 	evhttp_uri_get_port(uri);
@@ -217,7 +218,7 @@ bool HttpRequest::send(size_t contentLength) {
 
 	HttpConnection *connection = context->getConnection();
 	evhttp_make_request(connection->getConnection(),
-			context->getRequest(), method, evhttp_uri_get_path(uri));
+			context->getRequest(), method, url.data());
 
 	connection->send();
 	return true;

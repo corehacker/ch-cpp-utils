@@ -57,10 +57,13 @@ evhttp_request *Request::getRequest() {
 	return request;
 }
 
-RequestEvent::RequestEvent(Request *request) {
-	body = nullptr;
-	length = 0;
-	evhttp_request *req = request->getRequest();
+string RequestEvent::getNextQuery(string path, size_t from) {
+   if (from >= path.size()) return "";
+   size_t pos = path.find("&", from);
+   return path.substr(from, (pos - from));
+}
+
+void RequestEvent::buildHeaderMap(evhttp_request *req) {
 	struct evkeyvalq *headers = req->input_headers;
 	struct evkeyval *header = headers->tqh_first;
 	while(header) {
@@ -68,6 +71,39 @@ RequestEvent::RequestEvent(Request *request) {
 		this->headers.insert(make_pair(header->key, header->value));
 		header = header->next.tqe_next;
 	}
+}
+
+void RequestEvent::buildQueryMap(evhttp_request *req) {
+	const char *q = evhttp_uri_get_query(req->uri_elems);
+	if(q) {
+		string query(q);
+
+		size_t from = 0;
+		string token = getNextQuery(query, 0);
+		while (token.size() != 0) {
+			string name, value;
+			if(token.find_first_of("=") != string::npos) {
+				name = token.substr(0, token.find_first_of("="));
+				value = token.substr(token.find_first_of("=") + 1);
+			} else {
+				name = token;
+				value = "";
+			}
+			LOG(INFO) << "Query: " << name << " = " << value;
+			this->query.insert(make_pair(name, value));
+
+			from += token.size() + 1;
+			token = getNextQuery(query, from);
+		}
+	}
+}
+
+RequestEvent::RequestEvent(Request *request) {
+	body = nullptr;
+	length = 0;
+	evhttp_request *req = request->getRequest();
+	buildHeaderMap(req);
+	buildQueryMap(req);
 	path = evhttp_uri_get_path(req->uri_elems);
 	this->request= request;
 }
