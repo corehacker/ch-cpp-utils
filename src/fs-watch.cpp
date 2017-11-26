@@ -358,7 +358,6 @@ void FsWatch::_onFile (OnFileData &data, void *this_) {
 }
 
 void FsWatch::onFile (OnFileData &data) {
-	LOG(INFO) << "Fts::onFile: " << data.path;
 	if(data.flags & IS_DIR) {
 		addWatch(data.path, true);
 	} else if(data.flags & IS_REGULAR) {

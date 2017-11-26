@@ -419,8 +419,10 @@ string replace(string &s, const string &find, const string &replace) {
     return(s.replace(s.find(find), find.length(), replace));
 }
 
-bool isDirectoryEmpty(string dir) {
-
+bool endsWith(const string &str, const string &suffix) {
+	return str.size() >= suffix.size()
+			&& str.compare(str.size() - suffix.size(), suffix.size(), suffix)
+					== 0;
 }
 
 } // End namespace ChCppUtils.

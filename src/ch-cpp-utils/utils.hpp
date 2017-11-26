@@ -101,7 +101,7 @@ string getHour();
 
 string replace(string &s, const string &find, const string &replace);
 
-bool isDirectoryEmpty(string dir);
+bool endsWith(const string &str, const string &suffix);
 
 } // End namespace ChCppUtils.
 
