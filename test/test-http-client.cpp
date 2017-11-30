@@ -47,8 +47,11 @@
 #include "ch-cpp-utils/semaphore.hpp"
 #include "ch-cpp-utils/http-client.hpp"
 #include "ch-cpp-utils/http-request.hpp"
+#include "ch-cpp-utils/third-party/json/json.hpp"
 
 using std::string;
+
+using nlohmann::json;
 
 using ChCppUtils::base64_encode;
 using ChCppUtils::Http::Client::HttpClient;
@@ -68,6 +71,8 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 	HttpResponse *response = event->getResponse();
 	LOG(INFO) << "New Async Request (Complete): " <<
 			response->getResponseCode() << " " << response->getResponseText();
+
+	LOG(INFO) << "Response Body: " << response->getResponseText();
 //	if(request) {
 //		makeRequest();
 //		request = false;
@@ -83,25 +88,26 @@ void makeRequest() {
 
 	LOG(INFO) << "Authorization: " << authorization;
 
-	std::string body = "";
-	body += "{";
-	body += "\"path\":\"file.jpg\",";
-	body += "\"key\":\"1\"";
-	body += "}";
-	LOG(INFO)<< "Body: " << body;
+	json body;
 
+	string file = "./tensorflow/examples/ch-tf-label-image-client/data/grace_hopper.jpg";
+	string base64 = base64_encode((unsigned char *) file.data(), file.length());
+	body["name"] = file;
+	body["base64"] = base64;
+
+	LOG(INFO) << body.dump(2);
 
    LOG(INFO) << "";
    LOG(INFO) << "";
    LOG(INFO) << "";
 
-   string url = "http://localhost:8888/security/camera/media/living-1/1.ts";
+   string url = "http://127.0.0.1:9200/photos/index/" + base64;
    httpRequest = new HttpRequest();
    httpRequest->onLoad(onLoad).bind(nullptr);
-   httpRequest->open(EVHTTP_REQ_POST, url)
+   httpRequest->open(EVHTTP_REQ_PUT, url)
 		   .setHeader("Authorization", authorization)
 		   .setHeader("Content-Type", "application/json; charset=UTF-8")
-		   .send((void *) body.data(), body.length());
+		   .send((void *) body.dump().data(), body.dump().length());
 
 }
 
@@ -119,6 +125,8 @@ static void write_to_file_cb(int severity, const char *msg)
 }
 
 int main(int argc, char* argv[]) {
+	google::InstallFailureSignalHandler();
+
 	event_set_log_callback(write_to_file_cb);
 //	event_enable_debug_logging(EVENT_DBG_ALL);
 

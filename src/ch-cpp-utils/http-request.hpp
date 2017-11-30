@@ -164,6 +164,9 @@ public:
 private:
 	OnLoad onload;
 	string url;
+	string path;
+	string query;
+	string fragment;
 	struct evhttp_uri *uri;
 	evhttp_cmd_type method;
 	RequestContext *context;

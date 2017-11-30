@@ -181,8 +181,11 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 	this->method = method;
 	this->url = url;
 	uri = evhttp_uri_parse(url.data());
-	evhttp_uri_get_host(uri);
-	evhttp_uri_get_port(uri);
+
+	path = evhttp_uri_get_path(uri);
+	query = evhttp_uri_get_query(uri) ? evhttp_uri_get_query(uri) : "";
+	fragment = evhttp_uri_get_fragment(uri) ? evhttp_uri_get_fragment(uri) : "";
+
 	string hostname = (char *) evhttp_uri_get_host(uri);
 	HttpClient client = HttpClientImpl::NewInstance(hostname,
 			(uint16_t) evhttp_uri_get_port(uri));
@@ -216,9 +219,13 @@ bool HttpRequest::send(size_t contentLength) {
 	LOG(INFO)<<"HEADER - " << "Content-Length" << ": " <<
 			to_string(contentLength).data();
 
+	string fullPath = path +
+			(query.size() ? "?" + query : "") +
+			(fragment.size() ? "#" + fragment : "");
+
 	HttpConnection *connection = context->getConnection();
 	evhttp_make_request(connection->getConnection(),
-			context->getRequest(), method, url.data());
+			context->getRequest(), method, fullPath.data());
 
 	connection->send();
 	return true;
