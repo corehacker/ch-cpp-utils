@@ -121,7 +121,7 @@ static void write_to_file_cb(int severity, const char *msg)
         case _EVENT_LOG_ERR:   s = "error"; break;
         default:               s = "?";     break; /* never reached */
     }
-    LOG(INFO) << msg;
+    LOG(INFO) << s << ": " << msg;
 }
 
 int main(int argc, char* argv[]) {

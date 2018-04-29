@@ -46,8 +46,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <glog/logging.h>
-
 #include "defines.hpp"
 
 #ifndef SRC_CH_CPP_UTILS_TREE_HPP_
@@ -67,74 +65,26 @@ typedef void (*DropChildCbk) (Node *node, string suffix, void *this_);
 
 class Node {
 public:
-   void addChild(string key, Node *node) {
-//	   LOG(INFO) << "Adding child, key: " << key;
-      children.insert(std::make_pair(key, node));
-   }
-
-   bool hasChildren() {
-	   return (0 == children.size() ? false : true);
-   }
-
-   bool hasChild(string key) {
-      auto search = children.find(key);
-      return ((search != children.end()) ? true : false);
-   }
-
-   Node *getChild(string key) {
-      auto search = children.find(key);
-      return ((search != children.end()) ? search->second : NULL);
-   }
-
-   void deleteChild(string key) {
-//	   LOG(INFO) << "Deleting child, key: " << key;
-      children.erase(key);
-   }
-
-   const unordered_map<string, Node*>& getChildren() const {
-      return children;
-   }
-
-   void setChildren(const unordered_map<string, Node*>& children) {
-      this->children = children;
-   }
-
-   void dropChildren(DropChildCbk dropChildCbk, void *this_) {
-      dropChildren(dropChildCbk, "", this_);
-   }
-
-   void* getData() const {
-      return data;
-   }
-
-   void setData(void* data) {
-      this->data = data;
-   }
-
-   const string& getKey() const {
-      return key;
-   }
-
-   void setKey(const string& key) {
-      this->key = key;
-   }
-
-   ~Node() {
-   }
+   void addChild(string key, Node *node);
+   bool hasChildren();
+   bool hasChild(string key);
+   Node *getChild(string key);
+   void deleteChild(string key);
+   const unordered_map<string, Node*>& getChildren() const;
+   void setChildren(const unordered_map<string, Node*>& children);
+   void dropChildren(DropChildCbk dropChildCbk, void *this_);
+   void* getData() const;
+   void setData(void* data);
+   const string& getKey() const;
+   void setKey(const string& key);
+   ~Node();
 
 private:
    unordered_map<string, Node *> children;
    string key;
    void *data;
 
-   void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
-      for( const auto& n : children) {
-         n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
-         SAFE_DELETE_RO(n.second);
-      }
-      children.clear();
-      if (dropChildCbk) dropChildCbk(this, suffix + "/" + key, this_);
-   }
+   void dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_);
 };
 
 typedef void (*DropCbk) (string path, void *data, void *this_);
