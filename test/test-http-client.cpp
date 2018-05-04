@@ -62,8 +62,8 @@ using ChCppUtils::Http::Client::HttpRequestLoadEvent;
 using ChCppUtils::Semaphore;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_);
-void makeRequest();
-bool request = true;
+void makeRequest(string postfix);
+uint32_t request = 1;
 Semaphore mSignal;
 HttpRequest *httpRequest = nullptr;
 
@@ -73,42 +73,21 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 			response->getResponseCode() << " " << response->getResponseText();
 
 	LOG(INFO) << "Response Body: " << response->getResponseText();
-//	if(request) {
-//		makeRequest();
-//		request = false;
-//	}
-	mSignal.notify();
+	if(request) {
+		sleep(1);
+		delete httpRequest;
+		makeRequest("test");
+		request--;
+	} else {
+		mSignal.notify();
+	}
 }
 
-void makeRequest() {
-	string hostname = "localhost";
-	std::string authorization = "Basic ";
-	std::string user = "elastic:changeme";
-	authorization += base64_encode((unsigned char *) user.data(), user.length());
-
-	LOG(INFO) << "Authorization: " << authorization;
-
-	json body;
-
-	string file = "./tensorflow/examples/ch-tf-label-image-client/data/grace_hopper.jpg";
-	string base64 = base64_encode((unsigned char *) file.data(), file.length());
-	body["name"] = file;
-	body["base64"] = base64;
-
-	LOG(INFO) << body.dump(2);
-
-   LOG(INFO) << "";
-   LOG(INFO) << "";
-   LOG(INFO) << "";
-
-   string url = "http://127.0.0.1:9200/photos/index/" + base64;
+void makeRequest(string postfix) {
+   string url = "http://127.0.0.1:8888/" + postfix;
    httpRequest = new HttpRequest();
    httpRequest->onLoad(onLoad).bind(nullptr);
-   httpRequest->open(EVHTTP_REQ_PUT, url)
-		   .setHeader("Authorization", authorization)
-		   .setHeader("Content-Type", "application/json; charset=UTF-8")
-		   .send((void *) body.dump().data(), body.dump().length());
-
+   httpRequest->open(EVHTTP_REQ_GET, url).send();
 }
 
 static void write_to_file_cb(int severity, const char *msg)
@@ -121,7 +100,7 @@ static void write_to_file_cb(int severity, const char *msg)
         case _EVENT_LOG_ERR:   s = "error"; break;
         default:               s = "?";     break; /* never reached */
     }
-    LOG(INFO) << msg;
+    LOG(INFO) << s << " | " << msg;
 }
 
 int main(int argc, char* argv[]) {
@@ -134,7 +113,7 @@ int main(int argc, char* argv[]) {
 //   google::InitGoogleLogging(argv[0]);
 
 //	makeRequest();
-	makeRequest();
+	makeRequest("test");
 
 	mSignal.wait();
 	LOG(INFO) << "Request complete notification received.";

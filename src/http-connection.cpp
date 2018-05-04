@@ -73,6 +73,7 @@ void HttpConnection::connect() {
 				mHostname.data(), mPort);
 		LOG(INFO) << "Creating libevent connection context.";
 	}
+	evhttp_connection_free_on_completion(connection);
 }
 
 void HttpConnection::destroy() {

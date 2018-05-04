@@ -14,13 +14,6 @@ using ChCppUtils::Http::Server::RequestEvent;
 void onRequest(RequestEvent *event, void *this_) {
 	evhttp_request *request = event->getRequest()->getRequest();
 
-	struct evbuffer *response = evhttp_request_get_output_buffer(request);
-	if (!response)
-		return;
-	evbuffer_add_printf(response,
-			"<html><body><center><h1>Hello World!</h1></center></body></html>");
-	evhttp_send_reply(request, HTTP_OK, "", response);
-
 	if(event->hasBody()) {
 		void *body = event->getBody();
 		LOG(INFO) << "Body: " << event->getLength() << " bytes, content: " <<
@@ -29,6 +22,17 @@ void onRequest(RequestEvent *event, void *this_) {
 	} else {
 		LOG(INFO) << "Empty body";
 	}
+
+	string path = event->getPath();
+	if(path.find("crash") != string::npos)
+		exit(-1);
+
+	struct evbuffer *response = evhttp_request_get_output_buffer(request);
+	if (!response)
+		return;
+	evbuffer_add_printf(response,
+			"<html><body><center><h1>Hello World!</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_OK, "", response);
 
 	LOG(INFO) << "Sending " << HTTP_OK;
 }
@@ -42,6 +46,7 @@ int main(int argc, char**argv) {
 	}
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);
+	pool->route(EVHTTP_REQ_GET, "/crash", onRequest, nullptr);
 	pool->route(EVHTTP_REQ_POST, "/test", onRequest, nullptr);
 	pool->route(EVHTTP_REQ_POST, "/test/*", onRequest, nullptr);
 

@@ -158,6 +158,10 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 
 	if (NULL == req) {
 		LOG(ERROR) << "Request failed";
+		HttpResponse *response = new HttpResponse();
+		response->setRequest(this).setResponseCode(0).setResponseText("");
+		onload.fire(response);
+		delete response;
 	} else {
 		LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
 
