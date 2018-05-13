@@ -95,6 +95,11 @@ bool HttpConnection::isBusy() {
 	return busy;
 }
 
+void HttpConnection::reset() {
+	connection = nullptr;
+	setBusy(false);
+}
+
 void HttpConnection::setBusy(bool busy) {
 	this->busy = busy;
 }
