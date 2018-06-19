@@ -24,6 +24,7 @@ test/test-http-server
 test/test-http-thread
 test/test-timer
 test/test-utils
+test/test-proc-stat
 data
 
 # Prerequisites
