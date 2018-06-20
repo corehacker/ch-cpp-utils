@@ -40,9 +40,9 @@ void onRequest(RequestEvent *event, void *this_) {
 int main(int argc, char**argv) {
 	HttpServer *pool = nullptr;
 	if(2 == argc) {
-		pool = new HttpServer(8888, atoi(argv[1]));
+		pool = new HttpServer(8887, atoi(argv[1]));
 	} else {
-		pool = new HttpServer(8888, 1);
+		pool = new HttpServer(8887, 1);
 	}
 //	pool->onRequest(onRequest, nullptr);
 	pool->route(EVHTTP_REQ_GET, "/test", onRequest, nullptr);

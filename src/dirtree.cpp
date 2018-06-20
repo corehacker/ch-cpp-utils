@@ -55,6 +55,70 @@ namespace ChCppUtils {
       }\
    } while(0)
 
+///////////////////////////////////////////////////////////////////////////////
+void Node::addChild(string key, Node *node) {
+      children.insert(std::make_pair(key, node));
+}
+
+bool Node::hasChildren() {
+      return (0 == children.size() ? false : true);
+}
+
+bool Node::hasChild(string key) {
+      auto search = children.find(key);
+      return ((search != children.end()) ? true : false);
+}
+
+Node *Node::getChild(string key) {
+      auto search = children.find(key);
+      return ((search != children.end()) ? search->second : NULL);
+}
+
+void Node::deleteChild(string key) {
+      children.erase(key);
+}
+
+const unordered_map<string, Node*>& Node::getChildren() const {
+      return children;
+}
+
+void Node::setChildren(const unordered_map<string, Node*>& children) {
+      this->children = children;
+}
+
+void Node::dropChildren(DropChildCbk dropChildCbk, void *this_) {
+      dropChildren(dropChildCbk, "", this_);
+}
+
+void* Node::getData() const {
+return data;
+}
+
+void Node::setData(void* data) {
+      this->data = data;
+}
+
+const string& Node::getKey() const {
+      return key;
+}
+
+void Node::setKey(const string& key) {
+      this->key = key;
+}
+
+Node::~Node() {
+}
+
+void Node::dropChildren(DropChildCbk dropChildCbk, string suffix, void *this_) {
+      for( const auto& n : children) {
+         n.second->dropChildren(dropChildCbk, (suffix + "/" + key), this_);
+         SAFE_DELETE_RO(n.second);
+      }
+      children.clear();
+      if (dropChildCbk) dropChildCbk(this, suffix + "/" + key, this_);
+}
+///////////////////////////////////////////////////////////////////////////////
+
 DirTree::DirTree() {
    root = NULL;
    root = new Node();
