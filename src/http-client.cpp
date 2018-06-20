@@ -120,7 +120,7 @@ void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
 	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort;
 	LOG(INFO) << "Setting connection context for reuse.";
 	lock_guard<mutex> lock(mMutex);
-	connection->setBusy(false);
+	connection->reset();
 	mFree.insert(connection->getId());
 }
 

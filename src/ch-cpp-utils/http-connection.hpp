@@ -78,6 +78,7 @@ public:
 	void setClient(HttpClientImpl* client);
 	void send();
 	void release();
+	void reset();
 };
 
 } // End namespace Client.

@@ -73,6 +73,7 @@ void HttpConnection::connect() {
 				mHostname.data(), mPort);
 		LOG(INFO) << "Creating libevent connection context.";
 	}
+	evhttp_connection_free_on_completion(connection);
 }
 
 void HttpConnection::destroy() {
@@ -92,6 +93,11 @@ string HttpConnection::getId() {
 
 bool HttpConnection::isBusy() {
 	return busy;
+}
+
+void HttpConnection::reset() {
+	connection = nullptr;
+	setBusy(false);
 }
 
 void HttpConnection::setBusy(bool busy) {
