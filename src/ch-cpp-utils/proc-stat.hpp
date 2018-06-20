@@ -40,9 +40,10 @@
  *
  ******************************************************************************/
 
-#include<unordered_map>
-#include<string>
+#include <unordered_map>
+#include <string>
 #include <mutex>
+#include <unistd.h>
 
 #include <ch-cpp-utils/timer.hpp>
 
@@ -185,8 +186,10 @@ class ProcStat {
 private:
   Timer *mTimer;
 	TimerEvent *mTimerEvent;
-  unordered_map<string, mutex> mFieldMutex;
+  mutex mMutex;
   unordered_map<string, ProcField> mFieldMap;
+  const uint32_t PAGESIZE = getpagesize();
+  proc_t proc;
   
   static void stat2proc(const char* S, proc_t *P);
   static void _onTimerEvent(TimerEvent *event, void *this_);
@@ -195,6 +198,7 @@ private:
 public:
   ProcStat();
   ~ProcStat();
+  uint32_t getRSS();
 };
 
 } // End namespace ChCppUtils.

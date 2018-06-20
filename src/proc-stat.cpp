@@ -50,9 +50,13 @@
 #include <cstdio>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <streambuf>
 
 #include <glog/logging.h>
+
+using std::ostringstream;
+using std::lock_guard;
 
 namespace ChCppUtils {
 
@@ -78,6 +82,8 @@ void ProcStat::stat2proc(const char* S, proc_t *P) {
     P->rtprio = -1;
     P->sched = -1;
     P->nlwp = 0;
+
+    // LOG(INFO) << "S: " << S;
 
     S = strchr(S, '(') + 1;
     const char *tmp = strrchr(S, ')');
@@ -133,17 +139,28 @@ void ProcStat::_onTimerEvent(TimerEvent *event, void *this_) {
 }
 
 void ProcStat::onTimerEvent(TimerEvent *event) {
-
-  proc_t proc;
   memset(&proc, 0x00, sizeof(proc));
-  std::ifstream t("file.txt");
+  ostringstream os;
+  os << "/proc/" << getpid() << "/stat";
+  std::ifstream t(os.str());
   std::string str((std::istreambuf_iterator<char>(t)),
                   std::istreambuf_iterator<char>());
-  stat2proc(str.c_str(), &proc);
 
-  LOG(INFO) << "RSS: " << proc.rss;
+  {
+    lock_guard<mutex> lock(mMutex);
+    stat2proc(str.c_str(), &proc);
+  }
+  
+
+  LOG(INFO) << "RSS: " << proc.rss << " pages, Page Size: " << PAGESIZE << ", RSS: " << 
+    ((proc.rss * PAGESIZE) / 1024) << " KB";
 
 	mTimer->restart(event);
+}
+
+uint32_t ProcStat::getRSS() {
+  lock_guard<mutex> lock(mMutex);
+  return proc.rss * PAGESIZE;
 }
 
 }
