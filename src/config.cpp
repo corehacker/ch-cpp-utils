@@ -98,6 +98,9 @@ bool Config::populateConfigValues() {
 	mRunForever = mJson["run-forever"];
 	LOG(INFO) << "run-forever: " << mRunForever;
 
+	mMaxRss = mJson["max-rss"];
+	LOG(INFO) << "max-rss: " << mMaxRss;
+
 	LOG(INFO) << "----------------------->Config";
 	return true;
 }
@@ -130,6 +133,10 @@ bool Config::shouldLogToConsole() {
 
 bool Config::shouldRunForever() {
 	return mRunForever;
+}
+
+uint32_t Config::getMaxRss() {
+	return mMaxRss;
 }
 
 } // End namespace ChCppUtils.
