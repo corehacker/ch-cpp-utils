@@ -68,7 +68,8 @@ ProcStat::ProcStat() {
 }
 
 ProcStat::~ProcStat() {
-
+  delete mTimerEvent;
+  delete mTimer;
 }
 
 #define unlikely(x)     __builtin_expect(!!(x),0)
@@ -139,7 +140,6 @@ void ProcStat::_onTimerEvent(TimerEvent *event, void *this_) {
 }
 
 void ProcStat::onTimerEvent(TimerEvent *event) {
-  memset(&proc, 0x00, sizeof(proc));
   ostringstream os;
   os << "/proc/" << getpid() << "/stat";
   std::ifstream t(os.str());
@@ -148,12 +148,13 @@ void ProcStat::onTimerEvent(TimerEvent *event) {
 
   {
     lock_guard<mutex> lock(mMutex);
+    memset(&proc, 0x00, sizeof(proc));
     stat2proc(str.c_str(), &proc);
   }
   
 
-  LOG(INFO) << "RSS: " << proc.rss << " pages, Page Size: " << PAGESIZE << ", RSS: " << 
-    ((proc.rss * PAGESIZE) / 1024) << " KB";
+  // LOG(INFO) << "RSS: " << proc.rss << " pages, Page Size: " << PAGESIZE << ", RSS: " << 
+  //   ((proc.rss * PAGESIZE) / 1024) << " KB";
 
 	mTimer->restart(event);
 }

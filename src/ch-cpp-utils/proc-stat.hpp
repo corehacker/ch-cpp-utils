@@ -185,7 +185,7 @@ typedef struct proc_t {
 class ProcStat {
 private:
   Timer *mTimer;
-	TimerEvent *mTimerEvent;
+  TimerEvent *mTimerEvent;
   mutex mMutex;
   unordered_map<string, ProcField> mFieldMap;
   const uint32_t PAGESIZE = getpagesize();
