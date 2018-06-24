@@ -154,16 +154,16 @@ void HttpRequest::_evHttpReqDone(struct evhttp_request *req, void *arg) {
 }
 
 void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
-	LOG(INFO)<< "New Async Request (Done): ";
+	LOG(INFO) << id << " | New Async Request (Done): " << url;
 
 	if (NULL == req) {
-		LOG(ERROR) << "Request failed";
+		LOG(ERROR) << "Request failed: " << url;
 		HttpResponse *response = new HttpResponse();
 		response->setRequest(this).setResponseCode(0).setResponseText("");
 		onload.fire(response);
 		delete response;
 	} else {
-		LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
+		LOG(INFO) << id << " | Response for: " << url << ": " << req->response_code << " " << req->response_code_line;
 
 		HttpConnection *connection = context->getConnection();
 		connection->release();
@@ -180,10 +180,10 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 }
 
 HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
-	LOG(INFO) << "Opening new request.";
-
 	this->method = method;
 	this->url = url;
+
+	LOG(INFO) << id << " | Opening new request: " << url;
 	uri = evhttp_uri_parse(url.data());
 
 	path = evhttp_uri_get_path(uri);
@@ -194,16 +194,17 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 	HttpClient client = HttpClientImpl::NewInstance(hostname,
 			(uint16_t) evhttp_uri_get_port(uri));
 
+	LOG(INFO) << id << " | Using client: " << client->getId();
 
 	context->setUrl(url);
 	context->setConnection(client->open(method, evhttp_uri_get_path(uri)));
 
 	context->setRequest(evhttp_request_new(HttpRequest::_evHttpReqDone, this));
 
-	LOG(INFO) << "New Async Request (Created): " << url;
+	LOG(INFO) << id << " | Async Request (Created): " << url;
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, "Connection", "keep-alive");
-	LOG(INFO) << "HEADER - " << "Connection: keep-alive";
+	LOG(INFO) << id << " | HEADER - " << "Connection: keep-alive";
 
 	return *this;
 }
@@ -212,7 +213,7 @@ HttpRequest &HttpRequest::setHeader(string name, string value) {
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, name.data(),
 	            value.data());
-	LOG(INFO) << "HEADER - " << name << ": " << value;
+	LOG(INFO) << id << " | HEADER - " << name << ": " << value;
 	return *this;
 }
 
@@ -220,7 +221,7 @@ bool HttpRequest::send(size_t contentLength) {
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, "Content-Length",
 			to_string(contentLength).data());
-	LOG(INFO)<<"HEADER - " << "Content-Length" << ": " <<
+	LOG(INFO) << id << " | HEADER - " << "Content-Length" << ": " <<
 			to_string(contentLength).data();
 
 	string fullPath = path +
@@ -255,6 +256,10 @@ string& HttpRequest::getResponseMime() {
 
 string& HttpRequest::getResponseText() {
 	return responseText;
+}
+
+string &HttpRequest::getId() {
+	return id;
 }
 
 } // End namespace Client.

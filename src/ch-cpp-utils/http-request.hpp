@@ -162,6 +162,7 @@ public:
 	};
 
 private:
+	string id;
 	OnLoad onload;
 	string url;
 	string path;
@@ -190,6 +191,7 @@ public:
 	uint32_t getResponseCode();
 	string& getResponseMime();
 	string& getResponseText();
+	string &getId();
 };
 
 } // End namespace Client.

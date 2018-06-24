@@ -75,6 +75,7 @@ using HttpClient = std::shared_ptr<HttpClientImpl>;
 
 class HttpClientImpl {
 private:
+  string id;
    string mHostname;
    uint16_t mPort;
    ThreadPool *mPool;
@@ -104,6 +105,8 @@ public:
 
    HttpConnection *open(evhttp_cmd_type method, string url);
    void close(HttpConnection *connection);
+
+   string &getId();
 
    void send();
 };
