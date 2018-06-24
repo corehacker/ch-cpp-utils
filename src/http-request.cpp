@@ -159,7 +159,7 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 	end = getEpochNano();
 	uint64_t elapsed = end - start;
 	double elapsedMs = ((double) elapsed) / (1000 * 1000);
-	LOG(INFO) << id << " | Async Request (Done): " << url << "(" << elapsedMs << "ms)";
+	LOG(INFO) << id << " | Async Request (Done): " << url << " (" << elapsedMs << "ms)";
 
 	if (NULL == req) {
 		LOG(ERROR) << "Request failed: " << url;
@@ -238,6 +238,7 @@ bool HttpRequest::send(size_t contentLength) {
 			context->getRequest(), method, fullPath.data());
 	start = getEpochNano();
 	connection->send();
+	LOG(INFO) << id << " | Async Request (Sent): " << url;
 	return true;
 }
 
