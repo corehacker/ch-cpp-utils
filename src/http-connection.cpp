@@ -72,7 +72,8 @@ HttpConnection::~HttpConnection() {
 
 void HttpConnection::connect() {
 	if (connection) {
-    event_base_loop(client->getBase(), EVLOOP_NONBLOCK);
+		LOG(INFO) << "Running event loop for existing connection: " << id;
+    event_base_dispatch(client->getBase());
   }
 	if(!connection) {
 		connection = evhttp_connection_base_new(client->getBase(), NULL,
