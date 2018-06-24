@@ -141,6 +141,7 @@ HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 		connection = new HttpConnection(this, mHostname, mPort);
 		mConnections.insert(make_pair(connection->getConnectionId(), connection));
 	}
+	LOG(INFO) << "Number of open HttpConnection(s): " << mConnections.size();
 	connection->setClient(this);
 	connection->connect();
 
@@ -180,7 +181,8 @@ HttpClient HttpClientImpl::NewInstance(string hostname, uint16_t port) {
 		client = search->second;
 		LOG(INFO) << "Using existing client for: " << key << ", id: " << client->getId();
 	}
-    return client;
+	LOG(INFO) << "Number of open HttpClient(s): " << gClients.size();
+	return client;
 }
 
 void HttpClientImpl::DeleteInstances() {
