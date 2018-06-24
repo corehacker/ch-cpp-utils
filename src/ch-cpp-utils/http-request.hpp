@@ -176,6 +176,9 @@ private:
 	string responseText;
 	string responseMime;
 
+	uint64_t start;
+	uint64_t end;
+
 	bool send(size_t contentLength);
 	static void _evHttpReqDone(struct evhttp_request *req, void *arg);
 	void evHttpReqDone(struct evhttp_request *req);
