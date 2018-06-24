@@ -68,6 +68,7 @@ HttpClientImpl::HttpClientImpl() {
 }
 
 HttpClientImpl::HttpClientImpl(string &hostname, uint16_t port) {
+	id = generateUUID();
    this->mHostname = hostname;
    this->mPort = port;
    mBase = event_base_new();

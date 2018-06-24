@@ -45,6 +45,7 @@
 #include <event2/http_struct.h>
 #include <event2/buffer.h>
 #include <glog/logging.h>
+#include "utils.hpp"
 #include "http-client.hpp"
 #include "http-connection.hpp"
 #include "http-request.hpp"
@@ -133,6 +134,7 @@ void HttpRequest::OnLoad::fire(HttpResponse *response) {
 }
 
 HttpRequest::HttpRequest() {
+	id = generateUUID();
 	uri = nullptr;
 	context = new RequestContext();
 	method = EVHTTP_REQ_GET;
