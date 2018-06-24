@@ -107,8 +107,8 @@ void *HttpClientImpl::_dispatch(void *arg, struct event_base *base) {
 void *HttpClientImpl::dispatch() {
    LOG(INFO) << "Async Request (Dispatching): " << mHostname << ":" <<
             mPort << ", id: " << id;
-  //  event_base_dispatch(mBase);
-	 event_base_loop(mBase, EVLOOP_NO_EXIT_ON_EMPTY);
+   event_base_dispatch(mBase);
+	//  event_base_loop(mBase, EVLOOP_NO_EXIT_ON_EMPTY);
    LOG(INFO) << "Async Request (Dispatched): " << mHostname << ":" <<
             mPort << ", id: " << id;
    return nullptr;
