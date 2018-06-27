@@ -94,6 +94,10 @@ string& HttpResponse::getResponseText()  {
 	return responseText;
 }
 
+bool HttpResponse::getResponseBody(uint8_t **body, uint32_t *length) {
+   return request->getResponseBody(body, length);
+}
+
 HttpResponse &HttpResponse::setResponseText(string responseText) {
 	this->responseText = responseText;
 	return *this;
@@ -262,6 +266,21 @@ string& HttpRequest::getResponseMime() {
 
 string& HttpRequest::getResponseText() {
 	return responseText;
+}
+
+bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length) {
+	struct evhttp_request *evreq = context->getRequest();
+   struct evbuffer *bodyBuffer = evhttp_request_get_input_buffer(evreq);
+   size_t bodyLength = evbuffer_get_length(bodyBuffer);
+   *body = (uint8_t *) malloc(bodyLength);
+   *length = evbuffer_remove(bodyBuffer, *body, bodyLength);
+   if(*length != bodyLength) {
+      LOG(INFO) << "Could not read entire body. Expected: " << bodyLength <<
+         " bytes, read: " << (*length) << " bytes";
+      return false;
+   } else {
+      return true;
+   }
 }
 
 string &HttpRequest::getId() {

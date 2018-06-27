@@ -120,6 +120,7 @@ public:
 	HttpResponse &setResponseMime(string responseMime);
 	string& getResponseText();
 	HttpResponse &setResponseText(string responseText);
+   bool getResponseBody(uint8_t **body, uint32_t *length);
 };
 
 class HttpRequestEvent {
@@ -195,6 +196,7 @@ public:
 	string& getResponseMime();
 	string& getResponseText();
 	string &getId();
+   bool getResponseBody(uint8_t **body, uint32_t *length);
 };
 
 } // End namespace Client.
