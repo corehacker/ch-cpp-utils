@@ -70,7 +70,7 @@ private:
 	bool mLogToConsole;
 	uint32_t mRunFor;
 	bool mRunForever;
-	uint32_t mMaxRss;
+	uint64_t mMaxRss;
 
 	bool selectConfigFile();
 	bool populateConfigValues();
@@ -84,7 +84,7 @@ public:
 	uint32_t getRunFor();
 	bool shouldLogToConsole();
 	bool shouldRunForever();
-	uint32_t getMaxRss();
+	uint64_t getMaxRss();
 };
 
 } // End namespace ChCppUtils.
