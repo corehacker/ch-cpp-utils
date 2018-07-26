@@ -45,10 +45,13 @@
 #include <event2/http_struct.h>
 #include <event2/buffer.h>
 #include <glog/logging.h>
+#include <algorithm>
 #include "utils.hpp"
 #include "http-client.hpp"
 #include "http-connection.hpp"
 #include "http-request.hpp"
+
+using std::min;
 
 namespace ChCppUtils {
 namespace Http {
@@ -95,7 +98,7 @@ string& HttpResponse::getResponseText()  {
 }
 
 bool HttpResponse::getResponseBody(uint8_t **body, uint32_t *length) {
-   return request->getResponseBody(body, length);
+   return request->getResponseBody(body, length, headers);
 }
 
 HttpResponse &HttpResponse::setResponseText(string responseText) {
@@ -110,6 +113,19 @@ HttpRequestEvent::HttpRequestEvent(HttpResponse *response) {
 
 HttpResponse *HttpRequestEvent::getResponse() {
 	return response;
+}
+
+HttpResponse &HttpResponse::buildHeaderMap(evhttp_request *req) {
+	struct evkeyvalq *headers = req->input_headers;
+	struct evkeyval *header = headers->tqh_first;
+	while(header) {
+		string key = header->key;
+		LOG(INFO) << " > Header: " << key << ": " << header->value;
+		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+		this->headers.insert(make_pair(key, header->value));
+		header = header->next.tqe_next;
+	}
+	return *this;
 }
 
 HttpRequestLoadEvent::HttpRequestLoadEvent(HttpResponse *response) :
@@ -154,6 +170,8 @@ HttpRequest::OnLoad &HttpRequest::onLoad(_OnLoad onload) {
 	return this->onload.set(onload);
 }
 
+
+
 void HttpRequest::_evHttpReqDone(struct evhttp_request *req, void *arg) {
 	HttpRequest *this_ = (HttpRequest *) arg;
 	this_->evHttpReqDone(req);
@@ -179,6 +197,7 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 
 		HttpResponse *response = new HttpResponse();
 		response->setRequest(this)
+		.buildHeaderMap(req)
 		.setResponseCode(req->response_code)
 		.setResponseText((char *)
 				(req->response_code_line ? req->response_code_line : ""));
@@ -268,10 +287,14 @@ string& HttpRequest::getResponseText() {
 	return responseText;
 }
 
-bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length) {
+bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length, HttpHeaders &headers) {
 	struct evhttp_request *evreq = context->getRequest();
    struct evbuffer *bodyBuffer = evhttp_request_get_input_buffer(evreq);
-   size_t bodyLength = evbuffer_get_length(bodyBuffer);
+	 string cl = headers["content-length"];
+	 size_t contentLength = cl.length() > 0 ? atol(cl.c_str()) : 0;
+   size_t bodyLength = contentLength > 0 ? 
+	 	min(contentLength, evbuffer_get_length(bodyBuffer)) : evbuffer_get_length(bodyBuffer);
+
    *body = (uint8_t *) malloc(bodyLength);
    *length = evbuffer_remove(bodyBuffer, *body, bodyLength);
    if(*length != bodyLength) {
@@ -279,6 +302,7 @@ bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length) {
          " bytes, read: " << (*length) << " bytes";
       return false;
    } else {
+		 LOG(INFO) << "Read body: " << bodyLength << " bytes";
       return true;
    }
 }

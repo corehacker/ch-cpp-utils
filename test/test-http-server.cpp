@@ -23,6 +23,8 @@ void onRequest(RequestEvent *event, void *this_) {
 		LOG(INFO) << "Empty body";
 	}
 
+	sleep(1);
+
 	string path = event->getPath();
 	if(path.find("crash") != string::npos)
 		exit(-1);
