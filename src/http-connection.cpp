@@ -46,6 +46,7 @@
 #include <event2/buffer.h>
 #include <glog/logging.h>
 
+#include "utils.hpp"
 #include "http-client.hpp"
 #include "http-connection.hpp"
 
@@ -55,40 +56,50 @@ namespace Client {
 
 HttpConnection::HttpConnection(HttpClientImpl *client, string hostname,
 		uint16_t port) {
+	id = generateUUID();
 	this->client = client;
 	connection = nullptr;
 	busy = false;
 	mHostname = hostname;
     mPort = port;
+	LOG(INFO) << "new HttpConnection: " << id;
 }
 
 HttpConnection::~HttpConnection() {
-	LOG(INFO) << "*****************~HttpConnection";
+	LOG(INFO) << "*****************~HttpConnection: " << id;
 	destroy();
 }
 
 void HttpConnection::connect() {
+	if (connection) {
+		LOG(INFO) << "Running event loop for existing connection: " << id;
+    event_base_dispatch(client->getBase());
+  }
 	if(!connection) {
 		connection = evhttp_connection_base_new(client->getBase(), NULL,
 				mHostname.data(), mPort);
-		LOG(INFO) << "Creating libevent connection context.";
+		LOG(INFO) << "Creating libevent connection context: " << id;
 	}
 	evhttp_connection_free_on_completion(connection);
 }
 
 void HttpConnection::destroy() {
 	if(connection) {
-		LOG(INFO) << "Freeing ev http connection.";
+		LOG(INFO) << "Freeing ev http connection: " << id;
 		evhttp_connection_free(connection);
 		connection = nullptr;
 	}
 }
 
-string HttpConnection::getId() {
+string HttpConnection::getConnectionId() {
 //	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 //	std::uniform_int_distribution<> dis(1, UINT32_MAX);
 	return mHostname + ":" + to_string(mPort) + ":"; //  + to_string(dis(gen));
+}
+
+string &HttpConnection::getId() {
+	return id;
 }
 
 bool HttpConnection::isBusy() {

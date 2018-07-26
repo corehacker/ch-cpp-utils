@@ -135,7 +135,7 @@ bool Config::shouldRunForever() {
 	return mRunForever;
 }
 
-uint32_t Config::getMaxRss() {
+uint64_t Config::getMaxRss() {
 	return mMaxRss;
 }
 

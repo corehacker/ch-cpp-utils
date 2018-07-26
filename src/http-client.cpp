@@ -46,6 +46,8 @@
 #include <event2/buffer.h>
 #include <glog/logging.h>
 
+#include "utils.hpp"
+
 #include "http-client.hpp"
 #include "http-connection.hpp"
 
@@ -57,13 +59,16 @@ mutex gMutex;
 unordered_map<string, HttpClient> gClients;
 
 HttpClientImpl::HttpClientImpl() {
-   mHostname = "127.0.0.1";
-   mPort = 80;
-   mBase = event_base_new();
-   mPool = new ThreadPool(1, false);
+	id = generateUUID();
+	mHostname = "127.0.0.1";
+	mPort = 80;
+	mBase = event_base_new();
+	mPool = new ThreadPool(1, false);
+	LOG(INFO) << "new HttpClientImpl: " << id;
 }
 
 HttpClientImpl::HttpClientImpl(string &hostname, uint16_t port) {
+	id = generateUUID();
    this->mHostname = hostname;
    this->mPort = port;
    mBase = event_base_new();
@@ -71,18 +76,18 @@ HttpClientImpl::HttpClientImpl(string &hostname, uint16_t port) {
 }
 
 HttpClientImpl::~HttpClientImpl() {
-	LOG(INFO)<< "*****************~HttpClientImpl";
+	LOG(INFO)<< "*****************~HttpClientImpl: " << id;
 	closeConnctions();
 
-	LOG(INFO) << "*****************~HttpClientImpl exiting loop";
+	LOG(INFO) << "*****************~HttpClientImpl exiting loop: " << id;
 	struct timeval tv = {0};
 	tv.tv_sec = 1;
 	event_base_loopexit(mBase, &tv);
 
-	LOG(INFO) << "*****************~HttpClientImpl deleting pool";
+	LOG(INFO) << "*****************~HttpClientImpl deleting pool: " << id;
 	delete mPool;
 
-	LOG(INFO) << "*****************~HttpClientImpl freeing base";
+	LOG(INFO) << "*****************~HttpClientImpl freeing base: " << id;
 	event_base_free(mBase);
 }
 
@@ -100,11 +105,11 @@ void *HttpClientImpl::_dispatch(void *arg, struct event_base *base) {
 }
 
 void *HttpClientImpl::dispatch() {
-   LOG(INFO) << "New Async Request (Dispatching): " << mHostname << ":" <<
-            mPort;
+   LOG(INFO) << "Async Request (Dispatching): " << mHostname << ":" <<
+            mPort << ", id: " << id;
    event_base_dispatch(mBase);
-   LOG(INFO) << "New Async Request (Dispatched): " << mHostname << ":" <<
-            mPort;
+   LOG(INFO) << "Async Request (Dispatched): " << mHostname << ":" <<
+            mPort << ", id: " << id;
    return nullptr;
 }
 
@@ -117,11 +122,11 @@ void HttpClientImpl::_evConnectionClosed(struct evhttp_connection *conn,
 
 void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
 		HttpConnection *connection) {
-	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort;
-	LOG(INFO) << "Setting connection context for reuse.";
+	LOG(INFO) << "Connection closed by peer: " << mHostname << ":" << mPort << ", id: " << id;
+	LOG(INFO) << "Setting connection context for reuse: " << id;
 	lock_guard<mutex> lock(mMutex);
 	connection->reset();
-	mFree.insert(connection->getId());
+	mFree.insert(connection->getConnectionId());
 }
 
 HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
@@ -131,12 +136,13 @@ HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 		auto free = mFree.begin();
 		auto search = mConnections.find(*free);
 		connection = search->second;
-		LOG(INFO) << "Using existing connection.";
+		LOG(INFO) << "Using existing connection: " << id << " | " << connection->getId();
 	} else {
-		LOG(INFO) << "Creating new connection.";
+		LOG(INFO) << "Creating new connection for client: " << id;
 		connection = new HttpConnection(this, mHostname, mPort);
-		mConnections.insert(make_pair(connection->getId(), connection));
+		mConnections.insert(make_pair(connection->getConnectionId(), connection));
 	}
+	LOG(INFO) << "Number of open HttpConnection(s): " << mConnections.size();
 	connection->setClient(this);
 	connection->connect();
 
@@ -144,19 +150,23 @@ HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 			HttpClientImpl::_evConnectionClosed, connection);
 
 	connection->setBusy(true);
-	mFree.erase(connection->getId());
+	mFree.erase(connection->getConnectionId());
 	return connection;
 }
 
 void HttpClientImpl::close(HttpConnection *connection) {
 	lock_guard<mutex> lock(mMutex);
 	connection->setBusy(false);
-	mFree.insert(connection->getId());
+	mFree.insert(connection->getConnectionId());
 }
 
 void HttpClientImpl::send() {
 	ThreadJob *dispatch = new ThreadJob (HttpClientImpl::_dispatch, this);
 	mPool->addJob(dispatch);
+}
+
+string &HttpClientImpl::getId() {
+	return id;
 }
 
 HttpClient HttpClientImpl::NewInstance(string hostname, uint16_t port) {
@@ -169,10 +179,11 @@ HttpClient HttpClientImpl::NewInstance(string hostname, uint16_t port) {
 		client = HttpClient(new HttpClientImpl(hostname, port));
 		gClients.insert(make_pair(key, client));
 	} else {
-		LOG(INFO) << "Using existing client for: " << key;
 		client = search->second;
+		LOG(INFO) << "Using existing client for: " << key << ", id: " << client->getId();
 	}
-    return client;
+	LOG(INFO) << "Number of open HttpClient(s): " << gClients.size();
+	return client;
 }
 
 void HttpClientImpl::DeleteInstances() {

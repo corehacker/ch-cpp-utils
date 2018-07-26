@@ -294,6 +294,7 @@ bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length, HttpHeaders 
 	 size_t contentLength = cl.length() > 0 ? atol(cl.c_str()) : 0;
    size_t bodyLength = contentLength > 0 ? 
 	 	min(contentLength, evbuffer_get_length(bodyBuffer)) : evbuffer_get_length(bodyBuffer);
+
    *body = (uint8_t *) malloc(bodyLength);
    *length = evbuffer_remove(bodyBuffer, *body, bodyLength);
    if(*length != bodyLength) {

@@ -59,6 +59,7 @@ using HttpClient = std::shared_ptr<HttpClientImpl>;
 
 class HttpConnection {
 private:
+	string id;
 	HttpClientImpl *client;
 	struct evhttp_connection *connection;
 	bool busy;
@@ -69,7 +70,7 @@ public:
 	~HttpConnection();
 	void connect();
 	void destroy();
-	string getId();
+	string getConnectionId();
 	bool isBusy();
 	void setBusy(bool busy);
 	struct evhttp_connection* getConnection();
@@ -79,6 +80,7 @@ public:
 	void send();
 	void release();
 	void reset();
+	string &getId();
 };
 
 } // End namespace Client.
