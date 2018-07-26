@@ -103,12 +103,16 @@ private:
 
 class HttpRequest;
 
+using HttpHeaders = unordered_map<string, string>;
+
 class HttpResponse {
 private:
 	HttpRequest *request;
 	uint32_t responseCode;
 	string responseText;
 	string responseMime;
+	HttpHeaders headers;
+	
 public:
 	HttpResponse();
 	~HttpResponse();
@@ -120,6 +124,8 @@ public:
 	HttpResponse &setResponseMime(string responseMime);
 	string& getResponseText();
 	HttpResponse &setResponseText(string responseText);
+  bool getResponseBody(uint8_t **body, uint32_t *length);
+	HttpResponse &buildHeaderMap(evhttp_request *req);
 };
 
 class HttpRequestEvent {
@@ -162,6 +168,7 @@ public:
 	};
 
 private:
+	string id;
 	OnLoad onload;
 	string url;
 	string path;
@@ -174,6 +181,9 @@ private:
 	uint32_t responseCode;
 	string responseText;
 	string responseMime;
+
+	uint64_t start;
+	uint64_t end;
 
 	bool send(size_t contentLength);
 	static void _evHttpReqDone(struct evhttp_request *req, void *arg);
@@ -190,6 +200,8 @@ public:
 	uint32_t getResponseCode();
 	string& getResponseMime();
 	string& getResponseText();
+	string &getId();
+   bool getResponseBody(uint8_t **body, uint32_t *length, HttpHeaders &headers);
 };
 
 } // End namespace Client.

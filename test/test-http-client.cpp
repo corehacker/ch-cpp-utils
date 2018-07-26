@@ -63,7 +63,7 @@ using ChCppUtils::Semaphore;
 
 static void onLoad(HttpRequestLoadEvent *event, void *this_);
 void makeRequest(string postfix);
-uint32_t request = 1;
+uint32_t request = 0;
 Semaphore mSignal;
 HttpRequest *httpRequest = nullptr;
 
@@ -72,7 +72,11 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 	LOG(INFO) << "New Async Request (Complete): " <<
 			response->getResponseCode() << " " << response->getResponseText();
 
-	LOG(INFO) << "Response Body: " << response->getResponseText();
+   char *body = nullptr;
+   uint32_t length = 0;
+   response->getResponseBody((uint8_t **) &body, &length);
+	LOG(INFO) << "Response Body: \"" << string(body, length) << "\"";
+   if(body) free(body);
 	if(request) {
 		sleep(1);
 		delete httpRequest;
@@ -84,10 +88,15 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 }
 
 void makeRequest(string postfix) {
-   string url = "http://127.0.0.1:8887/" + postfix;
+   // string url = "http://127.0.0.1:8887/" + postfix;
+   string url = "http://127.0.0.1:9999/ifconfig/json";
    httpRequest = new HttpRequest();
    httpRequest->onLoad(onLoad).bind(nullptr);
-   httpRequest->open(EVHTTP_REQ_GET, url).send();
+   httpRequest->open(EVHTTP_REQ_GET, url)
+      .setHeader("Accept", "*/*")
+      .setHeader("Host", "ifconfig.co")
+      .setHeader("User-Agent", "curl")
+      .send();
 }
 
 static void write_to_file_cb(int severity, const char *msg)
@@ -112,8 +121,8 @@ int main(int argc, char* argv[]) {
 	google::InstallFailureSignalHandler();
 
 	event_set_fatal_callback(eventFatalCallback);
-	event_set_log_callback(write_to_file_cb);
-	event_enable_debug_logging(EVENT_DBG_ALL);
+	// event_set_log_callback(write_to_file_cb);
+	// event_enable_debug_logging(EVENT_DBG_ALL);
 
    // Initialize Google's logging library.
 //   google::InitGoogleLogging(argv[0]);

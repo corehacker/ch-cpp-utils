@@ -45,9 +45,13 @@
 #include <event2/http_struct.h>
 #include <event2/buffer.h>
 #include <glog/logging.h>
+#include <algorithm>
+#include "utils.hpp"
 #include "http-client.hpp"
 #include "http-connection.hpp"
 #include "http-request.hpp"
+
+using std::min;
 
 namespace ChCppUtils {
 namespace Http {
@@ -93,6 +97,10 @@ string& HttpResponse::getResponseText()  {
 	return responseText;
 }
 
+bool HttpResponse::getResponseBody(uint8_t **body, uint32_t *length) {
+   return request->getResponseBody(body, length, headers);
+}
+
 HttpResponse &HttpResponse::setResponseText(string responseText) {
 	this->responseText = responseText;
 	return *this;
@@ -105,6 +113,19 @@ HttpRequestEvent::HttpRequestEvent(HttpResponse *response) {
 
 HttpResponse *HttpRequestEvent::getResponse() {
 	return response;
+}
+
+HttpResponse &HttpResponse::buildHeaderMap(evhttp_request *req) {
+	struct evkeyvalq *headers = req->input_headers;
+	struct evkeyval *header = headers->tqh_first;
+	while(header) {
+		string key = header->key;
+		LOG(INFO) << " > Header: " << key << ": " << header->value;
+		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+		this->headers.insert(make_pair(key, header->value));
+		header = header->next.tqe_next;
+	}
+	return *this;
 }
 
 HttpRequestLoadEvent::HttpRequestLoadEvent(HttpResponse *response) :
@@ -133,6 +154,7 @@ void HttpRequest::OnLoad::fire(HttpResponse *response) {
 }
 
 HttpRequest::HttpRequest() {
+	id = generateUUID();
 	uri = nullptr;
 	context = new RequestContext();
 	method = EVHTTP_REQ_GET;
@@ -148,28 +170,34 @@ HttpRequest::OnLoad &HttpRequest::onLoad(_OnLoad onload) {
 	return this->onload.set(onload);
 }
 
+
+
 void HttpRequest::_evHttpReqDone(struct evhttp_request *req, void *arg) {
 	HttpRequest *this_ = (HttpRequest *) arg;
 	this_->evHttpReqDone(req);
 }
 
 void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
-	LOG(INFO)<< "New Async Request (Done): ";
+	end = getEpochNano();
+	uint64_t elapsed = end - start;
+	double elapsedMs = ((double) elapsed) / (1000 * 1000);
+	LOG(INFO) << id << " | Async Request (Done): " << url << " (" << elapsedMs << "ms)";
 
 	if (NULL == req) {
-		LOG(ERROR) << "Request failed";
+		LOG(ERROR) << "Request failed: " << url;
 		HttpResponse *response = new HttpResponse();
 		response->setRequest(this).setResponseCode(0).setResponseText("");
 		onload.fire(response);
 		delete response;
 	} else {
-		LOG(INFO) << "Response: " << req->response_code << " " << req->response_code_line;
+		LOG(INFO) << id << " | Response for: " << url << ": " << req->response_code << " " << req->response_code_line;
 
 		HttpConnection *connection = context->getConnection();
 		connection->release();
 
 		HttpResponse *response = new HttpResponse();
 		response->setRequest(this)
+		.buildHeaderMap(req)
 		.setResponseCode(req->response_code)
 		.setResponseText((char *)
 				(req->response_code_line ? req->response_code_line : ""));
@@ -180,10 +208,10 @@ void HttpRequest::evHttpReqDone(struct evhttp_request *req) {
 }
 
 HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
-	LOG(INFO) << "Opening new request.";
-
 	this->method = method;
 	this->url = url;
+
+	LOG(INFO) << id << " | Opening new request: " << url;
 	uri = evhttp_uri_parse(url.data());
 
 	path = evhttp_uri_get_path(uri);
@@ -194,16 +222,17 @@ HttpRequest &HttpRequest::open(evhttp_cmd_type method, string url) {
 	HttpClient client = HttpClientImpl::NewInstance(hostname,
 			(uint16_t) evhttp_uri_get_port(uri));
 
+	LOG(INFO) << id << " | Using client: " << client->getId();
 
 	context->setUrl(url);
 	context->setConnection(client->open(method, evhttp_uri_get_path(uri)));
 
 	context->setRequest(evhttp_request_new(HttpRequest::_evHttpReqDone, this));
 
-	LOG(INFO) << "New Async Request (Created): " << url;
+	LOG(INFO) << id << " | Async Request (Created): " << url;
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, "Connection", "keep-alive");
-	LOG(INFO) << "HEADER - " << "Connection: keep-alive";
+	LOG(INFO) << id << " | HEADER - " << "Connection: keep-alive";
 
 	return *this;
 }
@@ -212,7 +241,7 @@ HttpRequest &HttpRequest::setHeader(string name, string value) {
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, name.data(),
 	            value.data());
-	LOG(INFO) << "HEADER - " << name << ": " << value;
+	LOG(INFO) << id << " | HEADER - " << name << ": " << value;
 	return *this;
 }
 
@@ -220,7 +249,7 @@ bool HttpRequest::send(size_t contentLength) {
 	struct evhttp_request *request = context->getRequest();
 	evhttp_add_header(request->output_headers, "Content-Length",
 			to_string(contentLength).data());
-	LOG(INFO)<<"HEADER - " << "Content-Length" << ": " <<
+	LOG(INFO) << id << " | HEADER - " << "Content-Length" << ": " <<
 			to_string(contentLength).data();
 
 	string fullPath = path +
@@ -230,8 +259,9 @@ bool HttpRequest::send(size_t contentLength) {
 	HttpConnection *connection = context->getConnection();
 	evhttp_make_request(connection->getConnection(),
 			context->getRequest(), method, fullPath.data());
-
+	start = getEpochNano();
 	connection->send();
+	LOG(INFO) << id << " | Async Request (Sent): " << url;
 	return true;
 }
 
@@ -255,6 +285,29 @@ string& HttpRequest::getResponseMime() {
 
 string& HttpRequest::getResponseText() {
 	return responseText;
+}
+
+bool HttpRequest::getResponseBody(uint8_t **body, uint32_t *length, HttpHeaders &headers) {
+	struct evhttp_request *evreq = context->getRequest();
+   struct evbuffer *bodyBuffer = evhttp_request_get_input_buffer(evreq);
+	 string cl = headers["content-length"];
+	 size_t contentLength = cl.length() > 0 ? atol(cl.c_str()) : 0;
+   size_t bodyLength = contentLength > 0 ? 
+	 	min(contentLength, evbuffer_get_length(bodyBuffer)) : evbuffer_get_length(bodyBuffer);
+   *body = (uint8_t *) malloc(bodyLength);
+   *length = evbuffer_remove(bodyBuffer, *body, bodyLength);
+   if(*length != bodyLength) {
+      LOG(INFO) << "Could not read entire body. Expected: " << bodyLength <<
+         " bytes, read: " << (*length) << " bytes";
+      return false;
+   } else {
+		 LOG(INFO) << "Read body: " << bodyLength << " bytes";
+      return true;
+   }
+}
+
+string &HttpRequest::getId() {
+	return id;
 }
 
 } // End namespace Client.
