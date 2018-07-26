@@ -103,6 +103,8 @@ string replace(string &s, const string &find, const string &replace);
 
 bool endsWith(const string &str, const string &suffix);
 
+string generateUUID();
+
 } // End namespace ChCppUtils.
 
 #endif /* SRC_CH_CPP_UTILS_UTILS_HPP_ */
