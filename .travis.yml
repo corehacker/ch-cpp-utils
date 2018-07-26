@@ -15,11 +15,14 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        
+before_install:
+    - eval "${MATRIX_EVAL}"
 
 before_script:
-  - curl -L https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz -o libevent-2.1.8-stable.tar.gz
-  - tar xvf libevent-2.1.8-stable.tar.gz && cd libevent-2.1.8-stable && ./configure && make && sudo make install && cd ..
-  - wget https://github.com/google/glog/archive/v0.3.5.tar.gz && tar xvf v0.3.5.tar.gz && cd glog-0.3.5 && ./configure && make && sudo make install && cd ..
+  - sudo apt-get update && sudo apt-get install -y --no-install-recommends cmake
+  - git clone https://github.com/corehacker/ch-third-party-libs && cd ch-third-party-libs && for file in `ls *.tar.bz2`; do tar xvf $file; done && sudo make glog libevent librdkafka opencv
+
 script: |
   ./autogen.sh
   ./configure
