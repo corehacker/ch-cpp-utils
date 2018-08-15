@@ -67,7 +67,7 @@ void RequestEvent::buildHeaderMap(evhttp_request *req) {
 	struct evkeyvalq *headers = req->input_headers;
 	struct evkeyval *header = headers->tqh_first;
 	while(header) {
-		LOG(INFO) << "Header: " << header->key << ": " << header->value;
+		// LOG(INFO) << "Header: " << header->key << ": " << header->value;
 		this->headers.insert(make_pair(header->key, header->value));
 		header = header->next.tqe_next;
 	}
@@ -188,7 +188,6 @@ void HttpThread::_onEvRequest(evhttp_request *request, void *arg) {
 }
 
 void HttpThread::onEvRequest(evhttp_request *request) {
-	LOG(INFO) << "New request from ";
 	Request *req = new Request(request);
 	onrequest.fire(req);
 	delete req;

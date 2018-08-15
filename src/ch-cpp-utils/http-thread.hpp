@@ -64,6 +64,12 @@ namespace Server {
 using HttpHeaders = unordered_map<string, string>;
 using HttpQuery = unordered_map<string, string>;
 
+class RequestMetadata {
+private:
+	string mUserAgent;
+	string mHttpMethod;
+};
+
 class Request {
 private:
 	evhttp_request *request;
