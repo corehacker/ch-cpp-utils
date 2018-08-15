@@ -141,7 +141,7 @@ string &DirTree::normalize(string &key) {
 	} else if (key[0] == '/') {
 		key.insert(0, ".", 0, 1);
 	}
-	LOG(INFO)<< "Actual Path: " + key;
+	// LOG(INFO)<< "Actual Path: " + key;
 	return key;
 }
 
@@ -194,7 +194,7 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 	while (true) {
 		token = getNextToken(key, from);
 		if (0 == token.size()) {
-			LOG(INFO)<< "End of tokens";
+			// LOG(INFO)<< "End of tokens";
 			break;
 		}
 //		LOG(INFO)<< "Token: " + token << " From: " << from;
@@ -231,8 +231,8 @@ void *DirTree::search(string key, SearchCbk cbk, void *this_) {
 	} // End of while.
 
 	if (found) {
-		LOG(INFO)<< "Found directory tree, key: \"" << key << "\", Node: \"" <<
-		node->getKey() << "\"";
+		// LOG(INFO)<< "Found directory tree, key: \"" << key << "\", Node: \"" <<
+		// node->getKey() << "\"";
 		return node->getData();
 	} else {
 		return nullptr;
