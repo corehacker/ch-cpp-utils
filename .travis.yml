@@ -21,7 +21,6 @@ before_install:
 
 before_script:
   - sudo apt-get update && sudo apt-get install -y --no-install-recommends cmake
-  - git clone https://github.com/corehacker/ch-third-party-libs && cd ch-third-party-libs && for file in `ls *.tar.bz2`; do tar xvf $file; done && sudo make glog libevent librdkafka opencv
 
 script: |
   ./autogen.sh
