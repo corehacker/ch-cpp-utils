@@ -2,7 +2,7 @@
  *
  *  BSD 2-Clause License
  *
- *  Copyright (c) 2017, Sandeep Prakash
+ *  Copyright (c) 2018, Sandeep Prakash
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,86 +28,37 @@
  ******************************************************************************/
 
 /*******************************************************************************
- * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
+ * Copyright (c) 2018, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-server.hpp
+ * \file   http.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 30, 2017
+ * \date   Aug 14, 2018
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <iostream>
-#include <vector>
-#include <deque>
-#include <mutex>
-#include <condition_variable>
-#include <stdlib.h>
-#include <thread>
+#ifndef SRC_HTTP_CLIENT_HTTP_HPP_
+#define SRC_HTTP_CLIENT_HTTP_HPP_
+
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <mutex>
+#include <algorithm>
+#include <event2/event.h>
 #include <event2/http.h>
 #include <event2/http_struct.h>
-#include <event2/keyvalq_struct.h>
+#include <event2/buffer.h>
 
-#include "thread-job.hpp"
-#include "thread-get-job.hpp"
-#include "http-thread.hpp"
-#include "http-router.hpp"
+#include "ch-cpp-utils/utils.hpp"
+#include "ch-cpp-utils/thread-pool.hpp"
+#include "ch-cpp-utils/thread-job.hpp"
+#include "ch-cpp-utils/http/client/http-client.hpp"
+#include "ch-cpp-utils/http/client/http-connection.hpp"
+#include "ch-cpp-utils/http/client/http-request.hpp"
 
-using std::string;
-using std::unordered_map;
-using std::make_pair;
-using std::shared_ptr;
-using std::make_shared;
-
-#ifndef SRC_HTTP_SERVER_HPP_
-#define SRC_HTTP_SERVER_HPP_
-
-#define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
-
-namespace ChCppUtils {
-namespace Http {
-namespace Server {
-
-class HttpServer {
-private:
-	std::vector<HttpThread *> mThreads;
-	uint32_t uiCount;
-	std::deque<ThreadJobBase *> mJobQueue;
-	std::mutex mMutex;
-	std::condition_variable mCondition;
-	Router router;
-	uint16_t mPort;
-
-	void createThreads();
-	ThreadJobBase *threadGetNextJob_();
-	static ThreadJobBase *getNextJob(void *this_);
-	static void *_workerRoutine(void *arg, struct event_base *base);
-
-	void send400BadRequest(evhttp_request *request);
-	void readBody(RequestEvent *event);
-
-	static void _onRequestEvent(RequestEvent *event, void *this_);
-	void onRequestEvent(RequestEvent *event);
-
-public:
-	HttpServer(uint16_t port, uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
-	~HttpServer();
-	void addJob (ThreadJobBase *job);
-	HttpServer &onRequest(_OnRequest onrequest, void *this_);
-	HttpServer &route(
-			const evhttp_cmd_type method,
-			const string path,
-			_OnRequest onrequest,
-			void *this_);
-};
-
-} // End namespace Server.
-} // End namespace Http.
-} // End namespace ChCppUtils.
-
-#endif /* SRC_HTTP_SERVER_HPP_ */
+#endif /* SRC_HTTP_CLIENT_HTTP_HPP_ */

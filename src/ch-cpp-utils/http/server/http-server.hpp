@@ -30,61 +30,66 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-connection.hpp
+ * \file   http-server.hpp
  *
  * \author Sandeep Prakash
  *
- * \date   Oct 17, 2017
+ * \date   Oct 30, 2017
  *
  * \brief
  *
  ******************************************************************************/
 
-#include <memory>
-#include <string>
-
-#ifndef SRC_HTTP_CONNECTION_HPP_
-#define SRC_HTTP_CONNECTION_HPP_
-
 using std::string;
-using std::to_string;
+using std::unordered_map;
+using std::make_pair;
+using std::shared_ptr;
+using std::make_shared;
+
+#ifndef SRC_HTTP_SERVER_HPP_
+#define SRC_HTTP_SERVER_HPP_
+
+#define HTTP_SERVER_POOL_DEFAULT_COUNT (8)
 
 namespace ChCppUtils {
 namespace Http {
-namespace Client {
+namespace Server {
 
-class HttpClientImpl;
-
-using HttpClient = std::shared_ptr<HttpClientImpl>;
-
-class HttpConnection {
+class HttpServer {
 private:
-	string id;
-	HttpClientImpl *client;
-	struct evhttp_connection *connection;
-	bool busy;
-	string mHostname;
-    uint16_t mPort;
+	std::vector<HttpThread *> mThreads;
+	uint32_t uiCount;
+	std::deque<ThreadJobBase *> mJobQueue;
+	std::mutex mMutex;
+	std::condition_variable mCondition;
+	Router router;
+	uint16_t mPort;
+
+	void createThreads();
+	ThreadJobBase *threadGetNextJob_();
+	static ThreadJobBase *getNextJob(void *this_);
+	static void *_workerRoutine(void *arg, struct event_base *base);
+
+	void send400BadRequest(evhttp_request *request);
+	void readBody(RequestEvent *event);
+
+	static void _onRequestEvent(RequestEvent *event, void *this_);
+	void onRequestEvent(RequestEvent *event);
+
 public:
-	HttpConnection(HttpClientImpl *client, string hostname, uint16_t port);
-	~HttpConnection();
-	void connect();
-	void destroy();
-	string getConnectionId();
-	bool isBusy();
-	void setBusy(bool busy);
-	struct evhttp_connection* getConnection();
-	void setConnection(struct evhttp_connection* connection);
-	HttpClientImpl* getClient();
-	void setClient(HttpClientImpl* client);
-	void send();
-	void release();
-	void reset();
-	string &getId();
+	HttpServer(uint16_t port, uint32_t uiCount = HTTP_SERVER_POOL_DEFAULT_COUNT);
+	~HttpServer();
+	void addJob (ThreadJobBase *job);
+	HttpServer &onRequest(_OnRequest onrequest, void *this_);
+	HttpServer &route(
+			const evhttp_cmd_type method,
+			const string path,
+			_OnRequest onrequest,
+			void *this_);
 };
 
-} // End namespace Client.
+} // End namespace Server.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CONNECTION_HPP_ */
+#endif /* SRC_HTTP_SERVER_HPP_ */

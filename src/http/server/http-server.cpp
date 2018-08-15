@@ -40,13 +40,8 @@
  *
  ******************************************************************************/
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "http-common.hpp"
 #include <glog/logging.h>
-#include "utils.hpp"
-#include "http-server.hpp"
+#include "ch-cpp-utils/http/server/http.hpp"
 
 using ChCppUtils::Http::getMethod;
 

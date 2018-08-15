@@ -5,7 +5,7 @@
  *      Author: corehacker
  */
 
-#include "ch-cpp-utils/http-thread.hpp"
+#include "ch-cpp-utils/http/server/http.hpp"
 
 using ChCppUtils::Http::Server::HttpThread;
 

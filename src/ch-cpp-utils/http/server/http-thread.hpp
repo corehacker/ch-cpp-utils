@@ -39,16 +39,6 @@
  * \brief
  *
  ******************************************************************************/
-#include <unordered_map>
-#include <string>
-#include <event2/http.h>
-#include <event2/http_struct.h>
-#include <event2/keyvalq_struct.h>
-#include <event2/buffer.h>
-
-#include "thread-job.hpp"
-#include "thread-get-job.hpp"
-#include "thread.hpp"
 
 using std::unordered_map;
 using std::string;
@@ -64,18 +54,28 @@ namespace Server {
 using HttpHeaders = unordered_map<string, string>;
 using HttpQuery = unordered_map<string, string>;
 
+class HttpThread;
+
 class RequestMetadata {
 private:
 	string mUserAgent;
 	string mHttpMethod;
+
+public:
+	RequestMetadata();
+	~RequestMetadata();
 };
 
 class Request {
 private:
+	HttpThread *mThreadCtxt;
 	evhttp_request *request;
+	RequestMetadata metadata;
 public:
-	Request(evhttp_request *request);
+	Request(HttpThread *threadCtxt, evhttp_request *request);
 	evhttp_request *getRequest();
+	HttpThread *getThreadCtxt();
+	void accessLog();
 };
 
 class RequestEvent {
@@ -131,6 +131,9 @@ private:
 
 	static void _onEvRequest(evhttp_request *request, void *arg);
 	void onEvRequest(evhttp_request *request);
+
+	static void _onEvRequestComplete(struct evhttp_request *request, void *arg);
+	void onEvRequestComplete(Request *request);
 
 	static void _init(void *this_);
 	void init();
