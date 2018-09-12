@@ -11,6 +11,7 @@ steps:
     mkdir -p deps && cd deps
     curl -L https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz -o libevent-2.1.8-stable.tar.gz
     tar xvf libevent-2.1.8-stable.tar.gz && cd libevent-2.1.8-stable && ./configure && make && sudo make install && cd ..
+    wget https://github.com/google/glog/archive/v0.3.5.tar.gz && tar xvf v0.3.5.tar.gz && cd glog-0.3.5 && ./configure && make && sudo make install && cd ..
     cd ..
     ./autogen.sh
     ./configure
