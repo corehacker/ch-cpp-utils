@@ -1,5 +1,6 @@
 # ch-cpp-utils
 
+[![Build Status](https://dev.azure.com/prakashsandeep/prakashsandeep/_apis/build/status/corehacker.ch-cpp-utils)](https://dev.azure.com/prakashsandeep/prakashsandeep/_build/latest?definitionId=1)
 
 * Multithreaded Asynchronous HTTP server using libevent.
 * Configurable request router using event registration mechanism.
