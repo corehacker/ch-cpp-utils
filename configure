@@ -632,6 +632,17 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+BUILDING_DEB_FALSE
+BUILDING_DEB_TRUE
+CP
+ECHO
+CAT
+CHMOD
+XARGS
+MV
+TAR
+DEBUILD
+TEST
 CXXCPP
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -768,6 +779,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_libevent
+enable_deb
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1423,6 +1435,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-deb=[yes/no]   Configure for building Debian package [default=no]
+                          (requires dpkg-buildpackage)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2349,6 +2363,8 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
 
+
+# dist-xz/no-dist-gzip: distribute .tar.xz instead of .tar.gz
 am__api_version='1.15'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -5506,6 +5522,7 @@ unknown)
   ;;
 esac
 
+                   # mkdir -p
 case `pwd` in
   *\ * | *\	*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -16630,6 +16647,370 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+# Test is required for these option checks
+# Extract the first word of "test", so it can be a program name with args.
+set dummy test; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_TEST+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $TEST in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TEST="$TEST" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_TEST="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+TEST=$ac_cv_path_TEST
+if test -n "$TEST"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TEST" >&5
+$as_echo "$TEST" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "dpkg-buildpackage", so it can be a program name with args.
+set dummy dpkg-buildpackage; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_DEBUILD+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $DEBUILD in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DEBUILD="$DEBUILD" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_DEBUILD="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_DEBUILD" && ac_cv_path_DEBUILD="notfound"
+  ;;
+esac
+fi
+DEBUILD=$ac_cv_path_DEBUILD
+if test -n "$DEBUILD"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DEBUILD" >&5
+$as_echo "$DEBUILD" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "tar gtar", so it can be a program name with args.
+set dummy tar gtar; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_TAR+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $TAR in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TAR="$TAR" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_TAR="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+TAR=$ac_cv_path_TAR
+if test -n "$TAR"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TAR" >&5
+$as_echo "$TAR" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+   # tar
+# Extract the first word of "mv", so it can be a program name with args.
+set dummy mv; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_MV+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $MV in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MV="$MV" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_MV="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+MV=$ac_cv_path_MV
+if test -n "$MV"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MV" >&5
+$as_echo "$MV" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+          # mv
+# Extract the first word of "xargs", so it can be a program name with args.
+set dummy xargs; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_XARGS+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $XARGS in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XARGS="$XARGS" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_XARGS="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+XARGS=$ac_cv_path_XARGS
+if test -n "$XARGS"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XARGS" >&5
+$as_echo "$XARGS" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+    # xargs
+# Extract the first word of "chmod", so it can be a program name with args.
+set dummy chmod; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CHMOD+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CHMOD in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CHMOD="$CHMOD" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CHMOD="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CHMOD=$ac_cv_path_CHMOD
+if test -n "$CHMOD"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CHMOD" >&5
+$as_echo "$CHMOD" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+    # chmod
+# Extract the first word of "cat", so it can be a program name with args.
+set dummy cat; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CAT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CAT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CAT="$CAT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CAT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CAT=$ac_cv_path_CAT
+if test -n "$CAT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CAT" >&5
+$as_echo "$CAT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+        # cat
+# Extract the first word of "echo", so it can be a program name with args.
+set dummy echo; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ECHO+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ECHO in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ECHO="$ECHO" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ECHO="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ECHO=$ac_cv_path_ECHO
+if test -n "$ECHO"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ECHO" >&5
+$as_echo "$ECHO" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+      # echo
+# Extract the first word of "cp", so it can be a program name with args.
+set dummy cp; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CP in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CP="$CP" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CP="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CP=$ac_cv_path_CP
+if test -n "$CP"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CP" >&5
+$as_echo "$CP" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+          # cp
+
+
 CXXFLAGS="$CXXFLAGS -Wall -std=c++0x"
 LIBS="-lpthread -lrt -lm $LIBS"
 
@@ -16847,6 +17228,32 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+##########################################################################
+# --enable-deb copies only the ni executable to the dist package, for use in
+# building DEB packages.
+##########################################################################
+# Check whether --enable-deb was given.
+if test "${enable_deb+set}" = set; then :
+  enableval=$enable_deb; if $TEST "x$enable_deb" = xyes; then :
+  if $TEST "x$DEBUILD" = xnotfound; then :
+  as_fn_error $? "dpkg-buildpackage is required for --enable-deb" "$LINENO" 5
+elif $TEST "x$enable_rpm" = xyes; then :
+  as_fn_error $? "--enable-rpm and --enable-deb are mutually exclusive" "$LINENO" 5
+fi
+fi
+else
+  enable_deb=no
+fi
+
+ if $TEST "x$enable_deb" = xyes; then
+  BUILDING_DEB_TRUE=
+  BUILDING_DEB_FALSE='#'
+else
+  BUILDING_DEB_TRUE='#'
+  BUILDING_DEB_FALSE=
+fi
+
+
 ac_config_headers="$ac_config_headers config.h"
 
 ac_config_files="$ac_config_files Makefile src/Makefile test/Makefile"
@@ -16990,6 +17397,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILDING_DEB_TRUE}" && test -z "${BUILDING_DEB_FALSE}"; then
+  as_fn_error $? "conditional \"BUILDING_DEB\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

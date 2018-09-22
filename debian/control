@@ -1,0 +1,22 @@
+Source: ch-cpp-utils
+Section: non-free/devel
+Priority: optional
+Maintainer: Sandeep Prakash <123sandy@gmail.com>
+Build-Depends: autoconf (>= 2.64),
+               automake (>= 1.11),
+               autopoint,
+               autotools-dev,
+               debhelper (>= 9),
+               libgoogle-perftools-dev,
+               libgoogle-glog-dev,
+               libevent-dev,
+               pkg-config
+Standards-Version: 3.9.4
+Homepage: https://github.com/corehacker/ch-cpp-utils
+
+Package: ch-cpp-utils
+Architecture: any
+Depends: ${misc:Depends}
+Description: C++ utility library. Directory Tree (Trie), File System Watcher, 
+ File Tree Walk, Semaphore, Http Client, TCP Client, TCP Listener, TCP Server,
+ Thread Pool and Thread.

@@ -26,6 +26,15 @@ test/test-timer
 test/test-utils
 test/test-proc-stat
 data
+ch-cpp-utils-0.0.1.tar.gz
+ch-cpp-utils-0.0.1/
+ch-cpp-utils-dbgsym_0.1_amd64.ddeb
+ch-cpp-utils_0.0.1.orig.tar.xz
+ch-cpp-utils_0.1.dsc
+ch-cpp-utils_0.1.tar.gz
+ch-cpp-utils_0.1_amd64.buildinfo
+ch-cpp-utils_0.1_amd64.changes
+ch-cpp-utils_0.1_amd64.deb
 
 # Prerequisites
 *.d
