@@ -45,8 +45,7 @@
 #include <event2/http.h>
 #include "ch-cpp-utils/base64.h"
 #include "ch-cpp-utils/semaphore.hpp"
-#include "ch-cpp-utils/http-client.hpp"
-#include "ch-cpp-utils/http-request.hpp"
+#include "ch-cpp-utils/http/client/http.hpp"
 #include "ch-cpp-utils/third-party/json/json.hpp"
 
 using std::string;

@@ -30,7 +30,7 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   http-client.hpp
+ * \file   http-connection.hpp
  *
  * \author Sandeep Prakash
  *
@@ -40,79 +40,48 @@
  *
  ******************************************************************************/
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <mutex>
-#include <ch-cpp-utils/thread-pool.hpp>
-#include <ch-cpp-utils/thread-job.hpp>
+#ifndef SRC_HTTP_CLIENT_HTTP_CONNECTION_HPP_
+#define SRC_HTTP_CLIENT_HTTP_CONNECTION_HPP_
 
-#ifndef SRC_HTTP_CLIENT_HPP_
-#define SRC_HTTP_CLIENT_HPP_
-
-using std::shared_ptr;
-using std::make_shared;
 using std::string;
-using std::unordered_map;
-using std::unordered_set;
-using std::mutex;
-using std::lock_guard;
 using std::to_string;
-using std::make_pair;
-
-using ChCppUtils::ThreadPool;
-using ChCppUtils::ThreadJob;
 
 namespace ChCppUtils {
 namespace Http {
 namespace Client {
 
 class HttpClientImpl;
-class HttpConnection;
 
 using HttpClient = std::shared_ptr<HttpClientImpl>;
 
-class HttpClientImpl {
+class HttpConnection {
 private:
-  string id;
-   string mHostname;
-   uint16_t mPort;
-   ThreadPool *mPool;
-   struct event_base *mBase;
-
-   mutex mMutex;
-   unordered_map<string, HttpConnection *> mConnections;
-   unordered_set<string> mFree;
-
-   HttpClientImpl();
-   HttpClientImpl(string &hostname, uint16_t port);
-
-   static void _evConnectionClosed (struct evhttp_connection *conn, void *arg);
-	void evConnectionClosed(struct evhttp_connection *conn,
-			HttpConnection *connection);
-
-	void closeConnctions();
+	string id;
+	HttpClientImpl *client;
+	struct evhttp_connection *connection;
+	bool busy;
+	string mHostname;
+    uint16_t mPort;
 public:
-   ~HttpClientImpl();
-   static HttpClient NewInstance(string hostname, uint16_t port);
-   static void DeleteInstances();
-
-   struct event_base *getBase();
-
-   static void *_dispatch(void *arg, struct event_base *base);
-   void *dispatch();
-
-   HttpConnection *open(evhttp_cmd_type method, string url);
-   void close(HttpConnection *connection);
-
-   string &getId();
-
-   void send();
+	HttpConnection(HttpClientImpl *client, string hostname, uint16_t port);
+	~HttpConnection();
+	void connect();
+	void destroy();
+	string getConnectionId();
+	bool isBusy();
+	void setBusy(bool busy);
+	struct evhttp_connection* getConnection();
+	void setConnection(struct evhttp_connection* connection);
+	HttpClientImpl* getClient();
+	void setClient(HttpClientImpl* client);
+	void send();
+	void release();
+	void reset();
+	string &getId();
 };
 
 } // End namespace Client.
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_CLIENT_HPP_ */
+#endif /* SRC_HTTP_CLIENT_HTTP_CONNECTION_HPP_ */

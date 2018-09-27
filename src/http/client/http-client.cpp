@@ -40,16 +40,8 @@
  *
  ******************************************************************************/
 
-#include <event2/event.h>
-#include <event2/http.h>
-#include <event2/http_struct.h>
-#include <event2/buffer.h>
 #include <glog/logging.h>
-
-#include "utils.hpp"
-
-#include "http-client.hpp"
-#include "http-connection.hpp"
+#include "http/client/http.hpp"
 
 namespace ChCppUtils {
 namespace Http {

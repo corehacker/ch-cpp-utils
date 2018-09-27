@@ -40,13 +40,8 @@
  *
  ******************************************************************************/
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "http-common.hpp"
 #include <glog/logging.h>
-#include "utils.hpp"
-#include "http-server.hpp"
+#include "ch-cpp-utils/http/server/http.hpp"
 
 using ChCppUtils::Http::getMethod;
 
@@ -99,7 +94,16 @@ void *HttpServer::_workerRoutine (void *arg, struct event_base *base) {
 }
 
 void HttpServer::send400BadRequest(evhttp_request *request) {
-	send400BadRequest(request);
+	struct evbuffer *buffer = evhttp_request_get_output_buffer(request);
+	if (!buffer) {
+		LOG(INFO) << "Cannot send response!";
+		return;
+	}
+	evbuffer_add_printf(buffer,
+			"<html><body><center><h1>Bad Request</h1></center></body></html>");
+	evhttp_send_reply(request, HTTP_BADREQUEST, "", buffer);
+
+	LOG(INFO) << "Sending " << HTTP_BADREQUEST;
 }
 
 void HttpServer::readBody(RequestEvent *event) {
@@ -145,6 +149,7 @@ void HttpServer::onRequestEvent(RequestEvent *event) {
 
 	Route *route = router.getRoute(method, path);
 	if(!route) {
+		LOG(INFO) << "No route found!";
 		send400BadRequest(request);
 	} else {
 		readBody(event);
@@ -177,6 +182,7 @@ ThreadJobBase *HttpServer::threadGetNextJob_ () {
       if (!mJobQueue.empty ()) {
          ThreadJobBase *job = mJobQueue.at (0);
          mJobQueue.pop_front ();
+				 LOG(INFO) << " >>>>> Next Job";
          return job;
       } else {
          mCondition.wait (lk);
