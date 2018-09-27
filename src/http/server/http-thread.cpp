@@ -40,8 +40,8 @@
  *
  ******************************************************************************/
 
-#include "http-thread.hpp"
 #include <glog/logging.h>
+#include "ch-cpp-utils/http/server/http.hpp"
 
 namespace ChCppUtils {
 namespace Http {
@@ -49,12 +49,29 @@ namespace Server {
 
 struct evhttp_bound_socket *HttpThread::evListenSocket = nullptr;
 
-Request::Request(evhttp_request *request) {
+RequestMetadata::RequestMetadata() {
+
+}
+
+RequestMetadata::~RequestMetadata() {
+
+}
+
+Request::Request(HttpThread *threadCtxt, evhttp_request *request) {
+	this->mThreadCtxt = threadCtxt;
 	this->request = request;
 }
 
 evhttp_request *Request::getRequest() {
 	return request;
+}
+
+HttpThread *Request::getThreadCtxt() {
+	return mThreadCtxt;
+}
+
+void Request::accessLog() {
+	LOG(INFO) << "Request onComplete";
 }
 
 string RequestEvent::getNextQuery(string path, size_t from) {
@@ -67,7 +84,7 @@ void RequestEvent::buildHeaderMap(evhttp_request *req) {
 	struct evkeyvalq *headers = req->input_headers;
 	struct evkeyval *header = headers->tqh_first;
 	while(header) {
-		LOG(INFO) << "Header: " << header->key << ": " << header->value;
+		// LOG(INFO) << "Header: " << header->key << ": " << header->value;
 		this->headers.insert(make_pair(header->key, header->value));
 		header = header->next.tqe_next;
 	}
@@ -182,14 +199,24 @@ HttpThread::~HttpThread() {
 	LOG(INFO) << "*****~HttpThread";
 }
 
+void HttpThread::_onEvRequestComplete(struct evhttp_request *request, void *arg) {
+	Request *ctxt = (Request *) arg;
+	ctxt->getThreadCtxt()->onEvRequestComplete(ctxt);
+}
+
+void HttpThread::onEvRequestComplete(Request *request) {
+	request->accessLog();
+}
+
 void HttpThread::_onEvRequest(evhttp_request *request, void *arg) {
 	HttpThread *thread = (HttpThread *) arg;
 	thread->onEvRequest(request);
 }
 
 void HttpThread::onEvRequest(evhttp_request *request) {
-	LOG(INFO) << "New request from ";
-	Request *req = new Request(request);
+	Request *req = new Request(this, request);
+	request->on_complete_cb = HttpThread::_onEvRequestComplete;
+	request->on_complete_cb_arg = req;
 	onrequest.fire(req);
 	delete req;
 }

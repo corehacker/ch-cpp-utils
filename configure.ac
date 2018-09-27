@@ -127,6 +127,28 @@ else
 fi
 AC_LANG_POP
 
+##########################################################################
+# check for tcmalloc and profiler library
+##########################################################################
+#dnl add the external library to the list of libraries which will be used for our test program
+LIBS="-lprofiler -ltcmalloc $LIBS"
+
+AC_LANG_PUSH([C++])
+#dnl check for the presence of 'libtotest'
+AC_MSG_CHECKING([for the tcmalloc and profiler availability])
+AC_LINK_IFELSE([
+                AC_LANG_PROGRAM([#include <gperftools/tcmalloc.h>],
+                                [tc_malloc_stats();])
+                ],
+                [LIBCH_TCMALLOC_PRESENCE=1], [LIBCH_TCMALLOC_PRESENCE=0])
+
+if test "$LIBCH_TCMALLOC_PRESENCE" = "1"; then
+    AC_MSG_RESULT([found])
+else
+    AC_MSG_ERROR([not found !])
+fi
+AC_LANG_POP
+
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES(Makefile src/Makefile test/Makefile)
 AC_OUTPUT
