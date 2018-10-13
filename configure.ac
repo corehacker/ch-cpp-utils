@@ -1,7 +1,9 @@
 AC_INIT([ch-cpp-utils], [0.0.1])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([subdir-objects foreign -Wall -Werror])
+
+# dist-xz/no-dist-gzip: distribute .tar.xz instead of .tar.gz
+AM_INIT_AUTOMAKE([subdir-objects foreign -Wall -Werror dist-xz no-dist-gzip])
 AM_SILENT_RULES([yes])
 AC_HEADER_STDC
 AC_TYPE_SIZE_T
@@ -9,9 +11,22 @@ AC_SUBST([AM_CXXFLAGS])
 AC_PROG_CC([gcc])
 AC_PROG_CXX([g++])
 AM_PROG_AR
+AC_PROG_MKDIR_P                   # mkdir -p
 LT_INIT
 AC_CHECK_TOOLS(CXX, [$CCC c++ g++ gcc CC cxx cc++ cl], gcc)
 AC_LANG([C])
+
+# Test is required for these option checks
+AC_PATH_PROG([TEST], [test])
+AC_PATH_PROG([DEBUILD], [dpkg-buildpackage], [notfound])
+AC_PATH_PROG([TAR], [tar gtar])   # tar
+AC_PATH_PROG([MV], [mv])          # mv
+AC_PATH_PROG([XARGS], [xargs])    # xargs
+AC_PATH_PROG([CHMOD], [chmod])    # chmod
+AC_PATH_PROG([CAT], [cat])        # cat
+AC_PATH_PROG([ECHO], [echo])      # echo
+AC_PATH_PROG([CP], [cp])          # cp
+
 
 CXXFLAGS="$CXXFLAGS -Wall -std=c++0x"
 LIBS="-lpthread -lrt -lm $LIBS"
@@ -148,6 +163,21 @@ else
     AC_MSG_ERROR([not found !])
 fi
 AC_LANG_POP
+
+##########################################################################
+# --enable-deb copies only the ni executable to the dist package, for use in
+# building DEB packages.
+##########################################################################
+AC_ARG_ENABLE([deb],
+	[AS_HELP_STRING([--enable-deb=@<:@yes/no@:>@],
+		[Configure for building Debian package @<:@default=no@:>@ (requires dpkg-buildpackage)])],
+	[AS_IF([$TEST "x$enable_deb" = xyes],
+		[AS_IF([$TEST "x$DEBUILD" = xnotfound],
+			[AC_MSG_ERROR([dpkg-buildpackage is required for --enable-deb])],
+		[$TEST "x$enable_rpm" = xyes],
+			[AC_MSG_ERROR([--enable-rpm and --enable-deb are mutually exclusive])])])],
+	[enable_deb=no])
+AM_CONDITIONAL([BUILDING_DEB], [$TEST "x$enable_deb" = xyes])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES(Makefile src/Makefile test/Makefile)
