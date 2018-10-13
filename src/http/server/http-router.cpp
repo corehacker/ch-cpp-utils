@@ -40,9 +40,8 @@
  *
  ******************************************************************************/
 
-#include "http-common.hpp"
 #include <glog/logging.h>
-#include <http-router.hpp>
+#include "ch-cpp-utils/http/server/http.hpp"
 
 using ChCppUtils::Http::getMethod;
 

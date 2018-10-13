@@ -40,17 +40,6 @@
  *
  ******************************************************************************/
 
-#include <iostream>
-#include <stdlib.h>
-#include <string>
-#include <unordered_map>
-#include <event2/http.h>
-#include <event2/http_struct.h>
-#include <event2/keyvalq_struct.h>
-
-#include "dirtree.hpp"
-#include "http-thread.hpp"
-
 using std::string;
 using std::unordered_map;
 using std::make_pair;

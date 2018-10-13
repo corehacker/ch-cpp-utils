@@ -40,10 +40,8 @@
  *
  ******************************************************************************/
 
-#include "ch-cpp-utils/http-client.hpp"
-
-#ifndef SRC_HTTP_REQUEST_HPP_
-#define SRC_HTTP_REQUEST_HPP_
+#ifndef SRC_HTTP_CLIENT_HTTP_REQUEST_HPP_
+#define SRC_HTTP_CLIENT_HTTP_REQUEST_HPP_
 
 namespace ChCppUtils {
 namespace Http {
@@ -208,4 +206,4 @@ public:
 } // End namespace Http.
 } // End namespace ChCppUtils.
 
-#endif /* SRC_HTTP_REQUEST_HPP_ */
+#endif /* SRC_HTTP_CLIENT_HTTP_REQUEST_HPP_ */
