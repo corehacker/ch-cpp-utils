@@ -77,3 +77,7 @@ m4
 aclocal.m4
 
 Makefile.in
+
+.vscode
+test/log
+lo
