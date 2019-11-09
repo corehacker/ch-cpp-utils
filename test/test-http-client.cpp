@@ -88,7 +88,7 @@ static void onLoad(HttpRequestLoadEvent *event, void *this_) {
 
 void makeRequest(string postfix) {
    // string url = "http://127.0.0.1:8887/" + postfix;
-   string url = "http://127.0.0.1:9999/ifconfig/json";
+   string url = "http://ifconfig.co:80/";
    httpRequest = new HttpRequest();
    httpRequest->onLoad(onLoad).bind(nullptr);
    httpRequest->open(EVHTTP_REQ_GET, url)
