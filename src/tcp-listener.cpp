@@ -98,7 +98,7 @@ void TcpListener::eventDispatch (struct event_base *base)
    mEvent = event_new(base, mFd, EV_READ,
                       TcpListener::evNewConnection, this);
 
-   struct timeval to = {0xFFFFFFFF, 0xFFFFFFFF};
+   struct timeval to = {(time_t) 0xFFFFFFFF, (time_t) 0xFFFFFFFF};
    event_add(mEvent, &to);
 
    LOG(INFO) << "Listening on " << mPort << std::endl;
