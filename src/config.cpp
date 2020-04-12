@@ -66,18 +66,16 @@ bool Config::selectConfigFile() {
 	string selected = "";
 	if(!fileExists(etcConfigPath)) {
 		if(!fileExists(localConfigPath)) {
-			LOG(ERROR) << "No config file found in /etc/ch-storage-client or " <<
-					"./config. I am looking for ch-storage-client.json";
+			LOG(ERROR) << "No config file found in " << etcConfigPath << " or " << 
+				localConfigPath << ". I am looking for " << etcConfigPath << " or " << localConfigPath;
 			return false;
 		} else {
-			LOG(INFO) << "Found config file "
-					"./config/ch-storage-client.json";
+			LOG(INFO) << "Found config file " << localConfigPath;
 			selectedConfigPath = localConfigPath;
 			return true;
 		}
 	} else {
-		LOG(INFO) << "Found config file "
-				"/etc/ch-storage-client/ch-storage-client.json";
+		LOG(INFO) << "Found config file " << etcConfigPath;
 		selectedConfigPath = etcConfigPath;
 		return true;
 	}
