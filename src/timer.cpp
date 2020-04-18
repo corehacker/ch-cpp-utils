@@ -86,7 +86,8 @@ void TimerEvent::setEvent(struct event *event) {
 
 Timer::Timer(uint32_t count) {
 	LOG(INFO) << "*****Timer";
-	mPool = new ThreadPool(count, true);
+	mPool = new ThreadPool(1, true);
+	mThreads = mPool->getThreads();
 }
 
 Timer::~Timer() {
@@ -102,33 +103,49 @@ void Timer::_onEvTimer (evutil_socket_t fd, short what, void *this_) {
 }
 
 void *Timer::_timerRoutine (void *this_, struct event_base *base) {
-//   LOG(INFO) << "Running timer Event Job, Base: " << base;
-   TimerEvent *event = (TimerEvent *) this_;
-   struct event *ev = event->getEvent();
-   if(!ev) {
-	   LOG(INFO) << "Creating ev event.";
-	   ev =  evtimer_new(base, Timer::_onEvTimer, event);
-	   event->setEvent(ev);
-   }
-   evtimer_add(ev, event->getTv());
-   event_base_dispatch(base);
-   return NULL;
+	event_base_dispatch(base);
+    return NULL;
+}
+
+struct event_base *Timer::getThreadEventBase() {
+	Thread *thread = mThreads[0];
+	struct event_base *base = thread->getEventBase();
+	return base;
+}
+
+void Timer::create_(TimerEvent *event) {
+	struct event_base *base = getThreadEventBase();
+
+	struct event *ev = evtimer_new(base, Timer::_onEvTimer, event);
+	event->setEvent(ev);
+	evtimer_add(ev, event->getTv());
+
+	
+	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
+	mPool->addJob(job);
 }
 
 TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
 		void *this_) {
 	LOG(INFO) << "Creating timer: " << tv->tv_sec << "s, " << tv->tv_usec << "us";
 	TimerEvent *event = new TimerEvent(this, tv, onTimerEvent, this_);
-	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
-	mPool->addJob(job);
+	create_(event);
 	return event;
 }
 
 void Timer::restart(TimerEvent *event) {
-//	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
-//			event->getTv()->tv_usec << "us";
+	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
+			event->getTv()->tv_usec << "us";
+	struct event *ev = event->getEvent();
+	event_remove_timer(ev);
+	evtimer_del(ev);
+	event->setEvent(nullptr);
+	free(ev);
+
 	ThreadJob *job = new ThreadJob(Timer::_timerRoutine, event);
 	mPool->addJob(job);
+
+	create_(event);
 }
 
 void Timer::destroy(TimerEvent *event) {

@@ -106,6 +106,10 @@ ThreadPool::addJob (ThreadJobBase *job)
    mCondition.notify_one();
 }
 
+std::vector<Thread *> ThreadPool::getThreads() {
+   return mThreads;
+}
+
 ThreadJobBase *
 ThreadPool::threadGetNextJob_ ()
 {

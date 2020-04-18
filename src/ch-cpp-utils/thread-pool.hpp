@@ -68,6 +68,7 @@ class ThreadPool
                   bool base = false);
       ~ThreadPool ();
       void addJob (ThreadJobBase *job);
+      std::vector<Thread *> getThreads();
    private:
       std::deque<ThreadJobBase *> mJobQueue;
       std::mutex mMutex;
