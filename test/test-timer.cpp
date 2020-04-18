@@ -15,7 +15,7 @@ static void onTimerEvent(TimerEvent *event, void *this_);
 
 static void onTimerEvent(TimerEvent *event, void *this_) {
 	LOG(INFO) << "Timer fired!!";
-	event->getTimer()->restart(event);
+	// event->getTimer()->restart(event);
 }
 
 int main(int argc, char **argv) {
@@ -23,12 +23,15 @@ int main(int argc, char **argv) {
 
 	struct timeval tv = {0};
 	LOG(INFO) << "Creating timer";
-	tv.tv_sec = 10;
+	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 
 	TimerEvent *event = timer->create(&tv, onTimerEvent, nullptr);
+	THREAD_SLEEP_2S;
+	timer->restart(event);
+	THREAD_SLEEP_10S;
 	THREAD_SLEEP_5S;
-	timer->destroy(event);
+	// timer->destroy(event);
 
 //	THREAD_SLEEP_2S;
 //

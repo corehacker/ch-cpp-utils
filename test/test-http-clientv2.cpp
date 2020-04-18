@@ -30,78 +30,20 @@
 /*******************************************************************************
  * Copyright (c) 2017, Sandeep Prakash <123sandy@gmail.com>
  *
- * \file   timer.hpp
+ * \file   test-http-client.cpp
  *
  * \author Sandeep Prakash
  *
- * \date   Nov 05, 2017
+ * \date   Oct 17, 2017
  *
  * \brief
  *
  ******************************************************************************/
-#include <string>
-
-#include "thread.hpp"
-#include "thread-pool.hpp"
-
-#ifndef SRC_TIMER_HPP_
-#define SRC_TIMER_HPP_
-
-#define TIMER_DEFAULT_THREAD_COUNT 1
-
-namespace ChCppUtils {
-
-class Timer;
-class TimerEvent;
-
-typedef void (*OnTimerEvent) (TimerEvent *event, void *this_);
-
-class Timer;
-
-class TimerEvent {
-public:
-	TimerEvent(Timer *timer, struct timeval *tv,
-			OnTimerEvent onTimerEvent, void *this_);
-	~TimerEvent();
-
-	OnTimerEvent getOnTimerEvent();
-	void *getThis_();
-	struct timeval *getTv();
-	Timer *getTimer();
-	struct event *getEvent();
-
-	void setEvent(struct event *event);
-private:
-	Timer *mTimer;
-	OnTimerEvent mOnTimerEvent;
-	void *mThis_;
-	struct event *mEvent;
-	struct timeval *mTv;
-};
-
-class Timer {
-private:
-	ThreadPool *mPool;
-
-	std::vector<Thread *> mThreads;
-
-	static void _onEvTimer(evutil_socket_t fd, short what, void *this_);
-	static void *_timerRoutine (void *this_, struct event_base *base);
-
-	struct event_base *getThreadEventBase();
-	void create_(TimerEvent *event);
-
-public:
-	Timer(uint32_t count = TIMER_DEFAULT_THREAD_COUNT);
-	~Timer();
-	TimerEvent *create(struct timeval *tv, OnTimerEvent onTimerEvent,
-			void *this_);
-	void restart(TimerEvent *event);
-	void destroy(TimerEvent *event);
-
-};
+#include <glog/logging.h>
+#include "ch-cpp-utils/http/clientv2/http.hpp"
 
 
-} // End namespace ChCppUtils.
+int main(int argc, char* argv[]) {
+	google::InstallFailureSignalHandler();
 
-#endif /* SRC_TIMER_HPP_ */
+}
