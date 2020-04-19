@@ -134,8 +134,8 @@ TimerEvent *Timer::create(struct timeval *tv, OnTimerEvent onTimerEvent,
 }
 
 void Timer::restart(TimerEvent *event) {
-	LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
-			event->getTv()->tv_usec << "us";
+	// LOG(INFO) << "Restarting timer: " << event->getTv()->tv_sec << "s, " <<
+	// 		event->getTv()->tv_usec << "us";
 	struct event *ev = event->getEvent();
 	event_remove_timer(ev);
 	evtimer_del(ev);
