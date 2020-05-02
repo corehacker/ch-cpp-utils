@@ -56,6 +56,7 @@ HttpClientImpl::HttpClientImpl() {
 	mPort = 80;
 	mBase = event_base_new();
 	mPool = new ThreadPool(1, false);
+
 	LOG(INFO) << "new HttpClientImpl: " << id;
 }
 
@@ -118,7 +119,7 @@ void HttpClientImpl::evConnectionClosed (struct evhttp_connection *conn,
 	LOG(INFO) << "Setting connection context for reuse: " << id;
 	lock_guard<mutex> lock(mMutex);
 	connection->reset();
-	mFree.insert(connection->getConnectionId());
+	mFree.insert(connection->getId());
 }
 
 HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
@@ -132,7 +133,7 @@ HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 	} else {
 		LOG(INFO) << "Creating new connection for client: " << id;
 		connection = new HttpConnection(this, mHostname, mPort);
-		mConnections.insert(make_pair(connection->getConnectionId(), connection));
+		mConnections.insert(make_pair(connection->getId(), connection));
 	}
 	LOG(INFO) << "Number of open HttpConnection(s): " << mConnections.size();
 	connection->setClient(this);
@@ -142,14 +143,14 @@ HttpConnection *HttpClientImpl::open(evhttp_cmd_type method, string url) {
 			HttpClientImpl::_evConnectionClosed, connection);
 
 	connection->setBusy(true);
-	mFree.erase(connection->getConnectionId());
+	mFree.erase(connection->getId());
 	return connection;
 }
 
 void HttpClientImpl::close(HttpConnection *connection) {
 	lock_guard<mutex> lock(mMutex);
 	connection->setBusy(false);
-	mFree.insert(connection->getConnectionId());
+	mFree.insert(connection->getId());
 }
 
 void HttpClientImpl::send() {

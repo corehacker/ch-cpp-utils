@@ -162,8 +162,6 @@ HttpRequest::OnLoad &HttpRequest::onLoad(_OnLoad onload) {
 	return this->onload.set(onload);
 }
 
-
-
 void HttpRequest::_evHttpReqDone(struct evhttp_request *req, void *arg) {
 	HttpRequest *this_ = (HttpRequest *) arg;
 	this_->evHttpReqDone(req);
@@ -239,10 +237,13 @@ HttpRequest &HttpRequest::setHeader(string name, string value) {
 
 bool HttpRequest::send(size_t contentLength) {
 	struct evhttp_request *request = context->getRequest();
-	evhttp_add_header(request->output_headers, "Content-Length",
-			to_string(contentLength).data());
-	LOG(INFO) << id << " | HEADER - " << "Content-Length" << ": " <<
-			to_string(contentLength).data();
+
+	if(method != EVHTTP_REQ_GET && contentLength > 0) {
+		evhttp_add_header(request->output_headers, "Content-Length",
+				to_string(contentLength).data());
+		LOG(INFO) << id << " | HEADER - " << "Content-Length" << ": " <<
+				to_string(contentLength).data();
+	}
 
 	string fullPath = path +
 			(query.size() ? "?" + query : "") +

@@ -5,6 +5,7 @@ bin_PROGRAMS = \
 					test-fs-watch \
 					test-dirtree \
 					test-http-client \
+					test-http-client-pool \
 					test-http-thread \
 					test-http-server \
 					test-timer \
@@ -74,6 +75,14 @@ test_http_client_SOURCES = test-http-client.cpp
 test_http_client_CPPFLAGS = -I../src
 
 test_http_client_LDADD = ../src/.libs/libch-cpp-utils.a
+
+#######################
+
+test_http_client_pool_SOURCES = test-http-client-pool.cpp
+
+test_http_client_pool_CPPFLAGS = -I../src
+
+test_http_client_pool_LDADD = ../src/.libs/libch-cpp-utils.a
 
 #######################
 
